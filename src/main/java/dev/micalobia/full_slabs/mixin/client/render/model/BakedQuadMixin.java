@@ -1,4 +1,4 @@
-package dev.micalobia.full_slabs.mixin;
+package dev.micalobia.full_slabs.mixin.client.render.model;
 
 import dev.micalobia.full_slabs.client.render.model.IBakedQuad;
 import net.minecraft.client.render.model.BakedQuad;
