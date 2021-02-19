@@ -25,6 +25,7 @@
   "mixins": [
     "full_slabs.mixins.json"
   ],
+  "accessWidener": "full_slabs.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.7.4",
