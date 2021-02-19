@@ -4,6 +4,7 @@
   "package": "dev.micalobia.full_slabs.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "BakedQuadMixin", "ModelLoaderMixin"
   ],
   "client": [
   ],

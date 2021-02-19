@@ -20,6 +20,9 @@
   "entrypoints": {
     "main": [
       "dev.micalobia.full_slabs.FullSlabsCommon"
+    ],
+    "client": [
+      "dev.micalobia.full_slabs.FullSlabsClient"
     ]
   },
   "mixins": [
