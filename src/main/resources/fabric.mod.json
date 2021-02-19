@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "full_slabs",
+  "version": "${version}",
+
+  "name": "Full Slabs",
+  "description": "This adds vertical and mixed slabs into the game!",
+  "authors": [
+    "Micalobia"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+
+  "license": "CC0-1.0",
+  "icon": "assets/full_slabs/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.micalobia.full_slabs.FullSlabsCommon"
+    ]
+  },
+  "mixins": [
+    "full_slabs.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "fabric": "*",
+    "minecraft": "1.16.x"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
