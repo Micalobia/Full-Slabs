@@ -1,7 +1,7 @@
 package dev.micalobia.full_slabs.block.entity;
 
+import dev.micalobia.full_slabs.util.Helper;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
@@ -9,7 +9,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
 	private BlockState positiveState;
@@ -36,18 +35,6 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 		return negativeState;
 	}
 
-	private Identifier fetchId(BlockState state) {
-		return Registry.BLOCK.getId(state.getBlock());
-	}
-
-	private Block fetchBlock(Identifier id) {
-		return Registry.BLOCK.get(id);
-	}
-
-	private BlockState fetchDefaultState(Identifier id) {
-		return fetchBlock(id).getDefaultState();
-	}
-
 	public CompoundTag toTag(CompoundTag tag) {
 		super.toTag(tag);
 		return toClientTag(tag);
@@ -59,14 +46,14 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 	}
 
 	public CompoundTag toClientTag(CompoundTag tag) {
-		tag.putString("positive_id", fetchId(positiveState).toString());
-		tag.putString("negative_id", fetchId(negativeState).toString());
+		tag.putString("positive_id", Helper.fetchId(positiveState.getBlock()).toString());
+		tag.putString("negative_id", Helper.fetchId(negativeState.getBlock()).toString());
 		return tag;
 	}
 
 	public void fromClientTag(CompoundTag tag) {
 		// TODO: Make it so it actually selects the right state instead of the default one
-		positiveState = fetchDefaultState(new Identifier(tag.getString("positive_id")));
-		negativeState = fetchDefaultState(new Identifier(tag.getString("positive_id")));
+		positiveState = Helper.fetchDefaultState(new Identifier(tag.getString("positive_id")));
+		negativeState = Helper.fetchDefaultState(new Identifier(tag.getString("positive_id")));
 	}
 }

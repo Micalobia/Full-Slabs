@@ -17,13 +17,13 @@ public class LinkedSlabs {
 		horizontal = new HashMap<>();
 	}
 
-	public static void register(SlabBlock slab, VerticalSlabBlock verticalSlab) {
+	public static void link(SlabBlock slab, VerticalSlabBlock verticalSlab) {
 		vertical.put(slab, verticalSlab);
 		horizontal.put(verticalSlab, slab);
 	}
 
-	public static void register(Block slab, Block verticalSlab) {
-		register((SlabBlock) slab, (VerticalSlabBlock) verticalSlab);
+	public static void link(Block slab, Block verticalSlab) {
+		link((SlabBlock) slab, (VerticalSlabBlock) verticalSlab);
 	}
 
 	public static boolean contains(Block slab) {

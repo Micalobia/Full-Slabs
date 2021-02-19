@@ -1,10 +1,13 @@
 package dev.micalobia.full_slabs.block;
 
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
+import dev.micalobia.full_slabs.util.Helper;
+import dev.micalobia.full_slabs.util.LinkedSlabs;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
-import net.minecraft.block.Material;
+import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 public class Blocks {
@@ -12,11 +15,20 @@ public class Blocks {
 	public static final BlockEntityType<FullSlabBlockEntity> FULL_SLAB_BLOCK_ENTITY;
 
 	static {
+		Registry.BLOCK.forEach(Blocks::generateVerticalPair);
 		FULL_SLAB_BLOCK = register("full_slabs:full_slab_block", new FullSlabBlock(FabricBlockSettings.copyOf(net.minecraft.block.Blocks.BEDROCK)));
 		FULL_SLAB_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "full_slabs:full_slab", BlockEntityType.Builder.create(FullSlabBlockEntity::new, Blocks.FULL_SLAB_BLOCK).build(null));
 	}
 
 	private static <T extends Block> T register(String id, T block) {
 		return Registry.register(Registry.BLOCK, id, block);
+	}
+
+	private static void generateVerticalPair(Block block) {
+		if (!(block instanceof SlabBlock)) return;
+		Identifier base = Helper.fetchId(block);
+		Identifier vertical = new Identifier("full_slabs", base.getNamespace() + "_" + base.getPath() + "_vertical");
+		Block verticalSlab = register(vertical.toString(), new VerticalSlabBlock(FabricBlockSettings.copyOf(block), false));
+		LinkedSlabs.link(block, verticalSlab);
 	}
 }
