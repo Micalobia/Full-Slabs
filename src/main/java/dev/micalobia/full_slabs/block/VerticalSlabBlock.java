@@ -41,8 +41,11 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
 		EAST_SHAPE = Block.createCuboidShape(8.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
 	}
 
-	public VerticalSlabBlock(Settings settings) {
+	public final boolean tiltable;
+
+	public VerticalSlabBlock(Settings settings, boolean tiltable) {
 		super(settings);
+		this.tiltable = tiltable;
 		setDefaultState(getDefaultState().with(AXIS, Axis.X).with(STATE, SlabState.NEGATIVE).with(WATERLOGGED, false));
 	}
 
