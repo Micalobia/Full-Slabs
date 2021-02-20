@@ -4,6 +4,7 @@ import net.minecraft.block.enums.SlabType;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
+import net.minecraft.util.math.Direction.AxisDirection;
 import org.jetbrains.annotations.Nullable;
 
 public enum SlabState implements StringIdentifiable {
@@ -41,6 +42,19 @@ public enum SlabState implements StringIdentifiable {
 			case NEGATIVE: return SlabType.BOTTOM;
 			default: return SlabType.DOUBLE;
 		}
+	}
+
+	@Nullable
+	public AxisDirection axisDirection() {
+		switch(this) {
+			case POSITIVE: return AxisDirection.POSITIVE;
+			case NEGATIVE: return AxisDirection.NEGATIVE;
+			default: return null;
+		}
+	}
+
+	public static SlabState fromAxisDirection(AxisDirection axisDir) {
+		return axisDir == AxisDirection.POSITIVE ? POSITIVE : NEGATIVE;
 	}
 
 	public static SlabState fromSlabType(SlabType type) {

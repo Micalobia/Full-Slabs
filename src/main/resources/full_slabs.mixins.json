@@ -3,9 +3,7 @@
   "minVersion": "0.8",
   "package": "dev.micalobia.full_slabs.mixin",
   "compatibilityLevel": "JAVA_8",
-  "mixins": [
-    "client.render.model.BakedQuadMixin"
-  ],
+  "mixins": ["block.SlabBlockMixin", "client.render.model.BakedQuadMixin"],
   "client": [
   ],
   "injectors": {

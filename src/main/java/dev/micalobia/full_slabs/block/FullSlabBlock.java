@@ -22,10 +22,10 @@ public class FullSlabBlock extends BlockWithEntity {
 
 	static {
 		AXIS = Properties.AXIS;
-		NORTH_SHAPE = VerticalSlabBlock.NORTH_SHAPE;
-		EAST_SHAPE = VerticalSlabBlock.EAST_SHAPE;
-		SOUTH_SHAPE = VerticalSlabBlock.SOUTH_SHAPE;
-		WEST_SHAPE = VerticalSlabBlock.WEST_SHAPE;
+		NORTH_SHAPE = VerticalSlabBlock.NORTH_OUTLINE_SHAPE;
+		EAST_SHAPE = VerticalSlabBlock.EAST_OUTLINE_SHAPE;
+		SOUTH_SHAPE = VerticalSlabBlock.SOUTH_OUTLINE_SHAPE;
+		WEST_SHAPE = VerticalSlabBlock.WEST_OUTLINE_SHAPE;
 		TOP_SHAPE = SlabBlock.TOP_SHAPE;
 		BOTTOM_SHAPE = SlabBlock.BOTTOM_SHAPE;
 	}

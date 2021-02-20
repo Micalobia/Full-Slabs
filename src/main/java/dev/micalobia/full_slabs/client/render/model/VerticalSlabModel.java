@@ -1,7 +1,6 @@
 package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.datafixers.util.Pair.Mu;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
@@ -19,7 +18,6 @@ import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.model.*;
-import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.client.render.model.json.ModelOverrideList;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
@@ -40,7 +38,7 @@ import java.util.function.Supplier;
 
 public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedModel {
 	private static final SpriteIdentifier MISSINGNO_ID = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("minecraft:builtin/missing"));
-	private Sprite missingno;
+	private Sprite particle;
 	private final SlabBlock base;
 	private final BlockState cachedState;
 	private Mesh mesh;
@@ -53,7 +51,6 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 		String[] states = id.getVariant().split(",");
 		Axis axis = Axis.X;
 		SlabState slabState = SlabState.DOUBLE;
-		System.out.println("==== " + baseId + " ====");
 		for(String state : states) {
 			String[] pairs = state.split("=");
 			String value = pairs[1];
@@ -88,8 +85,7 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 
 	@Nullable
 	public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
-		missingno = textureGetter.apply(MISSINGNO_ID);
-		//mesh = createMesh();
+		//particle = textureGetter.apply(MISSINGNO_ID);
 		return this;
 	}
 
@@ -114,7 +110,7 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 	}
 
 	public Sprite getSprite() {
-		return missingno;
+		return particle;
 	}
 
 	public ModelTransformation getTransformation() {
@@ -150,6 +146,7 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 			Sprite topSprite = ((IBakedQuad) model.getQuads(baseState, null, null).get(0)).getSprite();
 			Sprite bottomSprite = ((IBakedQuad) model.getQuads(baseState, Direction.DOWN, null).get(0)).getSprite();
 			Sprite sideSprite = ((IBakedQuad) model.getQuads(baseState, Direction.NORTH, null).get(0)).getSprite();
+			particle = sideSprite;
 
 			if (slabState == SlabState.DOUBLE) {
 				finalize(fullSquare(emitter, Direction.UP, 0f), topSprite, MutableQuadView.BAKE_LOCK_UV);
