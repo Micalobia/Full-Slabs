@@ -78,6 +78,26 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 		return emitter.square(from, 0f, 0f, 1f, 0.5f, 0f);
 	}
 
+	private static int getUV(BlockState state, Direction from, Axis axis) {
+		VerticalSlabBlock block = (VerticalSlabBlock) state.getBlock();
+		if(!block.tiltable) return MutableQuadView.BAKE_LOCK_UV;
+		if(axis == Axis.X) {
+			return MutableQuadView.BAKE_LOCK_UV |
+					MutableQuadView.BAKE_ROTATE_90 |
+					(from == Direction.NORTH ? MutableQuadView.BAKE_FLIP_U : MutableQuadView.BAKE_FLIP_V);
+		}
+		switch(from) {
+			case UP:
+				return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_180;
+			case DOWN:
+				return MutableQuadView.BAKE_LOCK_UV;
+			case EAST:
+				return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_270;
+			default:
+				return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_90 | MutableQuadView.BAKE_FLIP_V;
+		}
+	}
+
 	public Collection<Identifier> getModelDependencies() {
 		return Collections.emptyList();
 	}
@@ -113,8 +133,7 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 	}
 
 	public Sprite getSprite() {
-		throw new RuntimeException("nerd");
-		//return missingParticle;
+		return missingParticle;
 	}
 
 	public ModelTransformation getTransformation() {
@@ -237,21 +256,5 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 				break;
 		}
 		return builder.build();
-	}
-
-	private static int getUV(BlockState state, Direction from, Axis axis) {
-		VerticalSlabBlock block = (VerticalSlabBlock) state.getBlock();
-		if(!block.tiltable) return MutableQuadView.BAKE_LOCK_UV;
-		if(axis == Axis.X) {
-			return MutableQuadView.BAKE_LOCK_UV |
-					MutableQuadView.BAKE_ROTATE_90 |
-					(from == Direction.NORTH ? MutableQuadView.BAKE_FLIP_U : MutableQuadView.BAKE_FLIP_V);
-		}
-		switch(from) {
-			case UP: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_180;
-			case DOWN: return MutableQuadView.BAKE_LOCK_UV;
-			case EAST: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_270;
-			default: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_90 | MutableQuadView.BAKE_FLIP_V;
-		}
 	}
 }
