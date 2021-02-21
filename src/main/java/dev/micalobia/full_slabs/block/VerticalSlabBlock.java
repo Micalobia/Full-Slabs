@@ -5,12 +5,14 @@ import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -82,6 +84,7 @@ public class VerticalSlabBlock extends Block implements Waterloggable, ISlabBloc
 			boolean positive = isInside(state.with(STATE, SlabState.NEGATIVE), hit.getPos(), pos);
 			int cas = positive ? 1 : 0;
 			cas |= (axis == Axis.X ? 2 : 0);
+
 			switch(cas) {
 				case 0: return NORTH_OUTLINE_SHAPE;
 				case 1: return SOUTH_OUTLINE_SHAPE;

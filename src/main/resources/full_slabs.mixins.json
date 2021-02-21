@@ -3,7 +3,11 @@
   "minVersion": "0.8",
   "package": "dev.micalobia.full_slabs.mixin",
   "compatibilityLevel": "JAVA_8",
-  "mixins": ["block.SlabBlockMixin", "client.render.model.BakedQuadMixin"],
+  "mixins": [
+    "block.SlabBlockMixin", "client.network.ClientPlayerInteractionManagerMixin",
+    "client.particle.ParticleManagerMixin", "client.render.model.BakedQuadMixin", "EntityMixin.EntityMixin",
+    "item.BlockItemMixin", "server.network.ServerPlayerInteractionManagerMixin"
+  ],
   "client": [
   ],
   "injectors": {

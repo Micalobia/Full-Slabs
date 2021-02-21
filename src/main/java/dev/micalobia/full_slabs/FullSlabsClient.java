@@ -7,5 +7,6 @@ import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 public class FullSlabsClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		ModelLoadingRegistry.INSTANCE.registerVariantProvider(vm -> new SlabModelProvider());
+		ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new SlabModelProvider());
 	}
 }

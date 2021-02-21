@@ -1,6 +1,7 @@
 package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
+import com.mojang.datafixers.util.Pair.Mu;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
@@ -21,7 +22,6 @@ import net.minecraft.client.render.model.*;
 import net.minecraft.client.render.model.json.ModelOverrideList;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.item.ItemStack;
@@ -37,10 +37,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedModel {
-	private static final SpriteIdentifier MISSINGNO_ID = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("minecraft:builtin/missing"));
-	private Sprite particle;
 	private final SlabBlock base;
 	private final BlockState cachedState;
+	private Sprite particle;
 	private Mesh mesh;
 
 	public VerticalSlabModel(ModelIdentifier id) {
@@ -75,132 +74,20 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 		this.cachedState = Helper.fetchDefaultState(new Identifier(id.getNamespace(), id.getPath())).with(VerticalSlabBlock.AXIS, axis).with(VerticalSlabBlock.STATE, slabState);
 	}
 
-	public Collection<Identifier> getModelDependencies() {
-		return Collections.emptyList();
-	}
-
-	public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
-		return Collections.emptyList();
-	}
-
-	@Nullable
-	public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
-		//particle = textureGetter.apply(MISSINGNO_ID);
-		return this;
-	}
-
-	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, Random random) {
-		return null;
-	}
-
-	public boolean useAmbientOcclusion() {
-		return true;
-	}
-
-	public boolean isBuiltin() {
-		return false;
-	}
-
-	public boolean hasDepth() {
-		return false;
-	}
-
-	public boolean isSideLit() {
-		return false;
-	}
-
-	public Sprite getSprite() {
-		return particle;
-	}
-
-	public ModelTransformation getTransformation() {
-		return null;
-	}
-
-	public ModelOverrideList getOverrides() {
-		return null;
-	}
-
-	public boolean isVanillaAdapter() {
-		return false;
-	}
-
-	public void emitBlockQuads(BlockRenderView blockRenderView, BlockState blockState, BlockPos blockPos, Supplier<Random> supplier, RenderContext renderContext) {
-//		System.out.println("====\n" + cachedState);
-//		renderContext.meshConsumer().accept(getOrCreateMesh(blockState, supplier.get()));
-		if(mesh == null) mesh = createMesh();
-		renderContext.meshConsumer().accept(mesh);
-	}
-
-	private Mesh createMesh() {
-		Renderer renderer = RendererAccess.INSTANCE.getRenderer();
-		MeshBuilder builder = renderer.meshBuilder();
-		try {
-			BlockRenderManager manager = MinecraftClient.getInstance().getBlockRenderManager();
-			BlockState baseState = base.getDefaultState().with(SlabBlock.TYPE, SlabType.BOTTOM);
-			BakedModel model = manager.getModel(baseState);
-
-			QuadEmitter emitter = builder.getEmitter();
-			SlabState slabState = cachedState.get(VerticalSlabBlock.STATE);
-			Axis axis = cachedState.get(VerticalSlabBlock.AXIS);
-			Sprite topSprite = ((IBakedQuad) model.getQuads(baseState, null, null).get(0)).getSprite();
-			Sprite bottomSprite = ((IBakedQuad) model.getQuads(baseState, Direction.DOWN, null).get(0)).getSprite();
-			Sprite sideSprite = ((IBakedQuad) model.getQuads(baseState, Direction.NORTH, null).get(0)).getSprite();
-			particle = sideSprite;
-
-			if (slabState == SlabState.DOUBLE) {
-				finalize(fullSquare(emitter, Direction.UP, 0f), topSprite, MutableQuadView.BAKE_LOCK_UV);
-				finalize(fullSquare(emitter, Direction.DOWN, 0f), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
-				finalize(fullSquare(emitter, Direction.NORTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-				finalize(fullSquare(emitter, Direction.EAST, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-				finalize(fullSquare(emitter, Direction.SOUTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-				finalize(fullSquare(emitter, Direction.WEST, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-			}
-			else {
-				if (slabState == SlabState.POSITIVE) {
-					if (axis == Axis.X) {
-						finalize(fullSquare(emitter, Direction.WEST, 0.5f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(fullSquare(emitter, Direction.EAST, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(rightSquare(emitter, Direction.SOUTH), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(rightSquare(emitter, Direction.UP), topSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(rightSquare(emitter, Direction.DOWN), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(leftSquare(emitter, Direction.NORTH), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-					} else {
-						finalize(fullSquare(emitter, Direction.NORTH, 0.5f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(fullSquare(emitter, Direction.SOUTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(leftSquare(emitter, Direction.EAST), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(rightSquare(emitter, Direction.WEST), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(bottomSquare(emitter, Direction.UP), topSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(topSquare(emitter, Direction.DOWN), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
-					}
-				} else {
-					if (axis == Axis.X) {
-						finalize(fullSquare(emitter, Direction.WEST, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(fullSquare(emitter, Direction.EAST, 0.5f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(leftSquare(emitter, Direction.SOUTH), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(leftSquare(emitter, Direction.UP), topSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(leftSquare(emitter, Direction.DOWN), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(rightSquare(emitter, Direction.NORTH), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-					} else {
-						finalize(fullSquare(emitter, Direction.NORTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(fullSquare(emitter, Direction.SOUTH, 0.5f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(rightSquare(emitter, Direction.EAST), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(leftSquare(emitter, Direction.WEST), sideSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(topSquare(emitter, Direction.UP), topSprite, MutableQuadView.BAKE_LOCK_UV);
-						finalize(bottomSquare(emitter, Direction.DOWN), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
-					}
-				}
-			}
-
-
-		} catch(Exception err) {
-			err.printStackTrace();
+	private static int getUV(BlockState state, Direction from, Axis axis) {
+		VerticalSlabBlock block = (VerticalSlabBlock) state.getBlock();
+		if(!block.tiltable) return MutableQuadView.BAKE_LOCK_UV;
+		if(axis == Axis.X) {
+			return MutableQuadView.BAKE_LOCK_UV |
+					MutableQuadView.BAKE_ROTATE_90 |
+					(from == Direction.NORTH ? MutableQuadView.BAKE_FLIP_U : MutableQuadView.BAKE_FLIP_V);
 		}
-		return builder.build();
-	}
-
-	public void emitItemQuads(ItemStack itemStack, Supplier<Random> supplier, RenderContext renderContext) {
-
+		switch(from) {
+			case UP: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_180;
+			case DOWN: return MutableQuadView.BAKE_LOCK_UV;
+			case EAST: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_270;
+			default: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_90 | MutableQuadView.BAKE_FLIP_V;
+		}
 	}
 
 	private static QuadEmitter finalize(QuadEmitter emitter, Sprite sprite, int uv) {
@@ -227,5 +114,144 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 
 	private static QuadEmitter bottomSquare(QuadEmitter emitter, Direction from) {
 		return emitter.square(from, 0f, 0f, 1f, 0.5f, 0f);
+	}
+
+	public Collection<Identifier> getModelDependencies() {
+		return Collections.emptyList();
+	}
+
+	public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
+		return Collections.emptyList();
+	}
+
+	@Nullable
+	public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
+		//particle = textureGetter.apply(MISSINGNO_ID);
+		return this;
+	}
+
+	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, Random random) {
+		return null;
+	}
+
+	public boolean useAmbientOcclusion() {
+		return true;
+	}
+
+	public boolean hasDepth() {
+		return false;
+	}
+
+	public boolean isSideLit() {
+		return false;
+	}
+
+	public boolean isBuiltin() {
+		return false;
+	}
+
+	public Sprite getSprite() {
+		if(mesh == null) mesh = createMesh();
+		return particle;
+	}
+
+	public ModelTransformation getTransformation() {
+		return null;
+	}
+
+	public ModelOverrideList getOverrides() {
+		return null;
+	}
+
+	public boolean isVanillaAdapter() {
+		return false;
+	}
+
+	public void emitBlockQuads(BlockRenderView blockRenderView, BlockState blockState, BlockPos blockPos, Supplier<Random> supplier, RenderContext renderContext) {
+		if(mesh == null) mesh = createMesh();
+		renderContext.meshConsumer().accept(mesh);
+	}
+
+	public void emitItemQuads(ItemStack itemStack, Supplier<Random> supplier, RenderContext renderContext) {
+
+	}
+
+	private Mesh createMesh() {
+		Renderer renderer = RendererAccess.INSTANCE.getRenderer();
+		MeshBuilder builder = renderer.meshBuilder();
+		try {
+			BlockRenderManager manager = MinecraftClient.getInstance().getBlockRenderManager();
+			BlockState baseState = base.getDefaultState().with(SlabBlock.TYPE, SlabType.BOTTOM);
+			BakedModel model = manager.getModel(baseState);
+
+			QuadEmitter emitter = builder.getEmitter();
+			SlabState slabState = cachedState.get(VerticalSlabBlock.STATE);
+			Axis axis = cachedState.get(VerticalSlabBlock.AXIS);
+			Sprite topSprite = ((IBakedQuad) model.getQuads(baseState, null, null).get(0)).getSprite();
+			Sprite bottomSprite = ((IBakedQuad) model.getQuads(baseState, Direction.DOWN, null).get(0)).getSprite();
+			Sprite sideSprite = ((IBakedQuad) model.getQuads(baseState, Direction.NORTH, null).get(0)).getSprite();
+			particle = sideSprite;
+
+			boolean tilted = ((VerticalSlabBlock) cachedState.getBlock()).tiltable;
+			if(slabState == SlabState.DOUBLE) {
+				if (tilted) {
+					boolean x = axis == Axis.X;
+					boolean z = axis == Axis.Z;
+					finalize(fullSquare(emitter, Direction.UP, 0f), sideSprite, getUV(cachedState, Direction.UP, axis));
+					finalize(fullSquare(emitter, Direction.DOWN, 0f), sideSprite, getUV(cachedState, Direction.DOWN, axis));
+					finalize(fullSquare(emitter, Direction.EAST, 0f), x ? topSprite : sideSprite, x ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.EAST, axis));
+					finalize(fullSquare(emitter, Direction.WEST, 0f), x ? bottomSprite : sideSprite, x ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.WEST, axis));
+					finalize(fullSquare(emitter, Direction.NORTH, 0f), z ? bottomSprite : sideSprite, z ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.NORTH, axis));
+					finalize(fullSquare(emitter, Direction.SOUTH, 0f), z ? topSprite : sideSprite, z ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.SOUTH, axis));
+				}
+				else {
+					finalize(fullSquare(emitter, Direction.UP, 0f), topSprite, MutableQuadView.BAKE_LOCK_UV);
+					finalize(fullSquare(emitter, Direction.DOWN, 0f), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
+					finalize(fullSquare(emitter, Direction.NORTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
+					finalize(fullSquare(emitter, Direction.EAST, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
+					finalize(fullSquare(emitter, Direction.SOUTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
+					finalize(fullSquare(emitter, Direction.WEST, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
+				}
+			} else {
+				if(slabState == SlabState.POSITIVE) {
+					if(axis == Axis.X) {
+						finalize(fullSquare(emitter, Direction.WEST, 0.5f), tilted ? bottomSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(fullSquare(emitter, Direction.EAST, 0f), tilted ? topSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(rightSquare(emitter, Direction.SOUTH), sideSprite, getUV(cachedState, Direction.SOUTH, axis));
+						finalize(rightSquare(emitter, Direction.UP), tilted ? sideSprite : topSprite, getUV(cachedState, Direction.UP, axis));
+						finalize(rightSquare(emitter, Direction.DOWN), tilted ? sideSprite : bottomSprite, getUV(cachedState, Direction.DOWN, axis));
+						finalize(leftSquare(emitter, Direction.NORTH), sideSprite, getUV(cachedState, Direction.NORTH, axis));
+					} else {
+						finalize(fullSquare(emitter, Direction.NORTH, 0.5f), tilted ? bottomSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(fullSquare(emitter, Direction.SOUTH, 0f), tilted ? topSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(leftSquare(emitter, Direction.EAST), sideSprite, getUV(cachedState, Direction.EAST, axis));
+						finalize(rightSquare(emitter, Direction.WEST), sideSprite, getUV(cachedState, Direction.WEST, axis));
+						finalize(bottomSquare(emitter, Direction.UP), tilted ? sideSprite : topSprite, getUV(cachedState, Direction.UP, axis));
+						finalize(topSquare(emitter, Direction.DOWN), tilted ? sideSprite : bottomSprite, getUV(cachedState, Direction.DOWN, axis));
+					}
+				} else {
+					if(axis == Axis.X) {
+						finalize(fullSquare(emitter, Direction.WEST, 0f), tilted ? bottomSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(fullSquare(emitter, Direction.EAST, 0.5f), tilted ? topSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(leftSquare(emitter, Direction.SOUTH), sideSprite, getUV(cachedState, Direction.SOUTH, axis));
+						finalize(leftSquare(emitter, Direction.UP), tilted ? sideSprite : topSprite, getUV(cachedState, Direction.UP, axis));
+						finalize(leftSquare(emitter, Direction.DOWN), tilted ? sideSprite : bottomSprite, getUV(cachedState, Direction.DOWN, axis));
+						finalize(rightSquare(emitter, Direction.NORTH), sideSprite, getUV(cachedState, Direction.NORTH, axis));
+					} else {
+						finalize(fullSquare(emitter, Direction.NORTH, 0f), tilted ? bottomSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(fullSquare(emitter, Direction.SOUTH, 0.5f), tilted ? topSprite : sideSprite, MutableQuadView.BAKE_LOCK_UV);
+						finalize(rightSquare(emitter, Direction.EAST), sideSprite, getUV(cachedState, Direction.EAST, axis));
+						finalize(leftSquare(emitter, Direction.WEST), sideSprite, getUV(cachedState, Direction.WEST, axis));
+						finalize(topSquare(emitter, Direction.UP), tilted ? sideSprite : topSprite, getUV(cachedState, Direction.UP, axis));
+						finalize(bottomSquare(emitter, Direction.DOWN), tilted ? sideSprite : bottomSprite, getUV(cachedState, Direction.DOWN, axis));
+					}
+				}
+			}
+
+
+		} catch(Exception err) {
+			err.printStackTrace();
+		}
+		return builder.build();
 	}
 }

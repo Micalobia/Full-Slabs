@@ -12,13 +12,19 @@ import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-public class SlabModelProvider implements ModelVariantProvider {
-
+public class SlabModelProvider implements ModelVariantProvider, ModelResourceProvider {
 	@Override
 	public @Nullable UnbakedModel loadModelVariant(ModelIdentifier modelIdentifier, ModelProviderContext modelProviderContext) throws ModelProviderException {
-		if (!"full_slabs".equals(modelIdentifier.getNamespace())) return null;
+		if(!"full_slabs".equals(modelIdentifier.getNamespace())) return null;
 		String path = modelIdentifier.getPath();
-		if ("full_slab_block".equals(path)) return null; //TODO: Make FullSlabBlockModel
+		if("full_slab_block".equals(path)) return null;
 		return new VerticalSlabModel(modelIdentifier);
+	}
+
+	@Override
+	public @Nullable UnbakedModel loadModelResource(Identifier identifier, ModelProviderContext modelProviderContext) throws ModelProviderException {
+		if("full_slabs:block/full_slab_block".equals(identifier.toString()))
+			return new FullSlabModel();
+		return null;
 	}
 }

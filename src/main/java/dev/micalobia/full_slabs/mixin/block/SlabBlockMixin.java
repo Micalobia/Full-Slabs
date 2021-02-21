@@ -1,8 +1,7 @@
 package dev.micalobia.full_slabs.mixin.block;
 
+import dev.micalobia.full_slabs.block.*;
 import dev.micalobia.full_slabs.block.Blocks;
-import dev.micalobia.full_slabs.block.ISlabBlock;
-import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
@@ -12,7 +11,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.util.hit.HitResult;
@@ -27,7 +25,6 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.CallbackI.V;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -71,10 +68,11 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 		BlockState state = world.getBlockState(pos);
 		Block block = state.getBlock();
 
+		Direction dir = ctx.getSide().getOpposite();
+		Axis axis = dir.getAxis();
+
 		if(state.isAir()) { // Just placed normally
 			FluidState fluidState = world.getFluidState(pos);
-			Direction dir = ctx.getSide().getOpposite();
-			Axis axis = dir.getAxis();
 			if(axis.isVertical()) {
 				return getDefaultState()
 						.with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
@@ -93,7 +91,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 					return state.with(TYPE, SlabType.DOUBLE).with(WATERLOGGED, false);
 				else return state.with(VerticalSlabBlock.STATE, SlabState.DOUBLE).with(WATERLOGGED, false);
 			} else { //This is a slab of a different type
-				return Blocks.FULL_SLAB_BLOCK.getDefaultState(); // TODO: Make this actually mix slabs
+				return Blocks.FULL_SLAB_BLOCK.getDefaultState().with(FullSlabBlock.AXIS, axis);
 			}
 		}
 	}
@@ -155,7 +153,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 	}
 
 	static {
-		BOTTOM_OUTLINE_SHAPE = Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 8.05D, 16.0D);
-		TOP_OUTLINE_SHAPE = Block.createCuboidShape(0.0D, 7.95D, 0.0D, 16.0D, 16.0D, 16.0D);
+		TOP_OUTLINE_SHAPE = SlabBlockConstants.TOP_OUTLINE_SHAPE;
+		BOTTOM_OUTLINE_SHAPE = SlabBlockConstants.BOTTOM_OUTLINE_SHAPE;
 	}
 }
