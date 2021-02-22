@@ -179,7 +179,8 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 					return state.with(TYPE, SlabType.DOUBLE).with(WATERLOGGED, false);
 				else return state.with(VerticalSlabBlock.STATE, SlabState.DOUBLE).with(WATERLOGGED, false);
 			} else { //This is a slab of a different type
-				return Blocks.FULL_SLAB_BLOCK.getDefaultState().with(FullSlabBlock.AXIS, axis);
+				Axis prevAxis = Helper.axisFromSlab(state);
+				return Blocks.FULL_SLAB_BLOCK.getDefaultState().with(FullSlabBlock.AXIS, prevAxis);
 			}
 		}
 	}
