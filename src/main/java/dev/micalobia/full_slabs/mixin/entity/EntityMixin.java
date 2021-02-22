@@ -1,4 +1,4 @@
-package dev.micalobia.full_slabs.mixin.EntityMixin;
+package dev.micalobia.full_slabs.mixin.entity;
 
 import dev.micalobia.full_slabs.block.Blocks;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
