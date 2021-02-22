@@ -52,7 +52,7 @@ public class LinkedSlabs {
 
 	@NotNull
 	public static VerticalSlabBlock vertical(Block slab) {
-		if(!contains(slab)) throw new RuntimeException("That isn't a linked slab; Are your mods loaded in the right order?");
+		if(!contains(slab)) throw new RuntimeException("That isn't a linked slab; Are your mods loaded in the right order?;" + slab);
 		if(slab instanceof SlabBlock) return vertical.get(slab);
 		if(slab instanceof VerticalSlabBlock) return (VerticalSlabBlock) slab;
 		throw new RuntimeException("The block you tried to get is linked, but not a slab!");

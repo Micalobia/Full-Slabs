@@ -5,8 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "block.SlabBlockMixin", "client.network.ClientPlayerInteractionManagerMixin",
-    "client.particle.ParticleManagerMixin", "client.render.model.BakedQuadMixin", "EntityMixin.EntityMixin",
-    "item.BlockItemMixin", "server.network.ServerPlayerInteractionManagerMixin"
+    "client.particle.ParticleManagerMixin", "client.render.block.BlockRenderManagerMixin",
+    "client.render.model.BakedQuadMixin", "EntityMixin.EntityMixin", "item.BlockItemMixin",
+    "server.network.ServerPlayerInteractionManagerMixin"
   ],
   "client": [
   ],
