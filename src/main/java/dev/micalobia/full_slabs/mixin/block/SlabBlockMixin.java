@@ -62,6 +62,10 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 		return true;
 	}
 
+	private static boolean within(double min, double value, double max) {
+		return value > min && value < max;
+	}
+
 	public BlockState getPlacementState(ItemPlacementContext ctx) {
 		BlockPos pos = ctx.getBlockPos();
 		World world = ctx.getWorld();
@@ -70,19 +74,103 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 
 		Direction dir = ctx.getSide().getOpposite();
 		Axis axis = dir.getAxis();
+		Vec3d hit = ctx.getHitPos();
 
 		if(state.isAir()) { // Just placed normally
 			FluidState fluidState = world.getFluidState(pos);
-			if(axis.isVertical()) {
-				return getDefaultState()
-						.with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-						.with(TYPE, dir.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM);
-			} else {
-				return LinkedSlabs
-						.vertical(this).getDefaultState()
-						.with(VerticalSlabBlock.WATERLOGGED, fluidState.getFluid() == Fluids.WATER)
-						.with(VerticalSlabBlock.STATE, SlabState.fromAxisDirection(dir.getDirection()))
-						.with(VerticalSlabBlock.AXIS, axis);
+
+			boolean water = fluidState.getFluid() == Fluids.WATER;
+			final double one_third = 1d/3d;
+			final double two_third = 2d/3d;
+			switch(axis) {
+				case Z:
+				{
+					double y = hit.getY() - pos.getY();
+					double x = hit.getX() - pos.getX();
+					if (within(one_third, y, two_third) && within(one_third, x, two_third))
+						return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.AXIS, Axis.Z)
+								.with(VerticalSlabBlock.STATE, SlabState.fromAxisDirection(dir.getDirection()));
+					int caseNumber = 0;
+					caseNumber |= y >= x ? 1 : 0;
+					caseNumber |= y >= -x + 1d ? 2 : 0;
+					switch(caseNumber) {
+						case 0: return this.getDefaultState()
+								.with(WATERLOGGED, water)
+								.with(TYPE, SlabType.BOTTOM);
+						case 1: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.X);
+						case 2: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.X);
+						default: return this.getDefaultState()
+								.with(WATERLOGGED, water)
+								.with(TYPE, SlabType.TOP);
+					}
+				}
+				case X:
+				{
+					double y = hit.getY() - pos.getY();
+					double z = hit.getZ() - pos.getZ();
+					if (within(one_third, y, two_third) && within(one_third, z, two_third))
+						return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.AXIS, Axis.X)
+								.with(VerticalSlabBlock.STATE, SlabState.fromAxisDirection(dir.getDirection()));
+					int caseNumber = 0;
+					caseNumber |= y >= z ? 1 : 0;
+					caseNumber |= y >= -z + 1d ? 2 : 0;
+					switch(caseNumber) {
+						case 0: return this.getDefaultState()
+								.with(WATERLOGGED, water)
+								.with(TYPE, SlabType.BOTTOM);
+						case 1: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.Z);
+						case 2: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.Z);
+						default: return this.getDefaultState()
+								.with(WATERLOGGED, water)
+								.with(TYPE, SlabType.TOP);
+					}
+				}
+				default:
+				{
+					double x = hit.getX() - pos.getX();
+					double z = hit.getZ() - pos.getZ();
+					if (within(one_third, x, two_third) && within(one_third, z, two_third))
+						return this.getDefaultState()
+								.with(WATERLOGGED, water)
+								.with(TYPE, dir.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM);
+					int caseNumber = 0;
+					caseNumber |= x >= z ? 1 : 0;
+					caseNumber |= x >= -z + 1d ? 2 : 0;
+					switch(caseNumber) {
+						case 0: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.X);
+						case 1: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.Z);
+						case 2: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.Z);
+						default: return LinkedSlabs.vertical(this).getDefaultState()
+								.with(VerticalSlabBlock.WATERLOGGED, water)
+								.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
+								.with(VerticalSlabBlock.AXIS, Axis.X);
+					}
+				}
 			}
 		} else {
 			Block horizontalBlock = LinkedSlabs.horizontal(block);
