@@ -6,7 +6,7 @@
   "mixins": [
     "block.SlabBlockMixin", "client.network.ClientPlayerInteractionManagerMixin",
     "client.particle.ParticleManagerMixin", "client.render.block.BlockRenderManagerMixin",
-    "client.render.model.BakedQuadMixin", "entity.EntityMixin", "item.BlockItemMixin",
+    "client.render.model.BakedQuadMixin", "entity.EntityMixin", "entity.LivingEntityMixin", "item.BlockItemMixin",
     "server.network.ServerPlayerInteractionManagerMixin"
   ],
   "client": [
