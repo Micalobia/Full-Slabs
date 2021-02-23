@@ -3,7 +3,6 @@ package dev.micalobia.full_slabs.client.render.model;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
-import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
@@ -43,10 +42,13 @@ import java.util.function.Supplier;
 public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel {
 	private static final SpriteIdentifier MISSINGNO_ID = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("minecraft:builtin/missing"));
 	private static final Map<Triple<Axis, Block, Block>, Mesh> cachedMeshes = new HashMap<>();
-	private Sprite positiveParticle, negativeParticle, missingParticle;
-	private Mesh mesh;
+	private Sprite missingParticle;
 
 	public FullSlabModel() {
+	}
+
+	public static void clearCachedMeshes() {
+		cachedMeshes.clear();
 	}
 
 	private static Sprite getSpriteFromFace(Direction face, BlockState state, BakedModel model) {
@@ -145,14 +147,6 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 		return null;
 	}
 
-	public Sprite getPositiveSprite() {
-		return positiveParticle;
-	}
-
-	public Sprite getNegativeParticle() {
-		return negativeParticle;
-	}
-
 	public boolean isVanillaAdapter() {
 		return false;
 	}
@@ -200,9 +194,6 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 				getSpriteFromFace(Direction.DOWN, negativeState, negativeModel),
 				getSpriteFromFace(Direction.NORTH, negativeState, negativeModel)
 		};
-
-		positiveParticle = positiveSprites[side];
-		negativeParticle = negativeSprites[side];
 
 		BlockState cachedPositive = Helper.getState(positiveSlab, axis, true);
 		BlockState cachedNegative = Helper.getState(negativeSlab, axis, false);
