@@ -1,8 +1,10 @@
 package dev.micalobia.full_slabs.block.entity;
 
+import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -14,8 +16,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 
-public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable, RenderAttachmentBlockEntity {
 	private Block positiveSlab;
 	private Block negativeSlab;
 
@@ -67,5 +70,10 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 
 	public Block getOppositeSlab(Vec3d hit, BlockPos pos, Axis axis) {
 		return Helper.isPositive(hit, pos, axis) ? getNegativeSlab() : getPositiveSlab();
+	}
+
+	@Override
+	public @Nullable Object getRenderAttachmentData() {
+		return new Pair<>(positiveSlab, negativeSlab);
 	}
 }

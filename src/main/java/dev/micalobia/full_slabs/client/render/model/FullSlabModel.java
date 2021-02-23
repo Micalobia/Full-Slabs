@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
@@ -157,26 +158,27 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 	}
 
 	public void emitBlockQuads(BlockRenderView blockRenderView, BlockState blockState, BlockPos blockPos, Supplier<Random> supplier, RenderContext renderContext) {
-		FullSlabBlockEntity entity = (FullSlabBlockEntity) blockRenderView.getBlockEntity(blockPos);
-		renderContext.meshConsumer().accept(getOrCreateMesh(blockState, entity));
+		//FullSlabBlockEntity entity = (FullSlabBlockEntity) blockRenderView.getBlockEntity(blockPos);
+		RenderAttachedBlockView view = (RenderAttachedBlockView) blockRenderView;
+		renderContext.meshConsumer().accept(getOrCreateMesh(blockState, (Pair<Block, Block>) view.getBlockEntityRenderAttachment(blockPos)));
 	}
 
 	public void emitItemQuads(ItemStack itemStack, Supplier<Random> supplier, RenderContext renderContext) {
 
 	}
 
-	private Mesh getOrCreateMesh(BlockState state, FullSlabBlockEntity entity) {
-		if(entity == null) return RendererAccess.INSTANCE.getRenderer().meshBuilder().build();
-		Triple<Axis, Block, Block> key = Triple.of(state.get(FullSlabBlock.AXIS), entity.getPositiveSlab(), entity.getNegativeSlab());
+	private Mesh getOrCreateMesh(BlockState state, Pair<Block, Block> slabs) {
+		//if(entity == null) return RendererAccess.INSTANCE.getRenderer().meshBuilder().build();
+		Triple<Axis, Block, Block> key = Triple.of(state.get(FullSlabBlock.AXIS), slabs.getFirst(), slabs.getSecond());
 		Mesh ret = cachedMeshes.get(key);
-		if(ret == null) cachedMeshes.put(key, ret = createMesh(state, entity));
+		if(ret == null) cachedMeshes.put(key, ret = createMesh(state, slabs));
 		return ret;
 	}
 
-	private Mesh createMesh(BlockState state, FullSlabBlockEntity entity) {
+	private Mesh createMesh(BlockState state, Pair<Block, Block> slabs) {
 		Axis axis = state.get(FullSlabBlock.AXIS);
-		Block positiveSlab = entity.getPositiveSlab();
-		Block negativeSlab = entity.getNegativeSlab();
+		Block positiveSlab = slabs.getFirst();  // entity.getPositiveSlab();
+		Block negativeSlab = slabs.getSecond(); // entity.getNegativeSlab();
 		BlockRenderManager manager = MinecraftClient.getInstance().getBlockRenderManager();
 		BlockState positiveState = positiveSlab.getDefaultState().with(SlabBlock.TYPE, SlabType.BOTTOM);
 		BlockState negativeState = negativeSlab.getDefaultState().with(SlabBlock.TYPE, SlabType.BOTTOM);
