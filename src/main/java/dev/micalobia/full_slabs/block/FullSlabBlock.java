@@ -1,12 +1,14 @@
 package dev.micalobia.full_slabs.block;
 
+import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
-import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
@@ -65,6 +67,31 @@ public class FullSlabBlock extends BlockWithEntity {
 		return new FullSlabBlockEntity();
 	}
 
+	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
+		return VoxelShapes.fullCube();
+	}
+
+	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+		Axis axis = state.get(AXIS);
+		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
+		if(hitResult == null) return VoxelShapes.fullCube();
+		Vec3d hit = hitResult.getPos();
+		boolean positive = Helper.isPositive(hit, pos, axis);
+		switch(axis) {
+			case X:
+				return positive ? EAST_OUTLINE_SHAPE : WEST_OUTLINE_SHAPE;
+			case Y:
+				return positive ? TOP_OUTLINE_SHAPE : BOTTOM_OUTLINE_SHAPE;
+			case Z:
+				return positive ? SOUTH_OUTLINE_SHAPE : NORTH_OUTLINE_SHAPE;
+		}
+		return VoxelShapes.fullCube(); // Should never reach here, but it's a good default
+	}
+
+	public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+		return VoxelShapes.fullCube(); // Should never reach here, but it's a good default
+	}
+
 	public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
 		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
 		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
@@ -75,29 +102,14 @@ public class FullSlabBlock extends BlockWithEntity {
 		return hitSlab.calcBlockBreakingDelta(hitState, player, world, pos);
 	}
 
-	@Override
-	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-		return VoxelShapes.fullCube();
-	}
-
-	@Override
-	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
+		RenderAttachedBlockView view = (RenderAttachedBlockView) world;
+		Pair<Block, Block> slabs = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(pos);
+		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
 		Axis axis = state.get(AXIS);
-		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
-		if (hitResult == null) return VoxelShapes.fullCube();
-		Vec3d hit = hitResult.getPos();
-		boolean positive = Helper.isPositive(hit, pos, axis);
-		switch(axis) {
-			case X: return positive ? EAST_OUTLINE_SHAPE : WEST_OUTLINE_SHAPE;
-			case Y: return positive ? TOP_OUTLINE_SHAPE : BOTTOM_OUTLINE_SHAPE;
-			case Z: return positive ? SOUTH_OUTLINE_SHAPE : NORTH_OUTLINE_SHAPE;
-		}
-		return VoxelShapes.fullCube(); // Should never reach here, but it's a good default
-	}
-
-	@Override
-	public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-		return VoxelShapes.fullCube(); // Should never reach here, but it's a good default
+		boolean isPositive = Helper.isPositive(hit, pos, axis);
+		BlockState slab = Helper.getState(isPositive ? slabs.getFirst() : slabs.getSecond(), axis, isPositive);
+		return slab.getBlock().getPickStack(world, pos, slab);
 	}
 
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
