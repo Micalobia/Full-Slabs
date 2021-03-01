@@ -75,10 +75,9 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 		Direction dir = ctx.getSide().getOpposite();
 		Axis axis = dir.getAxis();
 		Vec3d hit = ctx.getHitPos();
+		FluidState fluidState = world.getFluidState(pos);
 
-		if(state.isAir()) { // Just placed normally
-			FluidState fluidState = world.getFluidState(pos);
-
+		if(state.isAir() || state == fluidState.getBlockState()) { // Just placed normally
 			boolean water = fluidState.getFluid() == Fluids.WATER;
 			final double one_third = 1d/3d;
 			final double two_third = 2d/3d;

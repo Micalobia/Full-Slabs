@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 @Mixin(MinecraftClient.class)
 public class MinecraftClientMixin {
 	@Inject(method = "reloadResources", at = @At("HEAD"))
-	public void print(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+	public void clearCachedMeshes(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
 		FullSlabModel.clearCachedMeshes();
 	}
 }
