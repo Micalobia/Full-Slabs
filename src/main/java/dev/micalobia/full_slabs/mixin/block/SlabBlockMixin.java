@@ -3,11 +3,15 @@ package dev.micalobia.full_slabs.mixin.block;
 import dev.micalobia.full_slabs.block.*;
 import dev.micalobia.full_slabs.block.Blocks;
 import dev.micalobia.full_slabs.block.enums.SlabState;
+import dev.micalobia.full_slabs.mixin.server.network.ServerPlayerInteractionManagerMixin;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
@@ -23,6 +27,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -77,7 +82,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 		Vec3d hit = ctx.getHitPos();
 		FluidState fluidState = world.getFluidState(pos);
 
-		if(state.isAir() || state == fluidState.getBlockState()) { // Just placed normally
+		if(!Helper.isAnySlab(state.getBlock())) { // Just placed normally
 			boolean water = fluidState.getFluid() == Fluids.WATER;
 			final double one_third = 1d/3d;
 			final double two_third = 2d/3d;
@@ -209,6 +214,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable, ISl
 		}
 	}
 
+	@Environment(EnvType.CLIENT)
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext ctx) {
 		SlabType slabType = state.get(TYPE);
 		switch(slabType) {

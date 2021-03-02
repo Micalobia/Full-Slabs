@@ -57,9 +57,9 @@ public abstract class ServerPlayerInteractionManagerMixin {
 				breakSlab(brokenState, leftoverState, pos);
 				cir.setReturnValue(true);
 			}
-		} else if (block instanceof SlabBlock && state.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
+		} else if(block instanceof SlabBlock && state.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
 			HitResult hit = getCrosshair(this.player);
-			if (hit.getType() != Type.BLOCK) {
+			if(hit.getType() != Type.BLOCK) {
 				cir.setReturnValue(false);
 			} else {
 				Vec3d hitPos = hit.getPos();
@@ -69,9 +69,9 @@ public abstract class ServerPlayerInteractionManagerMixin {
 				breakSlab(brokenState, leftoverState, pos);
 				cir.setReturnValue(true);
 			}
-		} else if (block instanceof VerticalSlabBlock && state.get(VerticalSlabBlock.STATE) == SlabState.DOUBLE) {
+		} else if(block instanceof VerticalSlabBlock && state.get(VerticalSlabBlock.STATE) == SlabState.DOUBLE) {
 			HitResult hit = getCrosshair(this.player);
-			if (hit.getType() != Type.BLOCK) {
+			if(hit.getType() != Type.BLOCK) {
 				cir.setReturnValue(false);
 			} else {
 				Vec3d hitPos = hit.getPos();

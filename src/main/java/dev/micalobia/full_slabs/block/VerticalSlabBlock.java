@@ -3,6 +3,8 @@ package dev.micalobia.full_slabs.block;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
@@ -119,6 +121,7 @@ public class VerticalSlabBlock extends Block implements Waterloggable, ISlabBloc
 		}
 	}
 
+	@Environment(EnvType.CLIENT)
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabState slabState = state.get(STATE);
 

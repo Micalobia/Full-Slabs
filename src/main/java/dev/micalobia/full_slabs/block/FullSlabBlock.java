@@ -3,6 +3,8 @@ package dev.micalobia.full_slabs.block;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Helper;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -71,6 +73,7 @@ public class FullSlabBlock extends BlockWithEntity {
 		return VoxelShapes.fullCube();
 	}
 
+	@Environment(EnvType.CLIENT)
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		Axis axis = state.get(AXIS);
 		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;

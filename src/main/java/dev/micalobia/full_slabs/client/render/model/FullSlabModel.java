@@ -5,6 +5,8 @@ import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
@@ -39,6 +41,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel {
 	private static final SpriteIdentifier MISSINGNO_ID = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("minecraft:builtin/missing"));
 	private static final Map<Triple<Axis, Block, Block>, Mesh> cachedMeshes = new HashMap<>();

@@ -5,6 +5,8 @@ import com.mojang.datafixers.util.Pair.Mu;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
@@ -36,6 +38,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedModel {
 	private final SlabBlock base;
 	private final BlockState cachedState;

@@ -4,7 +4,6 @@ import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.SlabBlock;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +43,8 @@ public class LinkedSlabs {
 
 	@NotNull
 	public static SlabBlock horizontal(Block slab) {
-		if(!contains(slab)) throw new RuntimeException("That isn't a linked slab; Are your mods loaded in the right order?");
+		if(!contains(slab))
+			throw new RuntimeException("That isn't a linked slab; Are your mods loaded in the right order?");
 		if(slab instanceof SlabBlock) return (SlabBlock) slab;
 		if(slab instanceof VerticalSlabBlock) return horizontal.get(slab);
 		throw new RuntimeException("The block you tried to get is linked, but not a slab!");
@@ -52,7 +52,8 @@ public class LinkedSlabs {
 
 	@NotNull
 	public static VerticalSlabBlock vertical(Block slab) {
-		if(!contains(slab)) throw new RuntimeException("That isn't a linked slab; Are your mods loaded in the right order?;" + slab);
+		if(!contains(slab))
+			throw new RuntimeException("That isn't a linked slab; Are your mods loaded in the right order?;" + slab);
 		if(slab instanceof SlabBlock) return vertical.get(slab);
 		if(slab instanceof VerticalSlabBlock) return (VerticalSlabBlock) slab;
 		throw new RuntimeException("The block you tried to get is linked, but not a slab!");
