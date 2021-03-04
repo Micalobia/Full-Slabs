@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
@@ -40,16 +41,13 @@ import java.util.function.Supplier;
 
 @Environment(EnvType.CLIENT)
 public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedModel {
-	private final SlabBlock base;
+	private final Block base;
 	private final BlockState cachedState;
 	private Sprite particle;
 	private Mesh mesh;
 
 	public VerticalSlabModel(ModelIdentifier id) {
-		String path = id.getPath();
-		int i = path.indexOf('_');
-		Identifier baseId = new Identifier(path.substring(0, i), path.substring(i + 1, path.length() - "_vertical".length()));
-		this.base = (SlabBlock) Helper.fetchBlock(baseId);
+		this.base = Helper.fetchBase(id);
 		String[] states = id.getVariant().split(",");
 		Axis axis = Axis.X;
 		SlabState slabState = SlabState.DOUBLE;

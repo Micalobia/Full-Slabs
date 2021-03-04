@@ -15,7 +15,21 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 
+import java.util.Arrays;
+
 public class Helper {
+	public static Block fetchBase(Identifier verticalId) {
+		String[] split = verticalId.getPath().split("_");
+		for(int i = 1; i < split.length; ++i) {
+			String namespace = String.join("_", Arrays.copyOfRange(split, 0, i));
+			String path = String.join("_", Arrays.copyOfRange(split, i, split.length - 1));
+			Identifier check = new Identifier(namespace, path);
+			Block block = Helper.fetchBlock(check);
+			if(block instanceof SlabBlock) return block;
+		}
+		throw new RuntimeException("Couldn't rebuild base id from vertical; Report an issue with FullSlabs");
+	}
+
 	public static Block fetchBlock(Identifier id) {
 		return Registry.BLOCK.get(id);
 	}
@@ -62,23 +76,23 @@ public class Helper {
 
 	public static Axis axisFromSlab(BlockState slab) {
 		Block block = slab.getBlock();
-		if (block.is(Blocks.FULL_SLAB_BLOCK)) return slab.get(FullSlabBlock.AXIS);
-		else if (block instanceof VerticalSlabBlock) return slab.get(VerticalSlabBlock.AXIS);
-		else if (block instanceof SlabBlock) return Axis.Y;
+		if(block.is(Blocks.FULL_SLAB_BLOCK)) return slab.get(FullSlabBlock.AXIS);
+		else if(block instanceof VerticalSlabBlock) return slab.get(VerticalSlabBlock.AXIS);
+		else if(block instanceof SlabBlock) return Axis.Y;
 		throw new RuntimeException("That isn't a slab!");
 	}
 
 	public static boolean isDoubleSlab(BlockState slab) {
 		Block block = slab.getBlock();
-		if (block.is(Blocks.FULL_SLAB_BLOCK)) return true;
-		else if (block instanceof VerticalSlabBlock) return slab.get(VerticalSlabBlock.STATE) == SlabState.DOUBLE;
-		else if (block instanceof SlabBlock) return slab.get(SlabBlock.TYPE) == SlabType.DOUBLE;
+		if(block.is(Blocks.FULL_SLAB_BLOCK)) return true;
+		else if(block instanceof VerticalSlabBlock) return slab.get(VerticalSlabBlock.STATE) == SlabState.DOUBLE;
+		else if(block instanceof SlabBlock) return slab.get(SlabBlock.TYPE) == SlabType.DOUBLE;
 		throw new RuntimeException("That isn't a slab!");
 	}
 
 	public static boolean isPositive(BlockState state) {
 		Block block = state.getBlock();
-		if (block instanceof VerticalSlabBlock)
+		if(block instanceof VerticalSlabBlock)
 			return state.get(VerticalSlabBlock.STATE) == SlabState.POSITIVE;
 		else
 			return state.get(SlabBlock.TYPE) == SlabType.TOP;
