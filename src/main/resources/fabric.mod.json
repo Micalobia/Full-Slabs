@@ -9,8 +9,8 @@
     "Micalobia"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/full-slabs",
+    "sources": "https://github.com/Micalobia/Full-Slabs"
   },
 
   "license": "CC0-1.0",
@@ -34,8 +34,5 @@
     "fabricloader": ">=0.7.4",
     "fabric": "*",
     "minecraft": "1.16.x"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
