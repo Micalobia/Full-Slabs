@@ -18,6 +18,8 @@ public class Blocks {
 
 	private static final Identifier AIR = new Identifier("minecraft:air");
 
+	public static void init() {}
+
 	static {
 		Registry.BLOCK.forEach(Blocks::generateVerticalPair);
 		RegistryEntryAddedCallback.event(Registry.BLOCK).register(Blocks::hookIntoRegister);

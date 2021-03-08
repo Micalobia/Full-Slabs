@@ -8,9 +8,7 @@ import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.enums.SlabType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -43,9 +41,17 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 		return negativeSlab;
 	}
 
-	public CompoundTag toTag(CompoundTag tag) {
-		super.toTag(tag);
-		return toClientTag(tag);
+	public Block getSlab(boolean positive) {
+		return positive ? positiveSlab : negativeSlab;
+	}
+
+	public BlockState getState(Axis axis, boolean positive) {
+		return Helper.getState(getSlab(positive), axis, positive);
+	}
+
+	public BlockState getHitState(Axis axis, Vec3d hit) {
+		boolean isPositive = Helper.isPositive(hit, pos, axis);
+		return getState(axis, isPositive);
 	}
 
 	public void fromTag(BlockState state, CompoundTag tag) {
@@ -53,15 +59,20 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 		fromClientTag(tag);
 	}
 
-	public CompoundTag toClientTag(CompoundTag tag) {
-		tag.putString("positive_id", Helper.fetchId(positiveSlab).toString());
-		tag.putString("negative_id", Helper.fetchId(negativeSlab).toString());
-		return tag;
+	public CompoundTag toTag(CompoundTag tag) {
+		super.toTag(tag);
+		return toClientTag(tag);
 	}
 
 	public void fromClientTag(CompoundTag tag) {
 		positiveSlab = LinkedSlabs.horizontal(Helper.fetchBlock(new Identifier(tag.getString("positive_id"))));
 		negativeSlab = LinkedSlabs.horizontal(Helper.fetchBlock(new Identifier(tag.getString("negative_id"))));
+	}
+
+	public CompoundTag toClientTag(CompoundTag tag) {
+		tag.putString("positive_id", Helper.fetchId(positiveSlab).toString());
+		tag.putString("negative_id", Helper.fetchId(negativeSlab).toString());
+		return tag;
 	}
 
 	public Block getHitSlab(Vec3d hit, BlockPos pos, Axis axis) {
