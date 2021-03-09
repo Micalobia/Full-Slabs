@@ -61,6 +61,10 @@ public class FullSlabBlock extends BlockWithEntity {
 		setDefaultState(getDefaultState().with(AXIS, Axis.Y));
 	}
 
+	private static Vec3d crosshair(PlayerEntity player) {
+		return player.raycast(player.isCreative() ? 4.5f : 3.0f, 0f, false).getPos();
+	}
+
 	public BlockRenderType getRenderType(BlockState state) {
 		return BlockRenderType.MODEL;
 	}
@@ -97,7 +101,7 @@ public class FullSlabBlock extends BlockWithEntity {
 
 	public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
 		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
-		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
+		Vec3d hit = crosshair(player);
 		Axis axis = state.get(AXIS);
 		boolean hitPositive = Helper.isPositive(hit, pos, axis);
 		Block hitSlab = hitPositive ? entity.getPositiveSlab() : entity.getNegativeSlab();
