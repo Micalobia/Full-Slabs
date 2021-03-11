@@ -4,10 +4,8 @@
   "package": "dev.micalobia.full_slabs.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "block.SlabBlockMixin", "client.MinecraftClientMixin", "client.network.ClientPlayerInteractionManagerMixin",
-    "client.particle.ParticleManagerMixin", "client.render.block.BlockRenderManagerMixin",
-    "client.render.model.BakedQuadMixin", "entity.EntityMixin", "entity.LivingEntityMixin", "item.BlockItemMixin",
-    "server.network.ServerPlayerInteractionManagerMixin"
+    "block.SlabBlockMixin", "client.MinecraftClientMixin",
+    "client.render.model.BakedQuadMixin"
   ],
   "client": [
   ],

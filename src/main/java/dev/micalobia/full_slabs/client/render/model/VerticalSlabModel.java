@@ -1,7 +1,6 @@
 package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.datafixers.util.Pair.Mu;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
@@ -84,10 +83,14 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 					(from == Direction.NORTH ? MutableQuadView.BAKE_FLIP_U : MutableQuadView.BAKE_FLIP_V);
 		}
 		switch(from) {
-			case UP: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_180;
-			case DOWN: return MutableQuadView.BAKE_LOCK_UV;
-			case EAST: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_270;
-			default: return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_90 | MutableQuadView.BAKE_FLIP_V;
+			case UP:
+				return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_180;
+			case DOWN:
+				return MutableQuadView.BAKE_LOCK_UV;
+			case EAST:
+				return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_270;
+			default:
+				return MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_ROTATE_90 | MutableQuadView.BAKE_FLIP_V;
 		}
 	}
 
@@ -195,7 +198,7 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 
 			boolean tilted = ((VerticalSlabBlock) cachedState.getBlock()).tiltable;
 			if(slabState == SlabState.DOUBLE) {
-				if (tilted) {
+				if(tilted) {
 					boolean x = axis == Axis.X;
 					boolean z = axis == Axis.Z;
 					finalize(fullSquare(emitter, Direction.UP, 0f), sideSprite, getUV(cachedState, Direction.UP, axis));
@@ -204,8 +207,7 @@ public class VerticalSlabModel implements FabricBakedModel, BakedModel, UnbakedM
 					finalize(fullSquare(emitter, Direction.WEST, 0f), x ? bottomSprite : sideSprite, x ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.WEST, axis));
 					finalize(fullSquare(emitter, Direction.NORTH, 0f), z ? bottomSprite : sideSprite, z ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.NORTH, axis));
 					finalize(fullSquare(emitter, Direction.SOUTH, 0f), z ? topSprite : sideSprite, z ? MutableQuadView.BAKE_LOCK_UV : getUV(cachedState, Direction.SOUTH, axis));
-				}
-				else {
+				} else {
 					finalize(fullSquare(emitter, Direction.UP, 0f), topSprite, MutableQuadView.BAKE_LOCK_UV);
 					finalize(fullSquare(emitter, Direction.DOWN, 0f), bottomSprite, MutableQuadView.BAKE_LOCK_UV);
 					finalize(fullSquare(emitter, Direction.NORTH, 0f), sideSprite, MutableQuadView.BAKE_LOCK_UV);
