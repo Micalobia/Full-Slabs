@@ -7,7 +7,6 @@ import net.fabricmc.api.ModInitializer;
 public class FullSlabsCommon implements ModInitializer {
 	@Override
 	public void onInitialize() {
-		//TODO: Call the static initilizer in a better way
 		Blocks.init();
 		Events.init();
 	}
