@@ -64,8 +64,8 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 				.emit();
 	}
 
-	private static QuadEmitter fullSquare(QuadEmitter emitter, Direction from, float depth) {
-		return emitter.square(from, 0f, 0f, 1f, 1f, depth);
+	private static QuadEmitter fullSquare(QuadEmitter emitter, Direction from) {
+		return emitter.square(from, 0f, 0f, 1f, 1f, 0f);
 	}
 
 	private static QuadEmitter leftSquare(QuadEmitter emitter, Direction from) {
@@ -207,14 +207,14 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 		switch(axis) {
 			case X: {
 				boolean positiveTilted = LinkedSlabs.vertical(positiveSlab).tiltable;
-				finalize(fullSquare(emitter, Direction.EAST, 0f), positiveSprites[positiveTilted ? top : side], MutableQuadView.BAKE_LOCK_UV);
+				finalize(fullSquare(emitter, Direction.EAST), positiveSprites[positiveTilted ? top : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(rightSquare(emitter, Direction.SOUTH), positiveSprites[side], getUV(cachedPositive, Direction.SOUTH, axis));
 				finalize(rightSquare(emitter, Direction.UP), positiveSprites[positiveTilted ? side : top], getUV(cachedPositive, Direction.UP, axis));
 				finalize(rightSquare(emitter, Direction.DOWN), positiveSprites[positiveTilted ? side : bottom], getUV(cachedPositive, Direction.DOWN, axis));
 				finalize(leftSquare(emitter, Direction.NORTH), positiveSprites[side], getUV(cachedPositive, Direction.NORTH, axis));
 
 				boolean negativeTilted = LinkedSlabs.vertical(negativeSlab).tiltable;
-				finalize(fullSquare(emitter, Direction.WEST, 0f), negativeSprites[negativeTilted ? bottom : side], MutableQuadView.BAKE_LOCK_UV);
+				finalize(fullSquare(emitter, Direction.WEST), negativeSprites[negativeTilted ? bottom : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(leftSquare(emitter, Direction.SOUTH), negativeSprites[side], getUV(cachedNegative, Direction.SOUTH, axis));
 				finalize(leftSquare(emitter, Direction.UP), negativeSprites[negativeTilted ? side : top], getUV(cachedNegative, Direction.UP, axis));
 				finalize(leftSquare(emitter, Direction.DOWN), negativeSprites[negativeTilted ? side : bottom], getUV(cachedNegative, Direction.DOWN, axis));
@@ -223,14 +223,14 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 			}
 			case Z: {
 				boolean positiveTilted = LinkedSlabs.vertical(positiveSlab).tiltable;
-				finalize(fullSquare(emitter, Direction.SOUTH, 0f), positiveSprites[positiveTilted ? top : side], MutableQuadView.BAKE_LOCK_UV);
+				finalize(fullSquare(emitter, Direction.SOUTH), positiveSprites[positiveTilted ? top : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(leftSquare(emitter, Direction.EAST), positiveSprites[side], getUV(cachedPositive, Direction.EAST, axis));
 				finalize(rightSquare(emitter, Direction.WEST), positiveSprites[side], getUV(cachedPositive, Direction.WEST, axis));
 				finalize(bottomSquare(emitter, Direction.UP), positiveSprites[positiveTilted ? side : top], getUV(cachedPositive, Direction.UP, axis));
 				finalize(topSquare(emitter, Direction.DOWN), positiveSprites[positiveTilted ? side : bottom], getUV(cachedPositive, Direction.DOWN, axis));
 
 				boolean negativeTilted = LinkedSlabs.vertical(negativeSlab).tiltable;
-				finalize(fullSquare(emitter, Direction.NORTH, 0f), negativeSprites[negativeTilted ? bottom : side], MutableQuadView.BAKE_LOCK_UV);
+				finalize(fullSquare(emitter, Direction.NORTH), negativeSprites[negativeTilted ? bottom : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(rightSquare(emitter, Direction.EAST), negativeSprites[side], getUV(cachedNegative, Direction.EAST, axis));
 				finalize(leftSquare(emitter, Direction.WEST), negativeSprites[side], getUV(cachedNegative, Direction.WEST, axis));
 				finalize(topSquare(emitter, Direction.UP), negativeSprites[negativeTilted ? side : top], getUV(cachedNegative, Direction.UP, axis));
@@ -238,13 +238,13 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 				break;
 			}
 			default:
-				finalize(fullSquare(emitter, Direction.UP, 0f), positiveSprites[top], MutableQuadView.BAKE_LOCK_UV);
+				finalize(fullSquare(emitter, Direction.UP), positiveSprites[top], MutableQuadView.BAKE_LOCK_UV);
 				finalize(topSquare(emitter, Direction.NORTH), positiveSprites[side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(topSquare(emitter, Direction.EAST), positiveSprites[side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(topSquare(emitter, Direction.SOUTH), positiveSprites[side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(topSquare(emitter, Direction.WEST), positiveSprites[side], MutableQuadView.BAKE_LOCK_UV);
 
-				finalize(fullSquare(emitter, Direction.DOWN, 0f), negativeSprites[bottom], MutableQuadView.BAKE_LOCK_UV);
+				finalize(fullSquare(emitter, Direction.DOWN), negativeSprites[bottom], MutableQuadView.BAKE_LOCK_UV);
 				finalize(bottomSquare(emitter, Direction.NORTH), negativeSprites[side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(bottomSquare(emitter, Direction.EAST), negativeSprites[side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(bottomSquare(emitter, Direction.SOUTH), negativeSprites[side], MutableQuadView.BAKE_LOCK_UV);
