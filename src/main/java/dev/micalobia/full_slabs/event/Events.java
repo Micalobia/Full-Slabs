@@ -6,6 +6,7 @@ import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
+import dev.micalobia.micalibria.event.ClientPlayerBrokeBlockEvent;
 import dev.micalobia.micalibria.event.HitGroundParticlesEvent;
 import dev.micalobia.micalibria.event.ServerPlayerBrokeBlockEvent;
 import dev.micalobia.micalibria.event.SpawnSprintingParticlesEvent;
@@ -16,9 +17,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -28,7 +30,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 
 public class Events {
 	static {
@@ -37,6 +38,48 @@ public class Events {
 		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakFullSlab);
 		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakHorizontalSlab);
 		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakVerticalSlab);
+		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakFullSlab);
+		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakHorizontalSlab);
+		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakVerticalSlab);
+	}
+
+	private static EventReaction breakVerticalSlab(MinecraftClient client, BlockPos pos) {
+		BlockState state = client.world.getBlockState(pos);
+		Block block = state.getBlock();
+		if(!(block instanceof VerticalSlabBlock)) return EventReaction.IGNORE;
+		if(state.get(VerticalSlabBlock.STATE) != SlabState.DOUBLE) return EventReaction.IGNORE;
+		Axis axis = state.get(VerticalSlabBlock.AXIS);
+		Vec3d hit = client.crosshairTarget.getPos();
+		boolean positive = Helper.isPositive(hit, pos, axis);
+		BlockState brokenState = Helper.getState(block, axis, positive);
+		BlockState leftoverState = Helper.getState(block, axis, !positive);
+		boolean ret = breakSlab(brokenState, leftoverState, pos, client);
+		return ret ? EventReaction.COMPLETE : EventReaction.CANCEL; // TODO: Replace with EventReaction.terminate(bool)
+	}
+
+	private static EventReaction breakHorizontalSlab(MinecraftClient client, BlockPos pos) {
+		BlockState state = client.world.getBlockState(pos);
+		if(!(state.getBlock() instanceof SlabBlock)) return EventReaction.IGNORE;
+		if(state.get(SlabBlock.TYPE) != SlabType.DOUBLE) return EventReaction.IGNORE;
+		Vec3d hit = client.crosshairTarget.getPos();
+		boolean positive = Helper.isPositive(hit, pos, Axis.Y);
+		BlockState brokenState = state.with(SlabBlock.TYPE, positive ? SlabType.TOP : SlabType.BOTTOM);
+		BlockState leftoverState = state.with(SlabBlock.TYPE, positive ? SlabType.BOTTOM : SlabType.TOP);
+		boolean ret = breakSlab(brokenState, leftoverState, pos, client);
+		return ret ? EventReaction.COMPLETE : EventReaction.CANCEL; // TODO: Replace with EventReaction.terminate(bool)
+	}
+
+	private static EventReaction breakFullSlab(MinecraftClient client, BlockPos pos) {
+		ClientWorld world = client.world;
+		BlockState state = world.getBlockState(pos);
+		if(!state.isOf(Blocks.FULL_SLAB_BLOCK)) return EventReaction.IGNORE;
+		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
+		if(entity == null) return EventReaction.CANCEL;
+		Axis axis = state.get(FullSlabBlock.AXIS);
+		Vec3d hit = client.crosshairTarget.getPos();
+		boolean positive = Helper.isPositive(hit, pos, axis);
+		boolean ret = breakSlab(entity.getState(axis, positive), entity.getState(axis, !positive), pos, client);
+		return ret ? EventReaction.COMPLETE : EventReaction.CANCEL; // TODO: Replace with EventReaction.terminate(bool)
 	}
 
 	private static EventReaction tryBreakVerticalSlab(ServerWorld world, ServerPlayerEntity player, BlockPos pos) {
@@ -93,7 +136,7 @@ public class Events {
 		return EventReaction.COMPLETE;
 	}
 
-	private static void breakSlab(BlockState brokenState, BlockState leftoverState, BlockPos pos, World world, PlayerEntity player) {
+	private static void breakSlab(BlockState brokenState, BlockState leftoverState, BlockPos pos, ServerWorld world, ServerPlayerEntity player) {
 		Block broken = brokenState.getBlock();
 		broken.onBreak(world, pos, brokenState, player);
 		boolean changed = world.setBlockState(pos, leftoverState, 3);
@@ -106,6 +149,14 @@ public class Events {
 			if(changed && effectiveTool)
 				broken.afterBreak(world, player, pos, brokenState, null, handCopy);
 		}
+	}
+
+	private static boolean breakSlab(BlockState brokenState, BlockState leftoverState, BlockPos pos, MinecraftClient client) {
+		Block broken = brokenState.getBlock();
+		broken.onBreak(client.world, pos, brokenState, client.player);
+		boolean changed = client.world.setBlockState(pos, leftoverState, 11);
+		if(changed) broken.onBroken(client.world, pos, brokenState);
+		return changed;
 	}
 
 	public static void init() {
