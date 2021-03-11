@@ -1,37 +1,50 @@
 package dev.micalobia.full_slabs.event;
 
+import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.Blocks;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
-import dev.micalobia.micalibria.event.ClientPlayerBrokeBlockEvent;
-import dev.micalobia.micalibria.event.HitGroundParticlesEvent;
-import dev.micalobia.micalibria.event.ServerPlayerBrokeBlockEvent;
-import dev.micalobia.micalibria.event.SpawnSprintingParticlesEvent;
+import dev.micalobia.full_slabs.util.LinkedSlabs;
+import dev.micalobia.micalibria.event.*;
 import dev.micalobia.micalibria.event.enums.EventReaction;
+import dev.micalobia.micalibria.event.enums.PairedEventReaction;
 import dev.micalobia.micalibria.event.enums.TypedEventReaction;
 import dev.micalobia.micalibria.server.network.ServerPlayerEntityUtil;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockRenderView;
+import net.minecraft.world.World;
+
+import java.util.Optional;
+import java.util.Random;
 
 public class Events {
+	private static Pair<Block, Block> ghostPair;
+
 	static {
 		SpawnSprintingParticlesEvent.EVENT.register(Events::spawnSlabSprintingParticles);
 		HitGroundParticlesEvent.EVENT.register(Events::spawnHitGroundParticles);
@@ -41,6 +54,57 @@ public class Events {
 		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakFullSlab);
 		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakHorizontalSlab);
 		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakVerticalSlab);
+		BlockBreakingParticleEvent.EVENT.register(Events::slabBreakingParticles);
+		RenderDamageEvent.EVENT.register(Events::renderSlabDamage);
+		PlaceBlockItemEvent.EVENT.register(Events::placeFullSlab);
+		SetBlockStateEvent.EVENT.register(Events::setFullSlab);
+	}
+
+	private static PairedEventReaction<BlockState, Optional<BlockEntity>> setFullSlab(World world, BlockPos pos, BlockState state, BlockEntity entity, boolean moved) {
+		if(!state.isOf(Blocks.FULL_SLAB_BLOCK) || moved || entity != null) return PairedEventReaction.ignore();
+		entity = new FullSlabBlockEntity(ghostPair.getFirst(), ghostPair.getSecond());
+		return PairedEventReaction.complete(state, Optional.of(entity));
+	}
+
+	private static TypedEventReaction<BlockState> placeFullSlab(ItemPlacementContext context, BlockState state) {
+		if(!state.isOf(Blocks.FULL_SLAB_BLOCK)) return TypedEventReaction.ignore();
+		World world = context.getWorld();
+		BlockPos pos = context.getBlockPos();
+		BlockState activeState = world.getBlockState(pos);
+		ItemStack stack = context.getStack();
+		Block placedBlock = Helper.fetchBlock(stack.getItem());
+		Block activeBlock = LinkedSlabs.horizontal(activeState.getBlock());
+		boolean activePositive = Helper.isPositive(activeState);
+		ghostPair = Pair.of(
+				activePositive ? activeBlock : placedBlock,
+				activePositive ? placedBlock : activeBlock
+		);
+		return TypedEventReaction.complete(state);
+	}
+
+	private static TypedEventReaction<BlockState> renderSlabDamage(BlockState state, BlockPos pos, BlockRenderView view, MatrixStack matrix, VertexConsumer consumer) {
+		if(!(Helper.isAnySlab(state.getBlock()) && Helper.isDoubleSlab(state))) return TypedEventReaction.ignore();
+		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
+		Axis axis = Helper.axisFromSlab(state);
+		boolean positive = Helper.isPositive(hit, pos, axis);
+		BlockState ret;
+		if(state.isOf(Blocks.FULL_SLAB_BLOCK)) {
+			RenderAttachedBlockView renderView = (RenderAttachedBlockView) view;
+			Pair<Block, Block> pair = (Pair<Block, Block>) renderView.getBlockEntityRenderAttachment(pos);
+			if(pair == null) return TypedEventReaction.cancel();
+			Block slab = positive ? pair.getFirst() : pair.getSecond();
+			ret = Helper.getState(slab, axis, positive);
+		} else ret = Helper.getState(state.getBlock(), axis, positive);
+		return TypedEventReaction.complete(ret);
+	}
+
+	private static TypedEventReaction<BlockState> slabBreakingParticles(BlockState state, BlockPos pos, ClientWorld world, Direction direction, Random random) {
+		if(!state.isOf(Blocks.FULL_SLAB_BLOCK)) return TypedEventReaction.ignore();
+		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
+		if(entity == null) return TypedEventReaction.cancel();
+		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
+		Axis axis = state.get(FullSlabBlock.AXIS);
+		return TypedEventReaction.complete(entity.getHitState(axis, hit));
 	}
 
 	private static EventReaction breakVerticalSlab(MinecraftClient client, BlockPos pos) {

@@ -5,8 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "block.SlabBlockMixin", "client.MinecraftClientMixin",
-    "client.particle.ParticleManagerMixin", "client.render.block.BlockRenderManagerMixin",
-    "client.render.model.BakedQuadMixin", "item.BlockItemMixin"
+    "client.render.model.BakedQuadMixin"
   ],
   "client": [
   ],
