@@ -18,13 +18,14 @@ public class Blocks {
 
 	private static final Identifier AIR = new Identifier("minecraft:air");
 
-	public static void init() {}
-
 	static {
 		Registry.BLOCK.forEach(Blocks::generateVerticalPair);
 		RegistryEntryAddedCallback.event(Registry.BLOCK).register(Blocks::hookIntoRegister);
 		FULL_SLAB_BLOCK = register("full_slabs:full_slab_block", new FullSlabBlock(FabricBlockSettings.copyOf(net.minecraft.block.Blocks.BEDROCK)));
 		FULL_SLAB_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, "full_slabs:full_slab", BlockEntityType.Builder.create(FullSlabBlockEntity::new, Blocks.FULL_SLAB_BLOCK).build(null));
+	}
+
+	public static void init() {
 	}
 
 	private static <T extends Block> T register(String id, T block) {
@@ -36,7 +37,7 @@ public class Blocks {
 	}
 
 	private static void generateVerticalPair(Identifier base, Block block) {
-		if (!(block instanceof SlabBlock)) return;
+		if(!(block instanceof SlabBlock)) return;
 		boolean tilted = TiltedSlabs.contains(base);
 		Identifier vertical = new Identifier("full_slabs", base.getNamespace() + "_" + base.getPath() + "_vertical");
 		Block verticalSlab = register(vertical.toString(), new VerticalSlabBlock(FabricBlockSettings.copyOf(block), tilted));

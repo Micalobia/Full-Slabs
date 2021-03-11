@@ -9,7 +9,9 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(BakedQuad.class)
 public class BakedQuadMixin implements IBakedQuad {
-	@Shadow @Final protected Sprite sprite;
+	@Shadow
+	@Final
+	protected Sprite sprite;
 
 	public Sprite getSprite() {
 		return sprite;

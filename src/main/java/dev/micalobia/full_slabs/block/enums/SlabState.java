@@ -18,6 +18,21 @@ public enum SlabState implements StringIdentifiable {
 		this.name = name;
 	}
 
+	public static SlabState fromAxisDirection(AxisDirection axisDir) {
+		return axisDir == AxisDirection.POSITIVE ? POSITIVE : NEGATIVE;
+	}
+
+	public static SlabState fromSlabType(SlabType type) {
+		switch(type) {
+			case TOP:
+				return POSITIVE;
+			case BOTTOM:
+				return NEGATIVE;
+			default:
+				return DOUBLE;
+		}
+	}
+
 	public String toString() {
 		return name;
 	}
@@ -28,40 +43,37 @@ public enum SlabState implements StringIdentifiable {
 
 	@Nullable
 	public Direction direction(Axis axis) {
-		if (this == DOUBLE) return null;
+		if(this == DOUBLE) return null;
 		switch(axis) {
-			case X: return this == POSITIVE ? Direction.EAST : Direction.WEST;
-			case Z: return this == POSITIVE ? Direction.SOUTH : Direction.NORTH;
-			default: return this == POSITIVE ? Direction.UP : Direction.DOWN;
+			case X:
+				return this == POSITIVE ? Direction.EAST : Direction.WEST;
+			case Z:
+				return this == POSITIVE ? Direction.SOUTH : Direction.NORTH;
+			default:
+				return this == POSITIVE ? Direction.UP : Direction.DOWN;
 		}
 	}
 
 	public SlabType slabType() {
 		switch(this) {
-			case POSITIVE: return SlabType.TOP;
-			case NEGATIVE: return SlabType.BOTTOM;
-			default: return SlabType.DOUBLE;
+			case POSITIVE:
+				return SlabType.TOP;
+			case NEGATIVE:
+				return SlabType.BOTTOM;
+			default:
+				return SlabType.DOUBLE;
 		}
 	}
 
 	@Nullable
 	public AxisDirection axisDirection() {
 		switch(this) {
-			case POSITIVE: return AxisDirection.POSITIVE;
-			case NEGATIVE: return AxisDirection.NEGATIVE;
-			default: return null;
-		}
-	}
-
-	public static SlabState fromAxisDirection(AxisDirection axisDir) {
-		return axisDir == AxisDirection.POSITIVE ? POSITIVE : NEGATIVE;
-	}
-
-	public static SlabState fromSlabType(SlabType type) {
-		switch(type) {
-			case TOP: return POSITIVE;
-			case BOTTOM: return NEGATIVE;
-			default: return DOUBLE;
+			case POSITIVE:
+				return AxisDirection.POSITIVE;
+			case NEGATIVE:
+				return AxisDirection.NEGATIVE;
+			default:
+				return null;
 		}
 	}
 }
