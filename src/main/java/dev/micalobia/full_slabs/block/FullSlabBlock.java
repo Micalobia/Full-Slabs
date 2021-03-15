@@ -11,6 +11,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
@@ -21,8 +22,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
-public class FullSlabBlock extends BlockWithEntity {
+public class FullSlabBlock extends TransparentBlock implements BlockEntityProvider {
 	public final static EnumProperty<Axis> AXIS;
 
 	public static final VoxelShape NORTH_OUTLINE_SHAPE;
@@ -65,16 +68,42 @@ public class FullSlabBlock extends BlockWithEntity {
 		return player.raycast(player.isCreative() ? 4.5f : 3.0f, 0f, false).getPos();
 	}
 
-	public BlockRenderType getRenderType(BlockState state) {
-		return BlockRenderType.MODEL;
-	}
-
 	public BlockEntity createBlockEntity(BlockView blockView) {
 		return new FullSlabBlockEntity();
 	}
 
+	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
+		RenderAttachedBlockView view = (RenderAttachedBlockView) world;
+		Pair<Block, Block> slabs = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(pos);
+		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
+		Axis axis = state.get(AXIS);
+		boolean isPositive = Helper.isPositive(hit, pos, axis);
+		BlockState slab = Helper.getState(isPositive ? slabs.getFirst() : slabs.getSecond(), axis, isPositive);
+		return slab.getBlock().getPickStack(world, pos, slab);
+	}
+
+	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+		builder.add(AXIS);
+	}
+
+	public boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
+		super.onSyncedBlockEvent(state, world, pos, type, data);
+		BlockEntity blockEntity = world.getBlockEntity(pos);
+		return blockEntity == null ? false : blockEntity.onSyncedBlockEvent(type, data);
+	}
+
+	public BlockRenderType getRenderType(BlockState state) {
+		return BlockRenderType.MODEL;
+	}
+
 	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
 		return VoxelShapes.fullCube();
+	}
+
+	@Nullable
+	public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
+		BlockEntity blockEntity = world.getBlockEntity(pos);
+		return blockEntity instanceof NamedScreenHandlerFactory ? (NamedScreenHandlerFactory) blockEntity : null;
 	}
 
 	@Environment(EnvType.CLIENT)
@@ -107,19 +136,5 @@ public class FullSlabBlock extends BlockWithEntity {
 		Block hitSlab = hitPositive ? entity.getPositiveSlab() : entity.getNegativeSlab();
 		BlockState hitState = Helper.getState(hitSlab, axis, hitPositive);
 		return hitSlab.calcBlockBreakingDelta(hitState, player, world, pos);
-	}
-
-	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
-		RenderAttachedBlockView view = (RenderAttachedBlockView) world;
-		Pair<Block, Block> slabs = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(pos);
-		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
-		Axis axis = state.get(AXIS);
-		boolean isPositive = Helper.isPositive(hit, pos, axis);
-		BlockState slab = Helper.getState(isPositive ? slabs.getFirst() : slabs.getSecond(), axis, isPositive);
-		return slab.getBlock().getPickStack(world, pos, slab);
-	}
-
-	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-		builder.add(AXIS);
 	}
 }

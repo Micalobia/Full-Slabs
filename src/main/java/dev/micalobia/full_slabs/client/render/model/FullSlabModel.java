@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.util.Helper;
-import dev.micalobia.full_slabs.util.LinkedSlabs;
+import dev.micalobia.full_slabs.util.TiltedSlabs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
@@ -86,7 +86,7 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 
 	private static int getUV(BlockState state, Direction from, Axis axis) {
 		VerticalSlabBlock block = (VerticalSlabBlock) state.getBlock();
-		if(!block.tiltable) return MutableQuadView.BAKE_LOCK_UV;
+		if(!TiltedSlabs.isDouble(block)) return MutableQuadView.BAKE_LOCK_UV;
 		if(axis == Axis.X) {
 			return MutableQuadView.BAKE_LOCK_UV |
 					MutableQuadView.BAKE_ROTATE_90 |
@@ -206,14 +206,14 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 		QuadEmitter emitter = builder.getEmitter();
 		switch(axis) {
 			case X: {
-				boolean positiveTilted = LinkedSlabs.vertical(positiveSlab).tiltable;
+				boolean positiveTilted = TiltedSlabs.isSingle(positiveSlab);
 				finalize(fullSquare(emitter, Direction.EAST), positiveSprites[positiveTilted ? top : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(rightSquare(emitter, Direction.SOUTH), positiveSprites[side], getUV(cachedPositive, Direction.SOUTH, axis));
 				finalize(rightSquare(emitter, Direction.UP), positiveSprites[positiveTilted ? side : top], getUV(cachedPositive, Direction.UP, axis));
 				finalize(rightSquare(emitter, Direction.DOWN), positiveSprites[positiveTilted ? side : bottom], getUV(cachedPositive, Direction.DOWN, axis));
 				finalize(leftSquare(emitter, Direction.NORTH), positiveSprites[side], getUV(cachedPositive, Direction.NORTH, axis));
 
-				boolean negativeTilted = LinkedSlabs.vertical(negativeSlab).tiltable;
+				boolean negativeTilted = TiltedSlabs.isSingle(negativeSlab);
 				finalize(fullSquare(emitter, Direction.WEST), negativeSprites[negativeTilted ? bottom : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(leftSquare(emitter, Direction.SOUTH), negativeSprites[side], getUV(cachedNegative, Direction.SOUTH, axis));
 				finalize(leftSquare(emitter, Direction.UP), negativeSprites[negativeTilted ? side : top], getUV(cachedNegative, Direction.UP, axis));
@@ -222,14 +222,14 @@ public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel
 				break;
 			}
 			case Z: {
-				boolean positiveTilted = LinkedSlabs.vertical(positiveSlab).tiltable;
+				boolean positiveTilted = TiltedSlabs.isSingle(positiveSlab);
 				finalize(fullSquare(emitter, Direction.SOUTH), positiveSprites[positiveTilted ? top : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(leftSquare(emitter, Direction.EAST), positiveSprites[side], getUV(cachedPositive, Direction.EAST, axis));
 				finalize(rightSquare(emitter, Direction.WEST), positiveSprites[side], getUV(cachedPositive, Direction.WEST, axis));
 				finalize(bottomSquare(emitter, Direction.UP), positiveSprites[positiveTilted ? side : top], getUV(cachedPositive, Direction.UP, axis));
 				finalize(topSquare(emitter, Direction.DOWN), positiveSprites[positiveTilted ? side : bottom], getUV(cachedPositive, Direction.DOWN, axis));
 
-				boolean negativeTilted = LinkedSlabs.vertical(negativeSlab).tiltable;
+				boolean negativeTilted = TiltedSlabs.isSingle(negativeSlab);
 				finalize(fullSquare(emitter, Direction.NORTH), negativeSprites[negativeTilted ? bottom : side], MutableQuadView.BAKE_LOCK_UV);
 				finalize(rightSquare(emitter, Direction.EAST), negativeSprites[side], getUV(cachedNegative, Direction.EAST, axis));
 				finalize(leftSquare(emitter, Direction.WEST), negativeSprites[side], getUV(cachedNegative, Direction.WEST, axis));

@@ -1,32 +1,49 @@
 package dev.micalobia.full_slabs.util;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class TiltedSlabs {
-	private static final Set<Identifier> tiltedSlabs = new HashSet<>();
+	private static final Set<Identifier> tiltDoubleSet = new HashSet<>();
+	private static final Set<Identifier> tiltSingleSet = new HashSet<>();
 
 	static {
-		register(Blocks.SMOOTH_STONE_SLAB);
+		register("minecraft:smooth_stone_slab");
 	}
 
-	public static void register(Block tiltedSlab) {
-		tiltedSlabs.add(Helper.fetchId(tiltedSlab));
+	private static void register(String id) {
+		register(new Identifier(id), true, true);
 	}
 
-	public static void register(Identifier tiltedSlab) {
-		tiltedSlabs.add(tiltedSlab);
+	private static void register(String id, boolean tiltDouble, boolean tiltSingle) {
+		register(new Identifier(id), tiltDouble, tiltSingle);
 	}
 
-	public static boolean contains(Block slab) {
-		return tiltedSlabs.contains(Helper.fetchId(slab));
+	private static void register(Identifier id) {
+		register(id, true, true);
 	}
 
-	public static boolean contains(Identifier slab) {
-		return tiltedSlabs.contains(slab);
+	private static void register(Identifier slab, boolean tiltDouble, boolean tiltSingle) {
+		if(tiltDouble) tiltDoubleSet.add(slab);
+		if(tiltSingle) tiltSingleSet.add(slab);
+	}
+
+	public static boolean isDouble(Identifier id) {
+		return tiltDoubleSet.contains(id);
+	}
+
+	public static boolean isDouble(Block slab) {
+		return isDouble(Helper.fetchId(LinkedSlabs.horizontal(slab)));
+	}
+
+	public static boolean isSingle(Identifier id) {
+		return tiltSingleSet.contains(id);
+	}
+
+	public static boolean isSingle(Block slab) {
+		return isSingle(Helper.fetchId(LinkedSlabs.horizontal(slab)));
 	}
 }
