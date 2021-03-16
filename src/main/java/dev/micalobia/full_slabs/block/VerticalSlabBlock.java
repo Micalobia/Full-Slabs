@@ -3,6 +3,7 @@ package dev.micalobia.full_slabs.block;
 import dev.micalobia.full_slabs.block.enums.SlabState;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
+import dev.micalobia.full_slabs.client.render.model.SlabModelInfo;
 import dev.micalobia.full_slabs.util.TiltedSlabs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,6 +11,8 @@ import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.model.UnbakedModel;
+import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.fluid.Fluid;
@@ -21,6 +24,7 @@ import net.minecraft.loot.context.LootContext;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
@@ -33,9 +37,11 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
-public class VerticalSlabBlock extends TransparentBlock implements Waterloggable, ISlabBlock {
+public class VerticalSlabBlock extends Block implements Waterloggable, ISlabBlock {
 
 	public static final EnumProperty<Axis> AXIS;
 	public static final EnumProperty<SlabState> STATE;
@@ -72,6 +78,87 @@ public class VerticalSlabBlock extends TransparentBlock implements Waterloggable
 		super(FabricBlockSettings.copyOf(base));
 		this.base = base;
 		setDefaultState(getDefaultState().with(AXIS, Axis.X).with(STATE, SlabState.NEGATIVE).with(WATERLOGGED, false));
+	}
+
+	public static BlockState fromModelIdentifier(ModelIdentifier id) {
+		String variant = id.getVariant();
+		String[] properties = variant.split(",");
+		VerticalSlabBlock block = (VerticalSlabBlock) Helper.fetchBlock(new Identifier(id.getNamespace(), id.getPath()));
+		BlockState ret = block.getDefaultState();
+		for(String property : properties) {
+			String value = property.split("=")[1];
+			switch(value) {
+				case "x":
+					ret = ret.with(AXIS, Axis.X);
+					break;
+				case "z":
+					ret = ret.with(AXIS, Axis.Z);
+					break;
+				case "positive":
+					ret = ret.with(STATE, SlabState.POSITIVE);
+					break;
+				case "negative":
+					ret = ret.with(STATE, SlabState.NEGATIVE);
+					break;
+				case "double":
+					ret = ret.with(STATE, SlabState.DOUBLE);
+					break;
+				case "true":
+					ret = ret.with(WATERLOGGED, true);
+					break;
+				case "false":
+					ret = ret.with(WATERLOGGED, false);
+					break;
+			}
+		}
+		return ret;
+	}
+
+	private static String parentString(BlockState blockState, Block base) {
+		Axis axis = blockState.get(AXIS);
+		SlabState state = blockState.get(STATE);
+		StringBuilder builder = new StringBuilder("full_slabs:block/slab_");
+		if(state == SlabState.DOUBLE) {
+			builder.append("full_");
+			builder.append(axis.toString().toLowerCase());
+			if(TiltedSlabs.isDouble(base)) builder.append("_tilted");
+		} else {
+			Direction dir = state.direction(axis);
+			builder.append(dir.toString().toLowerCase());
+			if(TiltedSlabs.isSingle(base)) builder.append("_tilted");
+		}
+		return builder.toString();
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static JsonUnbakedModel generateJson(BlockState state, Block base, Function<Identifier, UnbakedModel> function) {
+		JsonUnbakedModel json = (JsonUnbakedModel) function.apply(SlabModelInfo.get(base, state.get(STATE).slabType()));
+		Collection<Identifier> dependencies = json.getModelDependencies();
+
+		SpriteIdentifier bottom;
+		SpriteIdentifier top;
+		SpriteIdentifier side;
+		if(dependencies.contains(new Identifier("minecraft:block/cube_all")))
+			bottom = top = side = json.resolveSprite("all");
+		else if(dependencies.contains(new Identifier("minecraft:block/cube_column"))) {
+			bottom = top = json.resolveSprite("end");
+			side = json.resolveSprite("side");
+		} else if(dependencies.contains(new Identifier("minecraft:block/cube"))) {
+			bottom = json.resolveSprite("down");
+			top = json.resolveSprite("up");
+			side = json.resolveSprite("north");
+		} else { // Covers block/slab and block/cube_bottom_top
+			bottom = json.resolveSprite("bottom");
+			top = json.resolveSprite("top");
+			side = json.resolveSprite("side");
+		}
+		return JsonUnbakedModel.deserialize(String.format(
+				"{\"parent\":\"%s\",\"textures\":{\"bottom\":\"%s\",\"top\":\"%s\",\"side\":\"%s\"}}",
+				parentString(state, base),
+				bottom.getTextureId(),
+				top.getTextureId(),
+				side.getTextureId()
+		));
 	}
 
 	public boolean canFillWithFluid(BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
@@ -170,6 +257,16 @@ public class VerticalSlabBlock extends TransparentBlock implements Waterloggable
 		}
 	}
 
+	@Override
+	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
+		Block base = LinkedSlabs.horizontal(state.getBlock());
+		return new ItemStack(base);
+	}
+
+	protected void appendProperties(Builder<Block, BlockState> builder) {
+		builder.add(AXIS, STATE, WATERLOGGED);
+	}
+
 	public @Nullable Direction direction(BlockState state) {
 		SlabState slabState = state.get(STATE);
 		Axis axis = state.get(AXIS);
@@ -188,74 +285,5 @@ public class VerticalSlabBlock extends TransparentBlock implements Waterloggable
 		if(axis == Axis.X) isPositive = hit.getX() - pos.getX() > 0.5;
 		else isPositive = hit.getZ() - pos.getZ() > 0.5;
 		return isPositive == (slabState == SlabState.NEGATIVE);
-	}
-
-	@Override
-	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
-		Block base = LinkedSlabs.horizontal(state.getBlock());
-		return new ItemStack(base);
-	}
-
-	protected void appendProperties(Builder<Block, BlockState> builder) {
-		builder.add(AXIS, STATE, WATERLOGGED);
-	}
-
-	public BlockState fromModelIdentifier(ModelIdentifier id) {
-		String variant = id.getVariant();
-		String[] properties = variant.split(",");
-		BlockState ret = getDefaultState();
-		for(String property : properties) {
-			String value = property.split("=")[1];
-			switch(value) {
-				case "x":
-					ret = ret.with(AXIS, Axis.X);
-					break;
-				case "z":
-					ret = ret.with(AXIS, Axis.Z);
-					break;
-				case "positive":
-					ret = ret.with(STATE, SlabState.POSITIVE);
-					break;
-				case "negative":
-					ret = ret.with(STATE, SlabState.NEGATIVE);
-					break;
-				case "double":
-					ret = ret.with(STATE, SlabState.DOUBLE);
-					break;
-				case "true":
-					ret = ret.with(WATERLOGGED, true);
-					break;
-				case "false":
-					ret = ret.with(WATERLOGGED, false);
-					break;
-			}
-		}
-		return ret;
-	}
-
-	private static String parentString(BlockState blockState, Block base) {
-		Axis axis = blockState.get(AXIS);
-		SlabState state = blockState.get(STATE);
-		StringBuilder builder = new StringBuilder("full_slabs:block/slab_");
-		if(state == SlabState.DOUBLE) {
-			builder.append("full_");
-			builder.append(axis.toString().toLowerCase());
-			if(TiltedSlabs.isDouble(base)) builder.append("_tilted");
-		} else {
-			Direction dir = state.direction(axis);
-			builder.append(dir.toString().toLowerCase());
-			if(TiltedSlabs.isSingle(base)) builder.append("_tilted");
-		}
-		return builder.toString();
-	}
-
-	public static String generateJson(BlockState state, Block base, SpriteIdentifier bottom, SpriteIdentifier top, SpriteIdentifier side) {
-		return String.format(
-				"{\"parent\":\"%s\",\"textures\":{\"bottom\":\"%s\",\"top\":\"%s\",\"side\":\"%s\"}}",
-				parentString(state, base),
-				bottom.getTextureId(),
-				top.getTextureId(),
-				side.getTextureId()
-		);
 	}
 }

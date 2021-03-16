@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -32,6 +33,10 @@ public class Helper {
 
 	public static Block fetchBlock(Identifier id) {
 		return Registry.BLOCK.get(id);
+	}
+
+	public static Block fetchBlock(ModelIdentifier id) {
+		return fetchBlock(new Identifier(id.getNamespace(), id.getPath()));
 	}
 
 	public static Identifier fetchId(Block block) {

@@ -1,6 +1,7 @@
 package dev.micalobia.full_slabs.util;
 
 import net.minecraft.block.Block;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
@@ -12,6 +13,10 @@ public class TiltedSlabs {
 
 	static {
 		register("minecraft:smooth_stone_slab");
+		register("mo_glass:glass_slab", false, true);
+		for(DyeColor color : DyeColor.values()) {
+			register(String.format("mo_glass:%s_stained_glass_slab", color.asString()), false, true);
+		}
 	}
 
 	private static void register(String id) {

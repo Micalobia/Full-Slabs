@@ -1,8 +1,13 @@
 package dev.micalobia.full_slabs.util;
 
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.SlabBlock;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderLayers;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -39,6 +44,15 @@ public class LinkedSlabs {
 			if(!contains(slab)) return false;
 		}
 		return true;
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static void correctRenderLayers() {
+		BlockRenderLayerMap map = BlockRenderLayerMap.INSTANCE;
+		for(SlabBlock slab : vertical.keySet()) {
+			RenderLayer layer = RenderLayers.getBlockLayer(slab.getDefaultState());
+			map.putBlock(vertical(slab), layer);
+		}
 	}
 
 	@NotNull
