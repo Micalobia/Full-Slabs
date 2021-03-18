@@ -46,15 +46,6 @@ public class LinkedSlabs {
 		return true;
 	}
 
-	@Environment(EnvType.CLIENT)
-	public static void correctRenderLayers() {
-		BlockRenderLayerMap map = BlockRenderLayerMap.INSTANCE;
-		for(SlabBlock slab : vertical.keySet()) {
-			RenderLayer layer = RenderLayers.getBlockLayer(slab.getDefaultState());
-			map.putBlock(vertical(slab), layer);
-		}
-	}
-
 	@NotNull
 	public static SlabBlock horizontal(Block slab) {
 		if(!contains(slab))
