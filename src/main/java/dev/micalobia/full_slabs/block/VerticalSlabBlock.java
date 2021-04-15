@@ -1,9 +1,9 @@
 package dev.micalobia.full_slabs.block;
 
 import dev.micalobia.full_slabs.block.enums.SlabState;
+import dev.micalobia.full_slabs.client.render.model.SlabModelInfo;
 import dev.micalobia.full_slabs.util.Helper;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
-import dev.micalobia.full_slabs.client.render.model.SlabModelInfo;
 import dev.micalobia.full_slabs.util.TiltedSlabs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -134,6 +134,7 @@ public class VerticalSlabBlock extends Block implements Waterloggable, ISlabBloc
 	public static JsonUnbakedModel generateJson(BlockState state, Block base, Function<Identifier, UnbakedModel> function) {
 		JsonUnbakedModel json = (JsonUnbakedModel) function.apply(SlabModelInfo.get(base, state.get(STATE).slabType()));
 		Collection<Identifier> dependencies = json.getModelDependencies();
+		Identifier baseId = Helper.fetchId(base);
 
 		SpriteIdentifier bottom;
 		SpriteIdentifier top;
@@ -147,6 +148,9 @@ public class VerticalSlabBlock extends Block implements Waterloggable, ISlabBloc
 			bottom = json.resolveSprite("down");
 			top = json.resolveSprite("up");
 			side = json.resolveSprite("north");
+		} else if("bambooeverything".equals(baseId.getNamespace())) {
+			bottom = top = json.resolveSprite("1");
+			side = json.resolveSprite("0");
 		} else { // Covers block/slab and block/cube_bottom_top
 			bottom = json.resolveSprite("bottom");
 			top = json.resolveSprite("top");
