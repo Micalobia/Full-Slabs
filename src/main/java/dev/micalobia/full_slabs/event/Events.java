@@ -13,6 +13,8 @@ import dev.micalobia.micalibria.event.enums.EventReaction;
 import dev.micalobia.micalibria.event.enums.PairedEventReaction;
 import dev.micalobia.micalibria.event.enums.TypedEventReaction;
 import dev.micalobia.micalibria.server.network.ServerPlayerEntityUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -45,21 +47,6 @@ import java.util.Random;
 public class Events {
 	private static Pair<Block, Block> ghostPair;
 
-	static {
-		SpawnSprintingParticlesEvent.EVENT.register(Events::spawnSlabSprintingParticles);
-		HitGroundParticlesEvent.EVENT.register(Events::spawnHitGroundParticles);
-		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakFullSlab);
-		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakHorizontalSlab);
-		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakVerticalSlab);
-		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakFullSlab);
-		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakHorizontalSlab);
-		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakVerticalSlab);
-		BlockBreakingParticleEvent.EVENT.register(Events::slabBreakingParticles);
-		RenderDamageEvent.EVENT.register(Events::renderSlabDamage);
-		PlaceBlockItemEvent.EVENT.register(Events::placeFullSlab);
-		SetBlockStateEvent.EVENT.register(Events::setFullSlab);
-	}
-
 	private static PairedEventReaction<BlockState, Optional<BlockEntity>> setFullSlab(World world, BlockPos pos, BlockState state, BlockEntity entity, boolean moved) {
 		if(!state.isOf(Blocks.FULL_SLAB_BLOCK) || moved || entity != null) return PairedEventReaction.ignore();
 		entity = new FullSlabBlockEntity(ghostPair.getFirst(), ghostPair.getSecond());
@@ -82,6 +69,7 @@ public class Events {
 		return TypedEventReaction.complete(state);
 	}
 
+	@Environment(EnvType.CLIENT)
 	private static TypedEventReaction<BlockState> renderSlabDamage(BlockState state, BlockPos pos, BlockRenderView view, MatrixStack matrix, VertexConsumer consumer) {
 		if(!(Helper.isAnySlab(state.getBlock()) && Helper.isDoubleSlab(state))) return TypedEventReaction.ignore();
 		Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
@@ -98,6 +86,7 @@ public class Events {
 		return TypedEventReaction.complete(ret);
 	}
 
+	@Environment(EnvType.CLIENT)
 	private static TypedEventReaction<BlockState> slabBreakingParticles(BlockState state, BlockPos pos, ClientWorld world, Direction direction, Random random) {
 		if(!state.isOf(Blocks.FULL_SLAB_BLOCK)) return TypedEventReaction.ignore();
 		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
@@ -107,7 +96,8 @@ public class Events {
 		return TypedEventReaction.complete(entity.getHitState(axis, hit));
 	}
 
-	private static EventReaction breakVerticalSlab(MinecraftClient client, BlockPos pos) {
+	@Environment(EnvType.CLIENT)
+	public static EventReaction breakVerticalSlab(MinecraftClient client, BlockPos pos) {
 		BlockState state = client.world.getBlockState(pos);
 		Block block = state.getBlock();
 		if(!(block instanceof VerticalSlabBlock)) return EventReaction.IGNORE;
@@ -121,7 +111,8 @@ public class Events {
 		return ret ? EventReaction.COMPLETE : EventReaction.CANCEL; // TODO: Replace with EventReaction.terminate(bool)
 	}
 
-	private static EventReaction breakHorizontalSlab(MinecraftClient client, BlockPos pos) {
+	@Environment(EnvType.CLIENT)
+	public static EventReaction breakHorizontalSlab(MinecraftClient client, BlockPos pos) {
 		BlockState state = client.world.getBlockState(pos);
 		if(!(state.getBlock() instanceof SlabBlock)) return EventReaction.IGNORE;
 		if(state.get(SlabBlock.TYPE) != SlabType.DOUBLE) return EventReaction.IGNORE;
@@ -133,7 +124,8 @@ public class Events {
 		return ret ? EventReaction.COMPLETE : EventReaction.CANCEL; // TODO: Replace with EventReaction.terminate(bool)
 	}
 
-	private static EventReaction breakFullSlab(MinecraftClient client, BlockPos pos) {
+	@Environment(EnvType.CLIENT)
+	public static EventReaction breakFullSlab(MinecraftClient client, BlockPos pos) {
 		ClientWorld world = client.world;
 		BlockState state = world.getBlockState(pos);
 		if(!state.isOf(Blocks.FULL_SLAB_BLOCK)) return EventReaction.IGNORE;
@@ -215,6 +207,7 @@ public class Events {
 		}
 	}
 
+	@Environment(EnvType.CLIENT)
 	private static boolean breakSlab(BlockState brokenState, BlockState leftoverState, BlockPos pos, MinecraftClient client) {
 		Block broken = brokenState.getBlock();
 		broken.onBreak(client.world, pos, brokenState, client.player);
@@ -224,6 +217,22 @@ public class Events {
 	}
 
 	public static void init() {
+		SpawnSprintingParticlesEvent.EVENT.register(Events::spawnSlabSprintingParticles);
+		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakFullSlab);
+		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakHorizontalSlab);
+		ServerPlayerBrokeBlockEvent.EVENT.register(Events::tryBreakVerticalSlab);
+		PlaceBlockItemEvent.EVENT.register(Events::placeFullSlab);
+		SetBlockStateEvent.EVENT.register(Events::setFullSlab);
+		HitGroundParticlesEvent.EVENT.register(Events::spawnHitGroundParticles);
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static void client_init() {
+		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakFullSlab);
+		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakHorizontalSlab);
+		ClientPlayerBrokeBlockEvent.EVENT.register(Events::breakVerticalSlab);
+		RenderDamageEvent.EVENT.register(Events::renderSlabDamage);
+		BlockBreakingParticleEvent.EVENT.register(Events::slabBreakingParticles);
 	}
 
 	private static TypedEventReaction<BlockState> spawnHitGroundParticles(BlockState blockState, LivingEntity entity) {

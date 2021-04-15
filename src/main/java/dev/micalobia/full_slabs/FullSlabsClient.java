@@ -3,6 +3,7 @@ package dev.micalobia.full_slabs;
 import dev.micalobia.full_slabs.block.Blocks;
 import dev.micalobia.full_slabs.block.VerticalSlabBlock;
 import dev.micalobia.full_slabs.client.render.model.SlabModelProvider;
+import dev.micalobia.full_slabs.event.Events;
 import dev.micalobia.full_slabs.util.LinkedSlabs;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -38,7 +39,6 @@ public class FullSlabsClient implements ClientModInitializer {
 		RegistryEntryAddedCallback.event(Registry.BLOCK).register(FullSlabsClient::syncRenderLayer);
 		BlockRenderLayerMap map = BlockRenderLayerMap.INSTANCE;
 		map.putBlock(Blocks.FULL_SLAB_BLOCK, RenderLayer.getTranslucent());
+		Events.client_init();
 	}
-
-
 }
