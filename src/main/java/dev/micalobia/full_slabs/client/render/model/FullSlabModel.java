@@ -2,9 +2,7 @@ package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
-import dev.micalobia.full_slabs.util.Helper;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
@@ -30,76 +28,90 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@Environment(EnvType.CLIENT)
-public class FullSlabModel implements BakedModel, UnbakedModel, FabricBakedModel {
+public class FullSlabModel implements UnbakedModel, BakedModel, FabricBakedModel {
 	private static final SpriteIdentifier MISSINGNO_ID = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier("minecraft:builtin/missing"));
 	private Sprite missingParticle;
 
 	public FullSlabModel() {
 	}
 
+	@Override
 	public Collection<Identifier> getModelDependencies() {
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
+	@Override
 	public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
-		return Collections.emptyList();
+		return Collections.emptySet();
 	}
 
 	@Nullable
+	@Override
 	public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
 		missingParticle = textureGetter.apply(MISSINGNO_ID);
 		return this;
 	}
 
+	@Override
 	public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction face, Random random) {
 		return null;
 	}
 
+	@Override
 	public boolean useAmbientOcclusion() {
 		return true;
 	}
 
+	@Override
 	public boolean hasDepth() {
 		return false;
 	}
 
+	@Override
 	public boolean isSideLit() {
 		return false;
 	}
 
+	@Override
 	public boolean isBuiltin() {
 		return false;
 	}
 
-	public Sprite getSprite() {
+	@Override
+	public Sprite getParticleSprite() {
 		return missingParticle;
 	}
 
+	@Override
 	public ModelTransformation getTransformation() {
 		return null;
 	}
 
+	@Override
 	public ModelOverrideList getOverrides() {
 		return null;
 	}
 
+	@Override
 	public boolean isVanillaAdapter() {
 		return false;
 	}
 
-	public void emitBlockQuads(BlockRenderView blockRenderView, BlockState blockState, BlockPos blockPos, Supplier<Random> supplier, RenderContext renderContext) {
-		RenderAttachedBlockView view = (RenderAttachedBlockView) blockRenderView;
-		Pair<Block, Block> pair = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(blockPos);
-		Axis axis = blockState.get(FullSlabBlock.AXIS);
-		BlockState positiveState = Helper.getState(pair.getFirst(), axis, true);
-		BlockState negativeState = Helper.getState(pair.getSecond(), axis, false);
+	@SuppressWarnings("unchecked")
+	@Override
+	public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+		RenderAttachedBlockView view = (RenderAttachedBlockView) blockView;
+		Pair<Block, Block> pair = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(pos);
+		Axis axis = state.get(FullSlabBlock.AXIS);
+		BlockState positiveState = Utility.getSlabState(pair, axis, true);
+		BlockState negativeState = Utility.getSlabState(pair, axis, false);
 		BlockRenderManager manager = MinecraftClient.getInstance().getBlockRenderManager();
-		renderContext.fallbackConsumer().accept(manager.getModel(positiveState));
-		renderContext.fallbackConsumer().accept(manager.getModel(negativeState));
+		context.fallbackConsumer().accept(manager.getModel(positiveState));
+		context.fallbackConsumer().accept(manager.getModel(negativeState));
 	}
 
-	public void emitItemQuads(ItemStack itemStack, Supplier<Random> supplier, RenderContext renderContext) {
+	@Override
+	public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
 
 	}
 }

@@ -2,9 +2,13 @@
   "required": true,
   "minVersion": "0.8",
   "package": "dev.micalobia.full_slabs.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "block.SlabBlockMixin", "client.render.model.ModelLoaderMixin"
+    "block.SlabBlockAccessor", "block.SlabBlockMixin", "client.ModelLoaderMixin",
+    "client.network.ClientPlayerInteractionManagerMixin", "client.particle.ParticleManagerMixin",
+    "client.render.block.BlockRenderManagerMixin", "client.render.model.json.JsonUnbakedModelAccessor",
+    "entity.EntityMixin", "entity.LivingEntityMixin", "item.BlockItemMixin",
+    "server.network.ServerPlayerInteractionManagerMixin", "world.WorldChunkMixin"
   ],
   "client": [
   ],

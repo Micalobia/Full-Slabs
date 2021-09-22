@@ -1,90 +1,105 @@
 package dev.micalobia.full_slabs.block.entity;
 
 import com.mojang.datafixers.util.Pair;
-import dev.micalobia.full_slabs.util.Helper;
-import dev.micalobia.full_slabs.util.LinkedSlabs;
+import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.block.enums.SlabType;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 
 public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable, RenderAttachmentBlockEntity {
 	private Block positiveSlab;
 	private Block negativeSlab;
 
-	public FullSlabBlockEntity(Block positiveSlab, Block negativeSlab) {
-		super(dev.micalobia.full_slabs.block.Blocks.FULL_SLAB_BLOCK_ENTITY);
-		this.positiveSlab = positiveSlab;
-		this.negativeSlab = negativeSlab;
+	public FullSlabBlockEntity(BlockPos pos, BlockState state, Block positive, Block negative) {
+		super(FullSlabsMod.FULL_SLAB_BLOCK_ENTITY, pos, state);
+		positiveSlab = positive;
+		negativeSlab = negative;
 	}
 
-	public FullSlabBlockEntity() {
-		this(
-				Blocks.SMOOTH_STONE_SLAB,
-				Blocks.STONE_SLAB
-		);
-	}
-
-	public Block getPositiveSlab() {
-		return positiveSlab;
-	}
-
-	public Block getNegativeSlab() {
-		return negativeSlab;
+	public FullSlabBlockEntity(BlockPos pos, BlockState state) {
+		this(pos, state, Blocks.STONE_SLAB, Blocks.STONE_SLAB);
 	}
 
 	public Block getSlab(boolean positive) {
 		return positive ? positiveSlab : negativeSlab;
 	}
 
-	public BlockState getState(Axis axis, boolean positive) {
-		return Helper.getState(getSlab(positive), axis, positive);
+	private BlockState getPositiveSlabState(Axis axis) {
+		return positiveSlab.getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.TOP);
 	}
 
-	public BlockState getHitState(Axis axis, Vec3d hit) {
-		boolean isPositive = Helper.isPositive(hit, pos, axis);
-		return getState(axis, isPositive);
+	private BlockState getNegativeSlabState(Axis axis) {
+		return negativeSlab.getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.BOTTOM);
 	}
 
-	public void fromTag(BlockState state, CompoundTag tag) {
-		super.fromTag(state, tag);
-		fromClientTag(tag);
+	public BlockState getSlabState(boolean positive) {
+		Axis axis = getCachedState().get(Properties.AXIS);
+		return positive ? getPositiveSlabState(axis) : getNegativeSlabState(axis);
 	}
 
-	public CompoundTag toTag(CompoundTag tag) {
-		super.toTag(tag);
-		return toClientTag(tag);
+	public BlockState getSlabState(Vec3d hit) {
+		Axis axis = getCachedState().get(Properties.AXIS);
+		boolean positive = Utility.isPositive(axis, hit, pos);
+		return positive ? getPositiveSlabState(axis) : getNegativeSlabState(axis);
 	}
 
-	public void fromClientTag(CompoundTag tag) {
-		positiveSlab = LinkedSlabs.horizontal(Helper.fetchBlock(new Identifier(tag.getString("positive_id"))));
-		negativeSlab = LinkedSlabs.horizontal(Helper.fetchBlock(new Identifier(tag.getString("negative_id"))));
+	public BlockState getOppositeSlabState(Vec3d hit) {
+		Axis axis = getCachedState().get(Properties.AXIS);
+		boolean positive = Utility.isPositive(axis, hit, pos);
+		return positive ? getNegativeSlabState(axis) : getPositiveSlabState(axis);
 	}
 
-	public CompoundTag toClientTag(CompoundTag tag) {
-		tag.putString("positive_id", Helper.fetchId(positiveSlab).toString());
-		tag.putString("negative_id", Helper.fetchId(negativeSlab).toString());
-		return tag;
+	@Override
+	public void readNbt(NbtCompound nbt) {
+		super.readNbt(nbt);
+		readCommonNbt(nbt);
 	}
 
-	public Block getHitSlab(Vec3d hit, BlockPos pos, Axis axis) {
-		return Helper.isPositive(hit, pos, axis) ? getPositiveSlab() : getNegativeSlab();
+	@Override
+	public NbtCompound writeNbt(NbtCompound nbt) {
+		super.writeNbt(nbt);
+		return writeCommonNbt(nbt);
 	}
 
-	public Block getOppositeSlab(Vec3d hit, BlockPos pos, Axis axis) {
-		return Helper.isPositive(hit, pos, axis) ? getNegativeSlab() : getPositiveSlab();
+	@Override
+	public void fromClientTag(NbtCompound nbt) {
+		readCommonNbt(nbt);
+	}
+
+	@Override
+	public NbtCompound toClientTag(NbtCompound nbt) {
+		return writeCommonNbt(nbt);
+	}
+
+	private NbtCompound writeCommonNbt(NbtCompound nbt) {
+		nbt.putString("positive_id", Registry.BLOCK.getId(positiveSlab).toString());
+		nbt.putString("negative_id", Registry.BLOCK.getId(negativeSlab).toString());
+		return nbt;
+	}
+
+	private void readCommonNbt(NbtCompound nbt) {
+		positiveSlab = Registry.BLOCK.get(new Identifier(nbt.getString("positive_id")));
+		negativeSlab = Registry.BLOCK.get(new Identifier(nbt.getString("negative_id")));
+		if(!(positiveSlab instanceof SlabBlock)) positiveSlab = Blocks.STONE_SLAB;
+		if(!(negativeSlab instanceof SlabBlock)) negativeSlab = Blocks.STONE_SLAB;
 	}
 
 	@Override
 	public @Nullable Object getRenderAttachmentData() {
-		return new Pair<>(positiveSlab, negativeSlab);
+		return Pair.of(positiveSlab, negativeSlab);
 	}
 }

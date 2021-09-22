@@ -2,38 +2,36 @@
   "schemaVersion": 1,
   "id": "full_slabs",
   "version": "${version}",
-
-  "name": "Full Slabs",
-  "description": "This adds vertical and mixed slabs into the game!",
+  "name": "FullSlabs",
+  "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
     "Micalobia"
   ],
   "contact": {
-    "homepage": "https://www.curseforge.com/minecraft/mc-mods/full-slabs",
-    "sources": "https://github.com/Micalobia/Full-Slabs"
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
   },
-
   "license": "CC0-1.0",
   "icon": "assets/full_slabs/icon.png",
-
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.micalobia.full_slabs.FullSlabsCommon"
+      "dev.micalobia.full_slabs.FullSlabsMod"
     ],
     "client": [
-      "dev.micalobia.full_slabs.FullSlabsClient"
+      "dev.micalobia.full_slabs.FullSlabsMod"
     ]
   },
   "mixins": [
     "full_slabs.mixins.json"
   ],
-  "accessWidener": "full_slabs.accesswidener",
-
   "depends": {
-    "fabricloader": ">=0.7.4",
+    "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": "1.16.x",
-    "micalibria": ">=1.0.2"
+    "minecraft": "1.17.x",
+    "java": ">=16",
+    "malilib": ">=0.10.0-dev.24"
+  },
+  "suggests": {
   }
 }

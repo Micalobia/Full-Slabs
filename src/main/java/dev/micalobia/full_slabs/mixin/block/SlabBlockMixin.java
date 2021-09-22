@@ -1,257 +1,145 @@
 package dev.micalobia.full_slabs.mixin.block;
 
-import dev.micalobia.full_slabs.block.Blocks;
-import dev.micalobia.full_slabs.block.*;
-import dev.micalobia.full_slabs.block.enums.SlabState;
-import dev.micalobia.full_slabs.util.Helper;
-import dev.micalobia.full_slabs.util.LinkedSlabs;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.util.Utility;
+import fi.dy.masa.malilib.util.PositionUtils;
+import fi.dy.masa.malilib.util.PositionUtils.HitPart;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
-import net.minecraft.util.math.Direction.AxisDirection;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SlabBlock.class)
-public abstract class SlabBlockMixin extends Block implements Waterloggable, ISlabBlock {
+public abstract class SlabBlockMixin extends Block implements Waterloggable {
+	private static final EnumProperty<Axis> AXIS;
 
-	private static final VoxelShape TOP_OUTLINE_SHAPE;
-	private static final VoxelShape BOTTOM_OUTLINE_SHAPE;
 	@Shadow
 	@Final
 	public static EnumProperty<SlabType> TYPE;
+
 	@Shadow
 	@Final
 	public static BooleanProperty WATERLOGGED;
+
 	@Shadow
 	@Final
-	public static VoxelShape TOP_SHAPE;
+	protected static VoxelShape TOP_SHAPE;
+
 	@Shadow
 	@Final
-	public static VoxelShape BOTTOM_SHAPE;
+	protected static VoxelShape BOTTOM_SHAPE;
 
 	static {
-		TOP_OUTLINE_SHAPE = SlabBlockConstants.TOP_OUTLINE_SHAPE;
-		BOTTOM_OUTLINE_SHAPE = SlabBlockConstants.BOTTOM_OUTLINE_SHAPE;
+		AXIS = Properties.AXIS;
 	}
 
-	public SlabBlockMixin(AbstractBlock.Settings settings) {
+	public SlabBlockMixin(Settings settings) {
 		super(settings);
-		this.setDefaultState(this.getDefaultState().with(TYPE, SlabType.BOTTOM).with(WATERLOGGED, false));
 	}
 
-	private static boolean within(double min, double value, double max) {
-		return value > min && value < max;
+	@Inject(method = "<init>", at = @At("TAIL"))
+	private void includeAxisInDefaultState(Settings settings, CallbackInfo ci) {
+		setDefaultState(getDefaultState().with(AXIS, Axis.Y));
 	}
 
-	public boolean canReplace(BlockState state, ItemPlacementContext ctx) {
-		if(!(Helper.fetchBlock(ctx.getStack().getItem()) instanceof SlabBlock)) return false;
+	@Inject(method = "appendProperties", at = @At("HEAD"))
+	private void appendAxis(Builder<Block, BlockState> builder, CallbackInfo ci) {
+		builder.add(AXIS);
+	}
+
+	@Override
+	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
-		if(type == SlabType.DOUBLE) return false;
-		if(ctx.canReplaceExisting()) return isInside(state, ctx.getSide(), ctx.getHitPos(), ctx.getBlockPos());
-		return true;
+		Direction direction;
+		if(type == SlabType.DOUBLE) {
+			Axis axis = state.get(AXIS);
+			HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
+			if(hitResult == null) return VoxelShapes.fullCube();
+			direction = Utility.getDirection(axis, hitResult.getPos(), pos);
+		} else direction = Utility.getDirection(state.get(TYPE), state.get(AXIS));
+		return switch(direction) {
+			case NORTH -> Utility.NORTH_OUTLINE_SHAPE;
+			case EAST -> Utility.EAST_OUTLINE_SHAPE;
+			case SOUTH -> Utility.SOUTH_OUTLINE_SHAPE;
+			case WEST -> Utility.WEST_OUTLINE_SHAPE;
+			case UP -> Utility.TOP_OUTLINE_SHAPE;
+			case DOWN -> Utility.BOTTOM_OUTLINE_SHAPE;
+		};
 	}
 
-	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-		SlabType slabType = state.get(TYPE);
-		switch(slabType) {
-			case DOUBLE:
-				return VoxelShapes.fullCube();
-			case TOP:
-				return TOP_OUTLINE_SHAPE;
-			default:
-				return BOTTOM_OUTLINE_SHAPE;
-		}
-	}
-
-	@Environment(EnvType.CLIENT)
-	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext ctx) {
-		SlabType slabType = state.get(TYPE);
-		switch(slabType) {
-			case DOUBLE:
-				HitResult hit = MinecraftClient.getInstance().crosshairTarget;
-				if(hit == null || hit.getType() != Type.BLOCK) return VoxelShapes.fullCube();
-				boolean positive = isInside(state.with(TYPE, SlabType.BOTTOM), hit.getPos(), pos);
-				return positive ? TOP_OUTLINE_SHAPE : BOTTOM_OUTLINE_SHAPE;
-			case TOP:
-				return TOP_OUTLINE_SHAPE;
-			default:
-				return BOTTOM_OUTLINE_SHAPE;
-		}
-	}
-
+	@Override
 	public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-		SlabType slabType = state.get(TYPE);
-		switch(slabType) {
-			case DOUBLE:
-				return VoxelShapes.fullCube();
-			case TOP:
-				return TOP_SHAPE;
-			default:
-				return BOTTOM_SHAPE;
-		}
+		SlabType type = state.get(TYPE);
+		if(type == SlabType.DOUBLE) return VoxelShapes.fullCube();
+		Axis axis = state.get(AXIS);
+		return switch(Utility.getDirection(type, axis)) {
+			case UP -> Utility.TOP_COLLISION_SHAPE;
+			case DOWN -> Utility.BOTTOM_COLLISION_SHAPE;
+			case NORTH -> Utility.NORTH_COLLISION_SHAPE;
+			case EAST -> Utility.EAST_COLLISION_SHAPE;
+			case SOUTH -> Utility.SOUTH_COLLISION_SHAPE;
+			case WEST -> Utility.WEST_COLLISION_SHAPE;
+		};
 	}
 
-	public BlockState getPlacementState(ItemPlacementContext ctx) {
+	@Redirect(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isOf(Lnet/minecraft/item/Item;)Z"))
+	private boolean changeCanReplaceCondition(ItemStack stack, Item item) {
+		Item stackItem = stack.getItem();
+		if(!(stackItem instanceof BlockItem blockItem)) return false;
+		return blockItem.getBlock() instanceof SlabBlock;
+	}
+
+	@Inject(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemPlacementContext;getHitPos()Lnet/minecraft/util/math/Vec3d;"), cancellable = true)
+	private void changeCanReplaceMath(BlockState state, ItemPlacementContext context, CallbackInfoReturnable<Boolean> cir) {
+		cir.setReturnValue(Utility.insideSlab(state.getBlock(), context.getHitPos()));
+	}
+
+	@Inject(method = "getPlacementState", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getFluidState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/fluid/FluidState;"), cancellable = true)
+	private void changePlacementRules(ItemPlacementContext ctx, CallbackInfoReturnable<BlockState> cir) {
 		BlockPos pos = ctx.getBlockPos();
-		World world = ctx.getWorld();
-		BlockState state = world.getBlockState(pos);
-		Block block = state.getBlock();
-
-		Direction dir = ctx.getSide().getOpposite();
-		Axis axis = dir.getAxis();
-		Vec3d hit = ctx.getHitPos();
-		FluidState fluidState = world.getFluidState(pos);
-
-		if(!Helper.isAnySlab(state.getBlock())) { // Just placed normally
-			boolean water = fluidState.getFluid() == Fluids.WATER;
-			final double one_third = 1d / 3d;
-			final double two_third = 2d / 3d;
-			switch(axis) {
-				case Z: {
-					double y = hit.getY() - pos.getY();
-					double x = hit.getX() - pos.getX();
-					if(within(one_third, y, two_third) && within(one_third, x, two_third))
-						return LinkedSlabs.vertical(this).getDefaultState()
-								.with(VerticalSlabBlock.WATERLOGGED, water)
-								.with(VerticalSlabBlock.AXIS, Axis.Z)
-								.with(VerticalSlabBlock.STATE, SlabState.fromAxisDirection(dir.getDirection()));
-					int caseNumber = 0;
-					caseNumber |= y >= x ? 1 : 0;
-					caseNumber |= y >= -x + 1d ? 2 : 0;
-					switch(caseNumber) {
-						case 0:
-							return this.getDefaultState()
-									.with(WATERLOGGED, water)
-									.with(TYPE, SlabType.BOTTOM);
-						case 1:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.X);
-						case 2:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.X);
-						default:
-							return this.getDefaultState()
-									.with(WATERLOGGED, water)
-									.with(TYPE, SlabType.TOP);
-					}
-				}
-				case X: {
-					double y = hit.getY() - pos.getY();
-					double z = hit.getZ() - pos.getZ();
-					if(within(one_third, y, two_third) && within(one_third, z, two_third))
-						return LinkedSlabs.vertical(this).getDefaultState()
-								.with(VerticalSlabBlock.WATERLOGGED, water)
-								.with(VerticalSlabBlock.AXIS, Axis.X)
-								.with(VerticalSlabBlock.STATE, SlabState.fromAxisDirection(dir.getDirection()));
-					int caseNumber = 0;
-					caseNumber |= y >= z ? 1 : 0;
-					caseNumber |= y >= -z + 1d ? 2 : 0;
-					switch(caseNumber) {
-						case 0:
-							return this.getDefaultState()
-									.with(WATERLOGGED, water)
-									.with(TYPE, SlabType.BOTTOM);
-						case 1:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.Z);
-						case 2:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.Z);
-						default:
-							return this.getDefaultState()
-									.with(WATERLOGGED, water)
-									.with(TYPE, SlabType.TOP);
-					}
-				}
-				default: {
-					double x = hit.getX() - pos.getX();
-					double z = hit.getZ() - pos.getZ();
-					if(within(one_third, x, two_third) && within(one_third, z, two_third))
-						return this.getDefaultState()
-								.with(WATERLOGGED, water)
-								.with(TYPE, dir.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM);
-					int caseNumber = 0;
-					caseNumber |= x >= z ? 1 : 0;
-					caseNumber |= x >= -z + 1d ? 2 : 0;
-					switch(caseNumber) {
-						case 0:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.X);
-						case 1:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.NEGATIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.Z);
-						case 2:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.Z);
-						default:
-							return LinkedSlabs.vertical(this).getDefaultState()
-									.with(VerticalSlabBlock.WATERLOGGED, water)
-									.with(VerticalSlabBlock.STATE, SlabState.POSITIVE)
-									.with(VerticalSlabBlock.AXIS, Axis.X);
-					}
-				}
-			}
+		BlockState state = ctx.getWorld().getBlockState(pos);
+		if(state.getBlock() instanceof SlabBlock) {
+			Axis axis = state.get(AXIS);
+			cir.setReturnValue(FullSlabsMod.FULL_SLAB_BLOCK.getDefaultState().with(AXIS, axis));
 		} else {
-			Block horizontalBlock = LinkedSlabs.horizontal(block);
-			if(horizontalBlock.is(this)) { //This is the same slab type
-				if(state.getBlock() instanceof SlabBlock)
-					return state.with(TYPE, SlabType.DOUBLE).with(WATERLOGGED, false);
-				else return state.with(VerticalSlabBlock.STATE, SlabState.DOUBLE).with(WATERLOGGED, false);
-			} else { //This is a slab of a different type
-				Axis prevAxis = Helper.axisFromSlab(state);
-				return Blocks.FULL_SLAB_BLOCK.getDefaultState().with(FullSlabBlock.AXIS, prevAxis);
-			}
+			Direction hitSide = ctx.getSide();
+			Direction facing = ctx.getPlayerFacing();
+			HitPart hitPart = PositionUtils.getHitPart(hitSide, facing, pos, ctx.getHitPos());
+			FluidState fluidState = ctx.getWorld().getFluidState(pos);
+			Direction slabDir = Utility.generateSlab(hitPart, hitSide, facing);
+			cir.setReturnValue(getDefaultState()
+					.with(TYPE, Utility.slabType(slabDir))
+					.with(AXIS, slabDir.getAxis())
+					.with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
 		}
 	}
 
-	public @Nullable Direction direction(BlockState state) {
-		SlabType type = state.get(TYPE);
-		if(type == SlabType.DOUBLE) return null;
-		return type == SlabType.TOP ? Direction.UP : Direction.DOWN;
-	}
-
-	public Axis axis(BlockState state) {
-		return Axis.Y;
-	}
-
-	public boolean isInside(BlockState state, Vec3d hit, BlockPos pos) {
-		SlabType type = state.get(TYPE);
-		if(type == SlabType.DOUBLE) return false;
-		boolean isPositive = hit.getY() - pos.getY() > 0.5;
-		return isPositive == (type == SlabType.BOTTOM);
+	@Inject(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemPlacementContext;getHitPos()Lnet/minecraft/util/math/Vec3d;"), cancellable = true)
+	private void changeReplacementRules(BlockState state, ItemPlacementContext context, CallbackInfoReturnable<Boolean> cir) {
+		cir.setReturnValue(Utility.insideSlab(state.getBlock(), context.getHitPos()));
 	}
 }
