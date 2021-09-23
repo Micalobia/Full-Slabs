@@ -2,8 +2,9 @@ package dev.micalobia.full_slabs.mixin.block;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.util.Utility;
-import fi.dy.masa.malilib.util.PositionUtils;
-import fi.dy.masa.malilib.util.PositionUtils.HitPart;
+import dev.micalobia.full_slabs.util.Utility.HitPart;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
@@ -72,6 +73,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	}
 
 	@Override
+	@Environment(EnvType.CLIENT)
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
 		Direction direction;
@@ -128,7 +130,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 		} else {
 			Direction hitSide = ctx.getSide();
 			Direction facing = ctx.getPlayerFacing();
-			HitPart hitPart = PositionUtils.getHitPart(hitSide, facing, pos, ctx.getHitPos());
+			HitPart hitPart = Utility.getHitPart(hitSide, facing, pos, ctx.getHitPos());
 			FluidState fluidState = ctx.getWorld().getFluidState(pos);
 			Direction slabDir = Utility.generateSlab(hitPart, hitSide, facing);
 			cir.setReturnValue(getDefaultState()

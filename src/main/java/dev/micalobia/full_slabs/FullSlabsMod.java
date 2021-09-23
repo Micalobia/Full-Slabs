@@ -9,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -28,8 +29,6 @@ public class FullSlabsMod implements ModInitializer, ClientModInitializer {
 
 	@Override
 	public void onInitialize() {
-		IRenderer renderer = new OverlayRenderer();
-		RenderEventHandler.getInstance().registerWorldLastRenderer(renderer);
 		FULL_SLAB_BLOCK = Registry.register(Registry.BLOCK, id("full_slab_block"), new FullSlabBlock(Settings.copy(Blocks.BEDROCK)));
 		FULL_SLAB_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("full_slab"), FabricBlockEntityTypeBuilder.create(FullSlabBlockEntity::new, FULL_SLAB_BLOCK).build());
 	}
@@ -37,5 +36,9 @@ public class FullSlabsMod implements ModInitializer, ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new FullSlabModelProvider());
+		if(FabricLoader.getInstance().isModLoaded("malilib")) {
+			IRenderer renderer = new OverlayRenderer();
+			RenderEventHandler.getInstance().registerWorldLastRenderer(renderer);
+		}
 	}
 }

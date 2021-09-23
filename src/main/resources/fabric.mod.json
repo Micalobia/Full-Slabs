@@ -29,9 +29,9 @@
     "fabricloader": ">=0.11.3",
     "fabric": "*",
     "minecraft": "1.17.x",
-    "java": ">=16",
-    "malilib": ">=0.10.0-dev.24"
+    "java": ">=16"
   },
   "suggests": {
+    "malilib": ">=0.10.0-dev.22"
   }
 }

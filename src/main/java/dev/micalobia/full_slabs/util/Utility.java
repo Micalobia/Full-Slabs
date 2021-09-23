@@ -2,15 +2,12 @@ package dev.micalobia.full_slabs.util;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.mixin.block.SlabBlockAccessor;
-import fi.dy.masa.malilib.interfaces.IRenderer;
-import fi.dy.masa.malilib.util.PositionUtils.HitPart;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.hit.HitResult;
@@ -21,7 +18,7 @@ import net.minecraft.util.math.Direction.AxisDirection;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 
-public class Utility implements IRenderer {
+public class Utility {
 	public static final VoxelShape TOP_OUTLINE_SHAPE;
 	public static final VoxelShape BOTTOM_OUTLINE_SHAPE;
 	public static final VoxelShape NORTH_OUTLINE_SHAPE;
@@ -62,10 +59,6 @@ public class Utility implements IRenderer {
 
 	public static boolean isSlabBlock(ItemStack stack) {
 		return stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof SlabBlock;
-	}
-
-	public static boolean isSlabBlock(Item item) {
-		return item instanceof BlockItem blockItem && blockItem.getBlock() instanceof SlabBlock;
 	}
 
 	public static SlabType slabType(Direction direction) {
@@ -154,5 +147,76 @@ public class Utility implements IRenderer {
 
 	public static void setGhostPair(Pair<Block, Block> pair) {
 		ghostPair = pair;
+	}
+
+	public static HitPart getHitPart(Direction originalSide, Direction playerFacingH, BlockPos pos, Vec3d hitVec) {
+		Vec3d positions = getHitPartPositions(originalSide, playerFacingH, pos, hitVec);
+		double posH = positions.x;
+		double posV = positions.y;
+		double offH = Math.abs(posH - 0.5d);
+		double offV = Math.abs(posV - 0.5d);
+
+		if(offH > 0.25d || offV > 0.25d) {
+			if(offH > offV) {
+				return posH < 0.5d ? HitPart.LEFT : HitPart.RIGHT;
+			} else {
+				return posV < 0.5d ? HitPart.BOTTOM : HitPart.TOP;
+			}
+		} else {
+			return HitPart.CENTER;
+		}
+	}
+
+	private static Vec3d getHitPartPositions(Direction originalSide, Direction playerFacingH, BlockPos pos, Vec3d hitVec) {
+		double x = hitVec.x - pos.getX();
+		double y = hitVec.y - pos.getY();
+		double z = hitVec.z - pos.getZ();
+		double posH = 0;
+		double posV = 0;
+
+		switch(originalSide) {
+			case DOWN, UP -> {
+				switch(playerFacingH) {
+					case NORTH:
+						posH = x;
+						posV = 1.0d - z;
+						break;
+					case SOUTH:
+						posH = 1.0d - x;
+						posV = z;
+						break;
+					case WEST:
+						posH = 1.0d - z;
+						posV = 1.0d - x;
+						break;
+					case EAST:
+						posH = z;
+						posV = x;
+						break;
+					default:
+				}
+				if(originalSide == Direction.DOWN) {
+					posV = 1.0d - posV;
+				}
+			}
+			case NORTH, SOUTH -> {
+				posH = originalSide.getDirection() == AxisDirection.POSITIVE ? x : 1.0d - x;
+				posV = y;
+			}
+			case WEST, EAST -> {
+				posH = originalSide.getDirection() == AxisDirection.NEGATIVE ? z : 1.0d - z;
+				posV = y;
+			}
+		}
+
+		return new Vec3d(posH, posV, 0);
+	}
+
+	public enum HitPart {
+		CENTER,
+		LEFT,
+		RIGHT,
+		BOTTOM,
+		TOP
 	}
 }
