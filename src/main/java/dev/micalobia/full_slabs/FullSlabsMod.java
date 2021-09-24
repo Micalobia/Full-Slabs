@@ -3,8 +3,6 @@ package dev.micalobia.full_slabs;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.client.render.model.FullSlabModelProvider;
-import fi.dy.masa.malilib.event.RenderEventHandler;
-import fi.dy.masa.malilib.interfaces.IRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
@@ -37,8 +35,7 @@ public class FullSlabsMod implements ModInitializer, ClientModInitializer {
 	public void onInitializeClient() {
 		ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new FullSlabModelProvider());
 		if(FabricLoader.getInstance().isModLoaded("malilib")) {
-			IRenderer renderer = new OverlayRenderer();
-			RenderEventHandler.getInstance().registerWorldLastRenderer(renderer);
+			OverlayRenderer.init();
 		}
 	}
 }

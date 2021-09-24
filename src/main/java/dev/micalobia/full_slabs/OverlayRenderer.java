@@ -2,6 +2,7 @@ package dev.micalobia.full_slabs;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.micalobia.full_slabs.util.Utility;
+import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
 import fi.dy.masa.malilib.render.RenderUtils;
 import fi.dy.masa.malilib.util.Color4f;
@@ -14,6 +15,11 @@ import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.Matrix4f;
 
 public class OverlayRenderer implements IRenderer {
+	public static void init() {
+		IRenderer renderer = new OverlayRenderer();
+		RenderEventHandler.getInstance().registerWorldLastRenderer(renderer);
+	}
+
 	@Override
 	public void onRenderWorldLast(MatrixStack matrix, Matrix4f projMatrix) {
 		MinecraftClient mc = MinecraftClient.getInstance();
