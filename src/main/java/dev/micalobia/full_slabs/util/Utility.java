@@ -1,6 +1,7 @@
 package dev.micalobia.full_slabs.util;
 
 import com.mojang.datafixers.util.Pair;
+import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.mixin.block.SlabBlockAccessor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -88,6 +90,10 @@ public class Utility {
 
 	public static HitResult crosshair(PlayerEntity player) {
 		return player.raycast(player.isCreative() ? 5.0d : 4.5d, 0f, false);
+	}
+
+	public static boolean tilted(Identifier id) {
+		return FullSlabsMod.TILTED_SLABS.contains(id);
 	}
 
 	public static Direction getDirection(Axis axis, Vec3d hit, BlockPos pos) {

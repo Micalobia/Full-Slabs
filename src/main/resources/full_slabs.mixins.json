@@ -4,8 +4,9 @@
   "package": "dev.micalobia.full_slabs.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "block.SlabBlockAccessor", "block.SlabBlockMixin", "entity.EntityMixin", "entity.LivingEntityMixin",
-    "item.BlockItemMixin", "server.network.ServerPlayerInteractionManagerMixin", "world.WorldChunkMixin"
+    "block.SlabBlockAccessor", "block.SlabBlockMixin", "client.render.model.BakedModelManagerMixin",
+    "entity.EntityMixin", "entity.LivingEntityMixin", "item.BlockItemMixin",
+    "server.network.ServerPlayerInteractionManagerMixin", "world.WorldChunkMixin"
   ],
   "client": [
     "client.ModelLoaderMixin", "client.network.ClientPlayerInteractionManagerMixin",
