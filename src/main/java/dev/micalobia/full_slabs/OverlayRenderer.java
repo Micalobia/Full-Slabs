@@ -46,10 +46,9 @@ public class OverlayRenderer implements IRenderer {
 
 			RenderUtils.setupBlend();
 
-			Color4f color = new Color4f(0f, .5f, 1f, .25f);
 			assert entity != null;
-			RenderUtils.renderBlockTargetingOverlay(
-					entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), color, matrix, mc
+			Utility.renderBlockTargetingOverlay(
+					entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
 			);
 
 			RenderSystem.enableTexture();

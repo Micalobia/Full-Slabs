@@ -1,5 +1,6 @@
 package dev.micalobia.full_slabs.util;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.mixin.block.SlabBlockAccessor;
@@ -7,6 +8,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.*;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -18,6 +23,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.shape.VoxelShape;
 
 public class Utility {
@@ -155,6 +161,8 @@ public class Utility {
 		ghostPair = pair;
 	}
 
+	// All code below is ported and optionally modified from Malilib RenderUtils/PositionUtils
+
 	public static HitPart getHitPart(Direction originalSide, Direction playerFacingH, BlockPos pos, Vec3d hitVec) {
 		Vec3d positions = getHitPartPositions(originalSide, playerFacingH, pos, hitVec);
 		double posH = positions.x;
@@ -216,6 +224,131 @@ public class Utility {
 		}
 
 		return new Vec3d(posH, posV, 0);
+	}
+
+	public static void renderBlockTargetingOverlay(Entity entity, BlockPos pos, Direction side, Vec3d hitVec,
+												   BlockState state, MinecraftClient mc) {
+		Direction playerFacing = entity.getHorizontalFacing();
+		HitPart part = getHitPart(side, playerFacing, pos, hitVec);
+		Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+
+		double x = pos.getX() + 0.5d - cameraPos.x;
+		double y = pos.getY() + 0.5d - cameraPos.y;
+		double z = pos.getZ() + 0.5d - cameraPos.z;
+
+		MatrixStack globalStack = RenderSystem.getModelViewStack();
+		globalStack.push();
+		blockTargetingOverlayTranslations(x, y, z, side, playerFacing, globalStack);
+		RenderSystem.applyModelViewMatrix();
+
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.disableTexture();
+
+		Tessellator tessellator = Tessellator.getInstance();
+		BufferBuilder buffer = tessellator.getBuffer();
+		int hr = 0x00;
+		int hg = 0x7F;
+		int hb = 0xFF;
+		int ha = 0x3F;
+		int c = 0xFF;
+
+		buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+
+		switch(part) {
+			case CENTER:
+				buffer.vertex(x - 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x - 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
+				break;
+			case LEFT:
+				buffer.vertex(x - 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x - 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x - 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x - 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
+				break;
+			case RIGHT:
+				buffer.vertex(x + 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
+				break;
+			case TOP:
+				buffer.vertex(x - 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x - 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
+				break;
+			case BOTTOM:
+				buffer.vertex(x - 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x - 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
+				buffer.vertex(x + 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
+				break;
+			default:
+		}
+
+		tessellator.draw();
+
+		RenderSystem.lineWidth(1.6f);
+
+		buffer.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
+
+		// Middle small rectangle
+		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
+		buffer.vertex(x + 0.25, y - 0.25, z).color(c, c, c, c).next();
+		buffer.vertex(x + 0.25, y + 0.25, z).color(c, c, c, c).next();
+		buffer.vertex(x - 0.25, y + 0.25, z).color(c, c, c, c).next();
+		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
+		tessellator.draw();
+
+		buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+		// Bottom left
+		buffer.vertex(x - 0.50, y - 0.50, z).color(c, c, c, c).next();
+		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
+
+		// Top left
+		buffer.vertex(x - 0.50, y + 0.50, z).color(c, c, c, c).next();
+		buffer.vertex(x - 0.25, y + 0.25, z).color(c, c, c, c).next();
+
+		// Bottom right
+		buffer.vertex(x + 0.50, y - 0.50, z).color(c, c, c, c).next();
+		buffer.vertex(x + 0.25, y - 0.25, z).color(c, c, c, c).next();
+
+		// Top right
+		buffer.vertex(x + 0.50, y + 0.50, z).color(c, c, c, c).next();
+		buffer.vertex(x + 0.25, y + 0.25, z).color(c, c, c, c).next();
+		tessellator.draw();
+
+		globalStack.pop();
+	}
+
+	private static void blockTargetingOverlayTranslations(double x, double y, double z, Direction side, Direction playerFacing, MatrixStack matrixStack) {
+		matrixStack.translate(x, y, z);
+
+		switch(side) {
+			case DOWN:
+				matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180f - playerFacing.asRotation()));
+				matrixStack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(90f));
+				break;
+			case UP:
+				matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180f - playerFacing.asRotation()));
+				matrixStack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(-90f));
+				break;
+			case NORTH:
+				matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180f));
+				break;
+			case SOUTH:
+				break;
+			case WEST:
+				matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-90f));
+				break;
+			case EAST:
+				matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(90f));
+				break;
+		}
+
+		matrixStack.translate(-x, -y, -z + 0.510);
 	}
 
 	public enum HitPart {
