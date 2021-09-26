@@ -24,6 +24,7 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 
 public class Utility {
@@ -65,6 +66,10 @@ public class Utility {
 		};
 	}
 
+	public static Direction getDirection(BlockState state) {
+		return getDirection(state.get(Properties.SLAB_TYPE), state.get(Properties.AXIS));
+	}
+
 	public static boolean isSlabBlock(ItemStack stack) {
 		return stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof SlabBlock;
 	}
@@ -100,6 +105,14 @@ public class Utility {
 
 	public static boolean tilted(Identifier id) {
 		return FullSlabsMod.TILTED_SLABS.contains(id);
+	}
+
+	public static Identifier getBlockId(Block block) {
+		return Registry.BLOCK.getId(block);
+	}
+
+	public static Block getBlock(Identifier id) {
+		return Registry.BLOCK.get(id);
 	}
 
 	public static Direction getDirection(Axis axis, Vec3d hit, BlockPos pos) {
