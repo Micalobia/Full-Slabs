@@ -14,7 +14,6 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
@@ -31,13 +30,10 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SlabBlock.class)
 public abstract class SlabBlockMixin extends Block implements Waterloggable {
-	private static final EnumProperty<Axis> AXIS;
-
 	@Shadow
 	@Final
 	public static EnumProperty<SlabType> TYPE;
@@ -46,30 +42,8 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	@Final
 	public static BooleanProperty WATERLOGGED;
 
-	@Shadow
-	@Final
-	protected static VoxelShape TOP_SHAPE;
-
-	@Shadow
-	@Final
-	protected static VoxelShape BOTTOM_SHAPE;
-
-	static {
-		AXIS = Properties.AXIS;
-	}
-
 	public SlabBlockMixin(Settings settings) {
 		super(settings);
-	}
-
-	@Inject(method = "<init>", at = @At("TAIL"))
-	private void includeAxisInDefaultState(Settings settings, CallbackInfo ci) {
-		setDefaultState(getDefaultState().with(AXIS, Axis.Y));
-	}
-
-	@Inject(method = "appendProperties", at = @At("HEAD"))
-	private void appendAxis(Builder<Block, BlockState> builder, CallbackInfo ci) {
-		builder.add(AXIS);
 	}
 
 	@Override
@@ -78,11 +52,11 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 		SlabType type = state.get(TYPE);
 		Direction direction;
 		if(type == SlabType.DOUBLE) {
-			Axis axis = state.get(AXIS);
+			Axis axis = state.get(Properties.AXIS);
 			HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
 			if(hitResult == null) return VoxelShapes.fullCube();
 			direction = Utility.getDirection(axis, hitResult.getPos(), pos);
-		} else direction = Utility.getDirection(state.get(TYPE), state.get(AXIS));
+		} else direction = Utility.getDirection(state.get(TYPE), state.get(Properties.AXIS));
 		return switch(direction) {
 			case NORTH -> Utility.NORTH_OUTLINE_SHAPE;
 			case EAST -> Utility.EAST_OUTLINE_SHAPE;
@@ -97,7 +71,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
 		if(type == SlabType.DOUBLE) return VoxelShapes.fullCube();
-		Axis axis = state.get(AXIS);
+		Axis axis = state.get(Properties.AXIS);
 		return switch(Utility.getDirection(type, axis)) {
 			case UP -> Utility.TOP_COLLISION_SHAPE;
 			case DOWN -> Utility.BOTTOM_COLLISION_SHAPE;
@@ -125,8 +99,8 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 		BlockPos pos = ctx.getBlockPos();
 		BlockState state = ctx.getWorld().getBlockState(pos);
 		if(state.getBlock() instanceof SlabBlock) {
-			Axis axis = state.get(AXIS);
-			cir.setReturnValue(FullSlabsMod.FULL_SLAB_BLOCK.getDefaultState().with(AXIS, axis));
+			Axis axis = state.get(Properties.AXIS);
+			cir.setReturnValue(FullSlabsMod.FULL_SLAB_BLOCK.getDefaultState().with(Properties.AXIS, axis));
 		} else {
 			Direction hitSide = ctx.getSide();
 			Direction facing = ctx.getPlayerFacing();
@@ -135,7 +109,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 			Direction slabDir = Utility.generateSlab(hitPart, hitSide, facing);
 			cir.setReturnValue(getDefaultState()
 					.with(TYPE, Utility.slabType(slabDir))
-					.with(AXIS, slabDir.getAxis())
+					.with(Properties.AXIS, slabDir.getAxis())
 					.with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
 		}
 	}

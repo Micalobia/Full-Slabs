@@ -6,6 +6,7 @@ import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.client.render.model.FullSlabModelProvider;
 import dev.micalobia.full_slabs.config.TiltConfig;
+import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
@@ -14,8 +15,11 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,6 +47,8 @@ public class FullSlabsMod implements ModInitializer, ClientModInitializer {
 	public void onInitialize() {
 		FULL_SLAB_BLOCK = Registry.register(Registry.BLOCK, id("full_slab_block"), new FullSlabBlock(Settings.copy(Blocks.BEDROCK)));
 		FULL_SLAB_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("full_slab"), FabricBlockEntityTypeBuilder.create(FullSlabBlockEntity::new, FULL_SLAB_BLOCK).build());
+
+		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
 	}
 
 	@Override
