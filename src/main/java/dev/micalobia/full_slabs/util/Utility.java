@@ -16,6 +16,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.Properties;
+import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -24,7 +25,9 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
+import virtuoel.statement.api.StateRefresher;
 
 public class Utility {
 	public static final VoxelShape TOP_OUTLINE_SHAPE;
@@ -159,6 +162,18 @@ public class Utility {
 
 	public static void setGhostPair(Pair<Block, Block> pair) {
 		ghostPair = pair;
+	}
+
+	public static <T extends Comparable<T>> void injectBlockProperty(Class<? extends Block> cls, Property<T> property, T defaultValue) {
+		for(Block block : Registry.BLOCK) {
+			if(cls.isAssignableFrom(block.getClass())) {
+				injectBlockProperty(block, property, defaultValue);
+			}
+		}
+	}
+
+	public static <T extends Comparable<T>> void injectBlockProperty(Block block, Property<T> property, T defaultValue) {
+		StateRefresher.INSTANCE.addBlockProperty(block, property, defaultValue);
 	}
 
 	// All code below is ported and optionally modified from Malilib RenderUtils/PositionUtils
