@@ -273,51 +273,26 @@ public class Utility {
 		buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
 		HitPartQuad quad;
+		HitPart cut;
 		if(state.getBlock() instanceof SlabBlock && state.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
 			Direction dir = getDirection(state.get(SlabBlock.TYPE), state.get(Properties.AXIS));
-			FullSlabsMod.LOGGER.info("======");
-			FullSlabsMod.LOGGER.info(String.format("%s-%s-%s", dir, playerFacing, side));
-			HitPart cut = getCut(dir, playerFacing, side);
-			FullSlabsMod.LOGGER.info(String.format("%s-%s", part, cut));
-			quad = getHitQuad(part, cut);
-			FullSlabsMod.LOGGER.info(quad);
-		} else quad = getHitQuad(part, HitPart.CENTER);
+			cut = getCut(dir, playerFacing, side);
+		} else cut = HitPart.CENTER;
+		quad = getHitQuad(part, cut);
 
 		ImmutableList<Vec3d> vecs = hitQuads(quad);
 
 		for(Vec3d v : vecs)
 			buffer.vertex(x + v.getX(), y + v.getY(), z + v.getZ()).color(hr, hg, hb, ha).next();
-
 		tessellator.draw();
 
 		RenderSystem.lineWidth(1.6f);
-
-		buffer.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
-
-		// Middle small rectangle
-		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y - 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y + 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y + 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
-		tessellator.draw();
-
 		buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
-		// Bottom left
-		buffer.vertex(x - 0.50, y - 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
 
-		// Top left
-		buffer.vertex(x - 0.50, y + 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y + 0.25, z).color(c, c, c, c).next();
+		vecs = hitLines(cut);
 
-		// Bottom right
-		buffer.vertex(x + 0.50, y - 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y - 0.25, z).color(c, c, c, c).next();
-
-		// Top right
-		buffer.vertex(x + 0.50, y + 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y + 0.25, z).color(c, c, c, c).next();
+		for(Vec3d v : vecs)
+			buffer.vertex(x + v.getX(), y + v.getY(), z + v.getZ()).color(c, c, c, c).next();
 		tessellator.draw();
 
 		globalStack.pop();
@@ -505,6 +480,100 @@ public class Utility {
 					vec(-0.00, +0.25),
 					vec(+0.25, +0.25),
 					vec(+0.50, +0.50));
+		};
+	}
+
+	public static ImmutableList<Vec3d> hitLines(HitPart cut) {
+		return switch(cut) {
+			case CENTER -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					// Center Right
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					// Center Top
+					vec(-0.25, +0.25),
+					vec(+0.25, +0.25),
+					// Center Left
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.25),
+					// Bottom Left
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					// Top Left
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25),
+					// Bottom Right
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25),
+					// Top Right
+					vec(+0.50, +0.50),
+					vec(+0.25, +0.25));
+			case LEFT -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.25, -0.25),
+					vec(+0.00, -0.25),
+					// Center Top
+					vec(-0.25, +0.25),
+					vec(+0.00, +0.25),
+					// Center Left
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.25),
+					// Bottom Left
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					// Top Left
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25));
+			case RIGHT -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.00, -0.25),
+					vec(+0.25, -0.25),
+					// Center Right
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					// Center Top
+					vec(-0.00, +0.25),
+					vec(+0.25, +0.25),
+					// Bottom Right
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25),
+					// Top Right
+					vec(+0.50, +0.50),
+					vec(+0.25, +0.25));
+			case BOTTOM -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					// Center Right
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.00),
+					// Center Left
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.00),
+					// Bottom Left
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					// Bottom Right
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25));
+			case TOP -> ImmutableList.of(
+					// Center Right
+					vec(+0.25, -0.00),
+					vec(+0.25, +0.25),
+					// Center Top
+					vec(-0.25, +0.25),
+					vec(+0.25, +0.25),
+					// Center Left
+					vec(-0.25, -0.00),
+					vec(-0.25, +0.25),
+					// Top Left
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25),
+					// Top Right
+					vec(+0.50, +0.50),
+					vec(+0.25, +0.25));
 		};
 	}
 
