@@ -1,5 +1,6 @@
 package dev.micalobia.full_slabs.util;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
@@ -113,26 +114,6 @@ public class Utility {
 		};
 	}
 
-	public static Direction generateSlab(HitPart hitPart, Direction hitSide, Direction facing) {
-		if(hitSide.getAxis().isHorizontal())
-			return switch(hitPart) {
-				case CENTER -> hitSide.getOpposite();
-				case BOTTOM -> Direction.DOWN;
-				case TOP -> Direction.UP;
-				case LEFT -> hitSide.rotateYClockwise();
-				case RIGHT -> hitSide.rotateYCounterclockwise();
-			};
-		else {
-			return switch(hitPart) {
-				case CENTER -> hitSide.getOpposite();
-				case BOTTOM -> hitSide == Direction.UP ? facing.getOpposite() : facing;
-				case TOP -> hitSide == Direction.UP ? facing : facing.getOpposite();
-				case LEFT -> facing.rotateYCounterclockwise();
-				case RIGHT -> facing.rotateYClockwise();
-			};
-		}
-	}
-
 	private static double modOne(double value) {
 		return value - Math.floor(value);
 	}
@@ -241,6 +222,28 @@ public class Utility {
 		return new Vec3d(posH, posV, 0);
 	}
 
+	public static Direction getTargetedDirection(Direction side, Direction playerFacingH, BlockPos pos, Vec3d hitVec) {
+		Vec3d positions = getHitPartPositions(side, playerFacingH, pos, hitVec);
+		double posH = positions.x;
+		double posV = positions.y;
+		double offH = Math.abs(posH - 0.5d);
+		double offV = Math.abs(posV - 0.5d);
+
+		if(offH > 0.25d || offV > 0.25d)
+			if(side.getAxis() == Direction.Axis.Y)
+				if(offH > offV)
+					return posH < 0.5d ? playerFacingH.rotateYCounterclockwise() : playerFacingH.rotateYClockwise();
+				else if(side == Direction.DOWN)
+					return posV > 0.5d ? playerFacingH.getOpposite() : playerFacingH;
+				else
+					return posV < 0.5d ? playerFacingH.getOpposite() : playerFacingH;
+			else if(offH > offV)
+				return posH < 0.5d ? side.rotateYClockwise() : side.rotateYCounterclockwise();
+			else
+				return posV < 0.5d ? Direction.DOWN : Direction.UP;
+		return side;
+	}
+
 	public static void renderBlockTargetingOverlay(Entity entity, BlockPos pos, Direction side, Vec3d hitVec,
 												   BlockState state, MinecraftClient mc) {
 		Direction playerFacing = entity.getHorizontalFacing();
@@ -269,70 +272,27 @@ public class Utility {
 
 		buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
-		switch(part) {
-			case CENTER:
-				buffer.vertex(x - 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x - 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
-				break;
-			case LEFT:
-				buffer.vertex(x - 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x - 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x - 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x - 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
-				break;
-			case RIGHT:
-				buffer.vertex(x + 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
-				break;
-			case TOP:
-				buffer.vertex(x - 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x - 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.25, y + 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.50, y + 0.50, z).color(hr, hg, hb, ha).next();
-				break;
-			case BOTTOM:
-				buffer.vertex(x - 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x - 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.25, y - 0.25, z).color(hr, hg, hb, ha).next();
-				buffer.vertex(x + 0.50, y - 0.50, z).color(hr, hg, hb, ha).next();
-				break;
-			default:
-		}
+		HitPartQuad quad;
+		HitPart cut;
+		if(state.getBlock() instanceof SlabBlock && state.get(SlabBlock.TYPE) != SlabType.DOUBLE) {
+			Direction dir = getDirection(state.get(SlabBlock.TYPE), state.get(Properties.AXIS));
+			cut = getCut(dir, playerFacing, side);
+		} else cut = HitPart.CENTER;
+		quad = getHitQuad(part, cut);
 
+		ImmutableList<Vec3d> vecs = hitQuads(quad);
+
+		for(Vec3d v : vecs)
+			buffer.vertex(x + v.getX(), y + v.getY(), z + v.getZ()).color(hr, hg, hb, ha).next();
 		tessellator.draw();
 
 		RenderSystem.lineWidth(1.6f);
-
-		buffer.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
-
-		// Middle small rectangle
-		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y - 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y + 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y + 0.25, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
-		tessellator.draw();
-
 		buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
-		// Bottom left
-		buffer.vertex(x - 0.50, y - 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y - 0.25, z).color(c, c, c, c).next();
 
-		// Top left
-		buffer.vertex(x - 0.50, y + 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x - 0.25, y + 0.25, z).color(c, c, c, c).next();
+		vecs = hitLines(cut);
 
-		// Bottom right
-		buffer.vertex(x + 0.50, y - 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y - 0.25, z).color(c, c, c, c).next();
-
-		// Top right
-		buffer.vertex(x + 0.50, y + 0.50, z).color(c, c, c, c).next();
-		buffer.vertex(x + 0.25, y + 0.25, z).color(c, c, c, c).next();
+		for(Vec3d v : vecs)
+			buffer.vertex(x + v.getX(), y + v.getY(), z + v.getZ()).color(c, c, c, c).next();
 		tessellator.draw();
 
 		globalStack.pop();
@@ -366,11 +326,282 @@ public class Utility {
 		matrixStack.translate(-x, -y, -z + 0.510);
 	}
 
+	private static Vec3d vec(double x, double y) {
+		return new Vec3d(x, y, 0);
+	}
+
+	public static HitPart getCut(Direction slab, Direction facing, Direction hitFace) {
+		if(slab == hitFace) return HitPart.CENTER;
+		Axis hitAxis = hitFace.getAxis();
+		boolean hitH = hitAxis.isHorizontal();
+		boolean hitV = hitAxis.isVertical();
+		if(slab.getAxis().isHorizontal()) {
+			if(slab.rotateYClockwise() == hitFace) return HitPart.RIGHT;
+			if(slab.rotateYCounterclockwise() == hitFace) return HitPart.LEFT;
+			if(hitV) {
+				if(slab.rotateYCounterclockwise() == facing)
+					return HitPart.RIGHT;
+				if(slab.rotateYClockwise() == facing)
+					return HitPart.LEFT;
+			}
+		}
+		boolean bottom = hitFace == Direction.DOWN;
+		if(hitV && slab == facing) return bottom ? HitPart.BOTTOM : HitPart.TOP;
+		if(hitH && slab == Direction.UP) return HitPart.TOP;
+		if(hitV && slab == facing.getOpposite()) return bottom ? HitPart.TOP : HitPart.BOTTOM;
+		if(hitH && slab == Direction.DOWN) return HitPart.BOTTOM;
+		throw new IllegalArgumentException("Something has gone very wrong"); // Should be impossible to get to
+	}
+
+	private static HitPartQuad getHitQuad(HitPart hitPart, HitPart hitCut) {
+		return switch(hitCut) {
+			case CENTER -> switch(hitPart) {
+				case CENTER -> HitPartQuad.CENTER_FULL;
+				case LEFT -> HitPartQuad.LEFT_FULL;
+				case RIGHT -> HitPartQuad.RIGHT_FULL;
+				case BOTTOM -> HitPartQuad.BOTTOM_FULL;
+				case TOP -> HitPartQuad.TOP_FULL;
+			};
+			case LEFT -> switch(hitPart) {
+				case CENTER -> HitPartQuad.CENTER_LEFT;
+				case LEFT -> HitPartQuad.LEFT_FULL;
+				case RIGHT -> throw new AssertionError();
+				case BOTTOM -> HitPartQuad.BOTTOM_LEFT;
+				case TOP -> HitPartQuad.TOP_LEFT;
+			};
+			case RIGHT -> switch(hitPart) {
+				case CENTER -> HitPartQuad.CENTER_RIGHT;
+				case LEFT -> throw new AssertionError();
+				case RIGHT -> HitPartQuad.RIGHT_FULL;
+				case BOTTOM -> HitPartQuad.BOTTOM_RIGHT;
+				case TOP -> HitPartQuad.TOP_RIGHT;
+			};
+			case BOTTOM -> switch(hitPart) {
+				case CENTER -> HitPartQuad.CENTER_BOTTOM;
+				case LEFT -> HitPartQuad.LEFT_BOTTOM;
+				case RIGHT -> HitPartQuad.RIGHT_BOTTOM;
+				case BOTTOM -> HitPartQuad.BOTTOM_FULL;
+				case TOP -> throw new AssertionError();
+			};
+			case TOP -> switch(hitPart) {
+				case CENTER -> HitPartQuad.CENTER_TOP;
+				case LEFT -> HitPartQuad.LEFT_TOP;
+				case RIGHT -> HitPartQuad.RIGHT_TOP;
+				case BOTTOM -> throw new AssertionError();
+				case TOP -> HitPartQuad.TOP_FULL;
+			};
+		};
+	}
+
+	private static ImmutableList<Vec3d> hitQuads(HitPartQuad hit) {
+		return switch(hit) {
+			case CENTER_FULL -> ImmutableList.of(
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					vec(-0.25, +0.25));
+			case CENTER_TOP -> ImmutableList.of(
+					vec(-0.25, -0.00),
+					vec(+0.25, -0.00),
+					vec(+0.25, +0.25),
+					vec(-0.25, +0.25));
+			case CENTER_LEFT -> ImmutableList.of(
+					vec(-0.25, -0.25),
+					vec(+0.00, -0.25),
+					vec(+0.00, +0.25),
+					vec(-0.25, +0.25));
+			case CENTER_RIGHT -> ImmutableList.of(
+					vec(-0.00, -0.25),
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					vec(-0.00, +0.25));
+			case CENTER_BOTTOM -> ImmutableList.of(
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.00),
+					vec(-0.25, +0.00));
+			case LEFT_FULL -> ImmutableList.of(
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.25),
+					vec(-0.50, +0.50));
+			case LEFT_TOP -> ImmutableList.of(
+					vec(-0.50, -0.00),
+					vec(-0.25, -0.00),
+					vec(-0.25, +0.25),
+					vec(-0.50, +0.50));
+			case LEFT_BOTTOM -> ImmutableList.of(
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.00),
+					vec(-0.50, +0.00));
+			case RIGHT_FULL -> ImmutableList.of(
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					vec(+0.50, +0.50));
+			case RIGHT_TOP -> ImmutableList.of(
+					vec(+0.50, -0.00),
+					vec(+0.25, -0.00),
+					vec(+0.25, +0.25),
+					vec(+0.50, +0.50));
+			case RIGHT_BOTTOM -> ImmutableList.of(
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.00),
+					vec(+0.50, +0.00));
+			case BOTTOM_FULL -> ImmutableList.of(
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					vec(+0.50, -0.50));
+			case BOTTOM_LEFT -> ImmutableList.of(
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					vec(+0.00, -0.25),
+					vec(+0.00, -0.50));
+			case BOTTOM_RIGHT -> ImmutableList.of(
+					vec(-0.00, -0.50),
+					vec(-0.00, -0.25),
+					vec(+0.25, -0.25),
+					vec(+0.50, -0.50));
+			case TOP_FULL -> ImmutableList.of(
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25),
+					vec(+0.25, +0.25),
+					vec(+0.50, +0.50));
+			case TOP_LEFT -> ImmutableList.of(
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25),
+					vec(+0.00, +0.25),
+					vec(+0.00, +0.50));
+			case TOP_RIGHT -> ImmutableList.of(
+					vec(-0.00, +0.50),
+					vec(-0.00, +0.25),
+					vec(+0.25, +0.25),
+					vec(+0.50, +0.50));
+		};
+	}
+
+	public static ImmutableList<Vec3d> hitLines(HitPart cut) {
+		return switch(cut) {
+			case CENTER -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					// Center Right
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					// Center Top
+					vec(-0.25, +0.25),
+					vec(+0.25, +0.25),
+					// Center Left
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.25),
+					// Bottom Left
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					// Top Left
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25),
+					// Bottom Right
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25),
+					// Top Right
+					vec(+0.50, +0.50),
+					vec(+0.25, +0.25));
+			case LEFT -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.25, -0.25),
+					vec(+0.00, -0.25),
+					// Center Top
+					vec(-0.25, +0.25),
+					vec(+0.00, +0.25),
+					// Center Left
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.25),
+					// Bottom Left
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					// Top Left
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25));
+			case RIGHT -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.00, -0.25),
+					vec(+0.25, -0.25),
+					// Center Right
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.25),
+					// Center Top
+					vec(-0.00, +0.25),
+					vec(+0.25, +0.25),
+					// Bottom Right
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25),
+					// Top Right
+					vec(+0.50, +0.50),
+					vec(+0.25, +0.25));
+			case BOTTOM -> ImmutableList.of(
+					// Center Bottom
+					vec(-0.25, -0.25),
+					vec(+0.25, -0.25),
+					// Center Right
+					vec(+0.25, -0.25),
+					vec(+0.25, +0.00),
+					// Center Left
+					vec(-0.25, -0.25),
+					vec(-0.25, +0.00),
+					// Bottom Left
+					vec(-0.50, -0.50),
+					vec(-0.25, -0.25),
+					// Bottom Right
+					vec(+0.50, -0.50),
+					vec(+0.25, -0.25));
+			case TOP -> ImmutableList.of(
+					// Center Right
+					vec(+0.25, -0.00),
+					vec(+0.25, +0.25),
+					// Center Top
+					vec(-0.25, +0.25),
+					vec(+0.25, +0.25),
+					// Center Left
+					vec(-0.25, -0.00),
+					vec(-0.25, +0.25),
+					// Top Left
+					vec(-0.50, +0.50),
+					vec(-0.25, +0.25),
+					// Top Right
+					vec(+0.50, +0.50),
+					vec(+0.25, +0.25));
+		};
+	}
+
 	public enum HitPart {
 		CENTER,
 		LEFT,
 		RIGHT,
 		BOTTOM,
 		TOP
+	}
+
+	private enum HitPartQuad {
+		CENTER_FULL,
+		CENTER_TOP,
+		CENTER_LEFT,
+		CENTER_RIGHT,
+		CENTER_BOTTOM,
+		TOP_FULL,
+		TOP_LEFT,
+		TOP_RIGHT,
+		LEFT_FULL,
+		LEFT_TOP,
+		LEFT_BOTTOM,
+		RIGHT_FULL,
+		RIGHT_TOP,
+		RIGHT_BOTTOM,
+		BOTTOM_FULL,
+		BOTTOM_LEFT,
+		BOTTOM_RIGHT
 	}
 }
