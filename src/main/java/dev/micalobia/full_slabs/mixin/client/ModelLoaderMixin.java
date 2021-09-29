@@ -1,6 +1,7 @@
 package dev.micalobia.full_slabs.mixin.client;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.mixin.client.render.model.json.JsonUnbakedModelAccessor;
@@ -23,7 +24,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -48,6 +51,7 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 	@Shadow
 	@Final
 	private Map<Identifier, UnbakedModel> unbakedModels;
+	private Identifier _loadModelId;
 
 	private static Identifier getVariantLocation(ModelVariantMap map, String variant) {
 		return map.getVariant(variant).getVariants().get(0).getLocation();
@@ -96,6 +100,9 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 	@Shadow
 	protected abstract JsonUnbakedModel loadModelFromJson(Identifier id) throws IOException;
 
+	@Shadow
+	protected abstract void putModel(Identifier id, UnbakedModel unbakedModel);
+
 	private String createBlockstateJson(Identifier bottomId, Identifier topId, Identifier doubleId) {
 		Identifier northId = append(bottomId, "_north");
 		Identifier eastId = append(bottomId, "_east");
@@ -132,15 +139,21 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 		return this.loadModelFromJson(id);
 	}
 
-	@Redirect(method = "loadModel", at = @At(value = "INVOKE", target = "Ljava/util/List;iterator()Ljava/util/Iterator;", ordinal = 0))
-	private Iterator<Pair<String, ModelVariantMap>> replaceSlabVariantFiles(List<Pair<String, ModelVariantMap>> list, Identifier id) {
+	@Inject(method = "loadModel", at = @At("HEAD"))
+	private void skimLoadModelId(Identifier id, CallbackInfo ci) {
+		_loadModelId = id;
+	}
+
+	@ModifyVariable(method = "loadModel", at = @At(value = "INVOKE_ASSIGN", target = "Ljava/util/List;iterator()Ljava/util/Iterator;", ordinal = 0))
+	private Iterator<Pair<String, ModelVariantMap>> replaceSlabVariantFiles(Iterator<Pair<String, ModelVariantMap>> iterator) {
+		List<Pair<String, ModelVariantMap>> list = Lists.newArrayList(iterator);
+		Identifier id = _loadModelId;
 		try {
 			Identifier pure = new Identifier(id.getNamespace(), id.getPath());
 			Block block = Registry.BLOCK.get(pure);
 			processingSlab = false;
 			creationFaces = null;
 			needToCreate = null;
-			//  && slabKeys.equals(list.get(0).getSecond().getVariantMap().keySet())
 			if(block instanceof SlabBlock) {
 				processingSlab = true;
 				needToCreate = new HashMap<>();
@@ -172,9 +185,9 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 		return list.iterator();
 	}
 
-	@Redirect(method = "loadModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/model/ModelLoader;loadModelFromJson(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/model/json/JsonUnbakedModel;", ordinal = 0))
-	private JsonUnbakedModel interceptSlabLoad(ModelLoader loader, Identifier id) throws IOException {
-		if(!processingSlab || !needToCreate.containsKey(id)) return this.loadModelFromJson(id);
+	@Inject(method = "loadModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/model/ModelLoader;loadModelFromJson(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/model/json/JsonUnbakedModel;", ordinal = 0), cancellable = true)
+	private void interceptSlabLoad(Identifier id, CallbackInfo ci) {
+		if(!processingSlab || !needToCreate.containsKey(id)) return;
 		Direction direction = needToCreate.get(id);
 		String bottom = creationFaces.get(Direction.DOWN);
 		String top = creationFaces.get(Direction.UP);
@@ -186,6 +199,7 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 			case SOUTH -> createModelJson(FullSlabsMod.id("block/slab_south"), bottom, top, side);
 			case WEST -> createModelJson(FullSlabsMod.id("block/slab_west"), bottom, top, side);
 		};
-		return JsonUnbakedModel.deserialize(jsonStr);
+		this.putModel(id, JsonUnbakedModel.deserialize(jsonStr));
+		ci.cancel();
 	}
 }

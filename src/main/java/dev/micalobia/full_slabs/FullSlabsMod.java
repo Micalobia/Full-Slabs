@@ -18,8 +18,11 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,6 +67,8 @@ public class FullSlabsMod implements ModInitializer, ClientModInitializer {
 		for(SlabExtra extra : extras) {
 			ExtraSlabBlockEntity.allowedExtras.put(Utility.getBlockId(extra.getBlock()), extra);
 		}
+
+		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
 	}
 
 	@Override
