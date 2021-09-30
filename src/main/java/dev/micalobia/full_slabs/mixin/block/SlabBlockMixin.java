@@ -3,11 +3,8 @@ package dev.micalobia.full_slabs.mixin.block;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.util.Utility;
 import dev.micalobia.full_slabs.util.Utility.HitPart;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.BlockItem;
@@ -17,7 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
@@ -47,39 +43,15 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	}
 
 	@Override
-	@Environment(EnvType.CLIENT)
-	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-		SlabType type = state.get(TYPE);
-		Direction direction;
-		if(type == SlabType.DOUBLE) {
-			Axis axis = state.get(Properties.AXIS);
-			HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
-			if(hitResult == null) return VoxelShapes.fullCube();
-			direction = Utility.getDirection(axis, hitResult.getPos(), pos);
-		} else direction = Utility.getDirection(state.get(TYPE), state.get(Properties.AXIS));
-		return switch(direction) {
-			case NORTH -> Utility.NORTH_OUTLINE_SHAPE;
-			case EAST -> Utility.EAST_OUTLINE_SHAPE;
-			case SOUTH -> Utility.SOUTH_OUTLINE_SHAPE;
-			case WEST -> Utility.WEST_OUTLINE_SHAPE;
-			case UP -> Utility.TOP_OUTLINE_SHAPE;
-			case DOWN -> Utility.BOTTOM_OUTLINE_SHAPE;
-		};
+	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
+		return VoxelShapes.fullCube();
 	}
 
 	@Override
-	public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
 		if(type == SlabType.DOUBLE) return VoxelShapes.fullCube();
-		Axis axis = state.get(Properties.AXIS);
-		return switch(Utility.getDirection(type, axis)) {
-			case UP -> Utility.TOP_COLLISION_SHAPE;
-			case DOWN -> Utility.BOTTOM_COLLISION_SHAPE;
-			case NORTH -> Utility.NORTH_COLLISION_SHAPE;
-			case EAST -> Utility.EAST_COLLISION_SHAPE;
-			case SOUTH -> Utility.SOUTH_COLLISION_SHAPE;
-			case WEST -> Utility.WEST_COLLISION_SHAPE;
-		};
+		return Utility.getShape(Utility.getDirection(type, state.get(Properties.AXIS)));
 	}
 
 	@Redirect(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isOf(Lnet/minecraft/item/Item;)Z"))

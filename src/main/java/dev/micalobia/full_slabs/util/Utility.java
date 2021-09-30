@@ -31,34 +31,21 @@ import net.minecraft.util.shape.VoxelShape;
 import virtuoel.statement.api.StateRefresher;
 
 public class Utility {
-	public static final VoxelShape TOP_OUTLINE_SHAPE;
-	public static final VoxelShape BOTTOM_OUTLINE_SHAPE;
-	public static final VoxelShape NORTH_OUTLINE_SHAPE;
-	public static final VoxelShape EAST_OUTLINE_SHAPE;
-	public static final VoxelShape SOUTH_OUTLINE_SHAPE;
-	public static final VoxelShape WEST_OUTLINE_SHAPE;
-	public static final VoxelShape TOP_COLLISION_SHAPE;
-	public static final VoxelShape BOTTOM_COLLISION_SHAPE;
-	public static final VoxelShape NORTH_COLLISION_SHAPE;
-	public static final VoxelShape EAST_COLLISION_SHAPE;
-	public static final VoxelShape SOUTH_COLLISION_SHAPE;
-	public static final VoxelShape WEST_COLLISION_SHAPE;
+	public static final VoxelShape TOP_SHAPE;
+	public static final VoxelShape BOTTOM_SHAPE;
+	public static final VoxelShape NORTH_SHAPE;
+	public static final VoxelShape EAST_SHAPE;
+	public static final VoxelShape SOUTH_SHAPE;
+	public static final VoxelShape WEST_SHAPE;
 	private static Pair<Block, Block> ghostPair;
 
 	static {
-		TOP_OUTLINE_SHAPE = Block.createCuboidShape(0.0D, 7.95D, 0.0D, 16.0D, 16.0D, 16.0D);
-		BOTTOM_OUTLINE_SHAPE = Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 8.05D, 16.0D);
-		NORTH_OUTLINE_SHAPE = Block.createCuboidShape(0d, 0d, 0d, 16d, 16d, 8.05d);
-		SOUTH_OUTLINE_SHAPE = Block.createCuboidShape(0d, 0d, 7.95d, 16d, 16d, 16d);
-		WEST_OUTLINE_SHAPE = Block.createCuboidShape(0d, 0d, 0d, 8.05d, 16d, 16d);
-		EAST_OUTLINE_SHAPE = Block.createCuboidShape(7.95d, 0d, 0d, 16d, 16d, 16d);
-
-		TOP_COLLISION_SHAPE = SlabBlockAccessor.getTOP_SHAPE();
-		BOTTOM_COLLISION_SHAPE = SlabBlockAccessor.getBOTTOM_SHAPE();
-		NORTH_COLLISION_SHAPE = Block.createCuboidShape(0d, 0d, 0d, 16d, 16d, 8d);
-		SOUTH_COLLISION_SHAPE = Block.createCuboidShape(0d, 0d, 8d, 16d, 16d, 16d);
-		WEST_COLLISION_SHAPE = Block.createCuboidShape(0d, 0d, 0d, 8d, 16d, 16d);
-		EAST_COLLISION_SHAPE = Block.createCuboidShape(8d, 0d, 0d, 16d, 16d, 16d);
+		TOP_SHAPE = SlabBlockAccessor.getTOP_SHAPE();
+		BOTTOM_SHAPE = SlabBlockAccessor.getBOTTOM_SHAPE();
+		NORTH_SHAPE = Block.createCuboidShape(0d, 0d, 0d, 16d, 16d, 8d);
+		SOUTH_SHAPE = Block.createCuboidShape(0d, 0d, 8d, 16d, 16d, 16d);
+		WEST_SHAPE = Block.createCuboidShape(0d, 0d, 0d, 8d, 16d, 16d);
+		EAST_SHAPE = Block.createCuboidShape(8d, 0d, 0d, 16d, 16d, 16d);
 	}
 
 	public static Direction getDirection(SlabType type, Axis axis) {
@@ -66,6 +53,17 @@ public class Utility {
 			case TOP -> Direction.get(AxisDirection.POSITIVE, axis);
 			case BOTTOM -> Direction.get(AxisDirection.NEGATIVE, axis);
 			case DOUBLE -> throw new IllegalArgumentException("Slab type 'DOUBLE' is directionless!");
+		};
+	}
+
+	public static VoxelShape getShape(Direction direction) {
+		return switch(direction) {
+			case NORTH -> Utility.NORTH_SHAPE;
+			case EAST -> Utility.EAST_SHAPE;
+			case SOUTH -> Utility.SOUTH_SHAPE;
+			case WEST -> Utility.WEST_SHAPE;
+			case UP -> Utility.TOP_SHAPE;
+			case DOWN -> Utility.BOTTOM_SHAPE;
 		};
 	}
 
