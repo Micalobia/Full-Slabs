@@ -8,6 +8,7 @@ import net.minecraft.block.enums.SlabType;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -21,20 +22,26 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	public static final EnumProperty<SlabType> TYPE;
 	public static final EnumProperty<Axis> AXIS;
 	public static final BooleanProperty WATERLOGGED;
+	public static final IntProperty LIGHT;
 
 	static {
 		TYPE = EnumProperty.of("type", SlabType.class, SlabType.BOTTOM, SlabType.TOP);
 		AXIS = Properties.AXIS;
 		WATERLOGGED = Properties.WATERLOGGED;
+		LIGHT = Properties.LEVEL_15;
 	}
 
 	public ExtraSlabBlock(Settings settings) {
 		super(settings);
-		setDefaultState(getDefaultState().with(TYPE, SlabType.BOTTOM).with(AXIS, Axis.Y).with(WATERLOGGED, false));
+		setDefaultState(getDefaultState().with(TYPE, SlabType.BOTTOM).with(AXIS, Axis.Y).with(WATERLOGGED, false).with(LIGHT, 0));
 	}
 
 	public static Direction getDirection(BlockState state) {
 		return Utility.getDirection(state.get(TYPE), state.get(AXIS));
+	}
+
+	public static int stateToLuminance(BlockState state) {
+		return state.get(LIGHT);
 	}
 
 	@Nullable
@@ -45,21 +52,12 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 
 	@Override
 	protected void appendProperties(Builder<Block, BlockState> builder) {
-		builder.add(TYPE, AXIS, WATERLOGGED);
+		builder.add(TYPE, AXIS, LIGHT, WATERLOGGED);
 	}
 
 	@Override
 	public boolean hasSidedTransparency(BlockState state) {
-		return state.get(TYPE) != SlabType.DOUBLE;
-	}
-
-	@Override
-	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
-		if(entity == null) return VoxelShapes.empty();
-		VoxelShape base = entity.getBaseRaycastShape(world, pos);
-		VoxelShape extra = entity.getExtraRaycastShape(world, pos);
-		return VoxelShapes.cuboid(VoxelShapes.union(base, extra).getBoundingBox());
+		return true;
 	}
 
 	@Override

@@ -94,23 +94,33 @@ public class Utility {
 		return MathHelper.approximatelyEquals(self, right);
 	}
 
-	private static boolean isPositiveX(Vec3d hit, BlockPos pos) {
+	private static boolean isPositiveX(Vec3d hit, BlockPos pos, SlabType primary) {
+		if(primary == SlabType.TOP)
+			return hit.getX() - pos.getX() >= 0.5d;
 		return hit.getX() - pos.getX() > 0.5d;
 	}
 
-	private static boolean isPositiveY(Vec3d hit, BlockPos pos) {
+	private static boolean isPositiveY(Vec3d hit, BlockPos pos, SlabType primary) {
+		if(primary == SlabType.TOP)
+			return hit.getY() - pos.getY() >= 0.5d;
 		return hit.getY() - pos.getY() > 0.5d;
 	}
 
-	private static boolean isPositiveZ(Vec3d hit, BlockPos pos) {
+	private static boolean isPositiveZ(Vec3d hit, BlockPos pos, SlabType primary) {
+		if(primary == SlabType.TOP)
+			return hit.getZ() - pos.getZ() >= 0.5d;
 		return hit.getZ() - pos.getZ() > 0.5d;
 	}
 
 	public static boolean isPositive(Axis axis, Vec3d hit, BlockPos pos) {
+		return isPositive(axis, hit, pos, SlabType.DOUBLE);
+	}
+
+	public static boolean isPositive(Axis axis, Vec3d hit, BlockPos pos, SlabType primary) {
 		return switch(axis) {
-			case X -> isPositiveX(hit, pos);
-			case Y -> isPositiveY(hit, pos);
-			case Z -> isPositiveZ(hit, pos);
+			case X -> isPositiveX(hit, pos, primary);
+			case Y -> isPositiveY(hit, pos, primary);
+			case Z -> isPositiveZ(hit, pos, primary);
 		};
 	}
 
@@ -132,10 +142,14 @@ public class Utility {
 	}
 
 	public static Direction getDirection(Axis axis, Vec3d hit, BlockPos pos) {
+		return getDirection(axis, hit, pos, SlabType.DOUBLE);
+	}
+
+	public static Direction getDirection(Axis axis, Vec3d hit, BlockPos pos, SlabType primary) {
 		return switch(axis) {
-			case X -> isPositiveX(hit, pos) ? Direction.EAST : Direction.WEST;
-			case Y -> isPositiveY(hit, pos) ? Direction.UP : Direction.DOWN;
-			case Z -> isPositiveZ(hit, pos) ? Direction.SOUTH : Direction.NORTH;
+			case X -> isPositiveX(hit, pos, primary) ? Direction.EAST : Direction.WEST;
+			case Y -> isPositiveY(hit, pos, primary) ? Direction.UP : Direction.DOWN;
+			case Z -> isPositiveZ(hit, pos, primary) ? Direction.SOUTH : Direction.NORTH;
 		};
 	}
 

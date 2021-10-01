@@ -1,10 +1,13 @@
 package dev.micalobia.full_slabs.mixin.server.network;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.item.ItemStack;
@@ -15,6 +18,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Final;
@@ -45,6 +49,29 @@ public class ServerPlayerInteractionManagerMixin {
 				else {
 					Vec3d hit = hitResult.getPos();
 					breakSlab(entity.getSlabState(hit), entity.getOppositeSlabState(hit), pos);
+					cir.setReturnValue(true);
+				}
+			}
+		} else if(state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK)) {
+			ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
+			if(entity == null) cir.setReturnValue(false);
+			else {
+				HitResult hitResult = Utility.crosshair(player);
+				if(hitResult.getType() != Type.BLOCK) cir.setReturnValue(false);
+				else {
+					Vec3d hit = hitResult.getPos();
+					Axis axis = state.get(ExtraSlabBlock.AXIS);
+					SlabType type = state.get(ExtraSlabBlock.TYPE);
+					Direction slabDir = Utility.getDirection(type, axis);
+					Direction hitDir = Utility.getDirection(axis, hit, pos, type);
+					BlockState slabState = entity.getBaseState();
+					BlockState extraState = entity.getExtraState();
+					if(hitDir == slabDir) {
+						breakSlab(extraState, slabState, pos);
+						breakSlab(slabState, Blocks.AIR.getDefaultState(), pos);
+					} else {
+						breakSlab(extraState, slabState, pos);
+					}
 					cir.setReturnValue(true);
 				}
 			}

@@ -83,8 +83,31 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 			return allowed(extra.getBlock()) && allowedExtras.get(Utility.getBlockId(extra.getBlock())).allowed(direction);
 	}
 
+	public static @Nullable SlabExtra get(Identifier id) {
+		return allowedExtras.get(id);
+	}
+
+	public static @Nullable SlabExtra get(Block block) {
+		return allowedExtras.get(Utility.getBlockId(block));
+	}
+
+	public static @Nullable SlabExtra get(Axis axis, BlockItem item) {
+		if(axis.isHorizontal() && item instanceof WallStandingBlockItem wallItem) {
+			return get(((WallStandingBlockItemAccessor) wallItem).getWallBlock());
+		}
+		return get(item.getBlock());
+	}
+
 	protected SlabExtra getExtra() {
 		return this.extra;
+	}
+
+	public @Nullable SlabExtra get(BlockItem item) {
+		Axis axis = getCachedState().get(ExtraSlabBlock.AXIS);
+		if(axis.isHorizontal() && item instanceof WallStandingBlockItem wallItem) {
+			return get(((WallStandingBlockItemAccessor) wallItem).getWallBlock());
+		}
+		return get(item.getBlock());
 	}
 
 	public BlockState getBaseState() {

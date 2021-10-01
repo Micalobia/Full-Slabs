@@ -44,11 +44,6 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	}
 
 	@Override
-	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-		return VoxelShapes.fullCube();
-	}
-
-	@Override
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
 		if(type == SlabType.DOUBLE) return VoxelShapes.fullCube();

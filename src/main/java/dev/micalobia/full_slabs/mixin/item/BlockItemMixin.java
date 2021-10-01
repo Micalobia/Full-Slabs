@@ -3,6 +3,8 @@ package dev.micalobia.full_slabs.mixin.item;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
+import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity.SlabExtra;
+import dev.micalobia.full_slabs.util.MixinSelf;
 import dev.micalobia.full_slabs.util.Utility;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -14,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,8 +24,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Objects;
+
 @Mixin(BlockItem.class)
-public abstract class BlockItemMixin {
+public abstract class BlockItemMixin implements MixinSelf<BlockItem> {
 	@Shadow
 	public abstract Block getBlock();
 
@@ -52,10 +57,18 @@ public abstract class BlockItemMixin {
 		if(!ExtraSlabBlockEntity.allowed(this.getBlock())) return;
 		BlockState state = context.getWorld().getBlockState(context.getBlockPos());
 		if(!(state.getBlock() instanceof SlabBlock)) return;
+		if(!ExtraSlabBlockEntity.allowed(state, self())) return;
 		Axis axis = state.get(Properties.AXIS);
 		SlabType type = state.get(SlabBlock.TYPE);
 		boolean waterlogged = state.get(SlabBlock.WATERLOGGED);
-		BlockState ret = FullSlabsMod.EXTRA_SLAB_BLOCK.getDefaultState().with(ExtraSlabBlock.AXIS, axis).with(ExtraSlabBlock.TYPE, type).with(ExtraSlabBlock.WATERLOGGED, waterlogged);
+		SlabExtra extra = ExtraSlabBlockEntity.get(this.getBlock());
+		assert extra != null;
+		int light = Objects.requireNonNull(extra.getState(Utility.getDirection(type, axis))).getLuminance();
+		BlockState ret = FullSlabsMod.EXTRA_SLAB_BLOCK.getDefaultState()
+				.with(ExtraSlabBlock.AXIS, axis)
+				.with(ExtraSlabBlock.TYPE, type)
+				.with(ExtraSlabBlock.WATERLOGGED, waterlogged)
+				.with(ExtraSlabBlock.LIGHT, light);
 		assert ret != null;
 		cir.setReturnValue(ret);
 	}

@@ -109,7 +109,7 @@ public class OutlineRenderer {
 		SlabType type = state.get(ExtraSlabBlock.TYPE);
 		Axis axis = state.get(ExtraSlabBlock.AXIS);
 		Direction slabDir = Utility.getDirection(type, axis);
-		Direction hitDir = Utility.getDirection(axis, hitResult.getPos(), pos);
+		Direction hitDir = Utility.getDirection(axis, hitResult.getPos(), pos, type);
 		if(slabDir == hitDir) return Utility.getShape(slabDir);
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
 		if(entity == null) return Utility.getShape(hitDir);
