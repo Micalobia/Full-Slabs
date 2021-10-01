@@ -19,7 +19,7 @@
       "dev.micalobia.full_slabs.FullSlabsMod"
     ],
     "client": [
-      "dev.micalobia.full_slabs.FullSlabsMod"
+      "dev.micalobia.full_slabs.FullSlabsModClient"
     ]
   },
   "mixins": [
