@@ -42,30 +42,6 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 		return Utility.getDirection(state.get(TYPE), state.get(AXIS));
 	}
 
-	@Environment(EnvType.CLIENT)
-	public static Direction getHitDirection(BlockState state, BlockPos pos, BlockView world) {
-		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
-		if(entity == null) throw new RuntimeException("Extra Slab Entity does not exist at " + pos.toShortString());
-		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
-		if(hitResult == null) throw new RuntimeException("Hit result doesn't exist!");
-		Vec3d hitPos = hitResult.getPos();
-		Vec3d relPos = hitPos.subtract(pos.getX(), pos.getY(), pos.getZ());
-
-		VoxelShape baseShape = entity.getBaseOutlineShape(world, pos, ShapeContext.absent());
-		VoxelShape extraShape = entity.getExtraOutlineShape(world, pos, ShapeContext.absent());
-
-		Axis axis = state.get(AXIS);
-		SlabType type = state.get(TYPE);
-		Direction dir = Utility.getDirection(type, axis);
-
-		if(Utility.contains(extraShape, relPos)) return dir.getOpposite();
-		if(Utility.contains(baseShape, relPos)) return dir;
-
-		boolean retBase = Utility.isPositive(axis, hitPos, pos) == (type == SlabType.TOP);
-		if(!retBase && Utility.borders(baseShape, relPos, axis)) return dir;
-		return retBase ? dir : dir.getOpposite();
-	}
-
 	@Nullable
 	@Override
 	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
