@@ -1,7 +1,6 @@
 package dev.micalobia.full_slabs.mixin.world;
 
 import com.mojang.datafixers.util.Pair;
-import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
 import net.minecraft.block.Block;

@@ -7,14 +7,12 @@ import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity.SlabExtra;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
-import dev.micalobia.full_slabs.client.render.model.FullSlabModelProvider;
 import dev.micalobia.full_slabs.config.TiltConfig;
 import dev.micalobia.full_slabs.util.Utility;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
+import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -26,6 +24,7 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import virtuoel.statement.api.StateRefresher;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,7 +35,7 @@ import java.nio.file.Path;
 import java.util.Set;
 
 
-public class FullSlabsMod implements ModInitializer, ClientModInitializer {
+public class FullSlabsMod implements ModInitializer {
 	public static final String MOD_ID = "full_slabs";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 	private static final String defaultExtraConfig = "[\r\n  {\r\n    \"block\": \"minecraft:wall_torch\",\r\n    \"north\": \"facing=south\",\r\n    \"south\": \"facing=north\",\r\n    \"east\": \"facing=west\",\r\n    \"west\": \"facing=east\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:torch\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:soul_wall_torch\",\r\n    \"north\": \"facing=south\",\r\n    \"south\": \"facing=north\",\r\n    \"east\": \"facing=west\",\r\n    \"west\": \"facing=east\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:soul_torch\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:lantern\",\r\n    \"top\": \"hanging=false\",\r\n    \"bottom\": \"hanging=true\"\r\n  },\r\n  {\r\n    \"block\": \"snow\",\r\n    \"bottom\": \"layers=1\"\r\n  }\r\n]";
@@ -69,14 +68,11 @@ public class FullSlabsMod implements ModInitializer, ClientModInitializer {
 		}
 
 		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
-	}
-
-	@Override
-	public void onInitializeClient() {
-		ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new FullSlabModelProvider());
-		if(FabricLoader.getInstance().isModLoaded("malilib")) {
-			OverlayRenderer.init();
-		}
+		RegistryEntryAddedCallback.event(Registry.BLOCK).register(((rawId, id, object) -> {
+			if (object instanceof SlabBlock) Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
+			StateRefresher.INSTANCE.reorderBlockStates();
+		}));
+		StateRefresher.INSTANCE.reorderBlockStates();
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")
