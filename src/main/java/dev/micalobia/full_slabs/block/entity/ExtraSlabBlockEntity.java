@@ -4,12 +4,15 @@ import com.google.gson.*;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.mixin.item.WallStandingBlockItemAccessor;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.WallStandingBlockItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
@@ -39,10 +42,15 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	private SlabExtra extra;
 	private Block base;
 
-	public ExtraSlabBlockEntity(BlockPos pos, BlockState state, Identifier extra, Block base) {
+	public ExtraSlabBlockEntity(BlockPos pos, BlockState state, Block base, BlockItem item) {
 		super(FullSlabsMod.EXTRA_SLAB_BLOCK_ENTITY, pos, state);
-		if(!allowedExtras.containsKey(extra)) throw new RuntimeException("Not a valid extra");
-		this.extra = allowedExtras.get(extra);
+		Block extraBlock;
+		if(state.get(ExtraSlabBlock.AXIS).isHorizontal() && item instanceof WallStandingBlockItem wallItem)
+			extraBlock = ((WallStandingBlockItemAccessor) wallItem).getWallBlock();
+		else
+			extraBlock = item.getBlock();
+		if(allowed(extraBlock)) this.extra = allowedExtras.get(Utility.getBlockId(extraBlock));
+		else throw new RuntimeException("Not a valid extra");
 		if(base instanceof SlabBlock)
 			this.base = base;
 		else
@@ -58,6 +66,21 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 			extra = allowedExtras.values().stream().findFirst().get();
 			base = Blocks.SMOOTH_STONE_SLAB;
 		}
+	}
+
+	public static boolean allowed(Block block) {
+		return allowedExtras.containsKey(Utility.getBlockId(block));
+	}
+
+	public static boolean allowed(BlockState state, BlockItem extra) {
+		Axis axis = state.get(ExtraSlabBlock.AXIS);
+		SlabType type = state.get(ExtraSlabBlock.TYPE);
+		Direction direction = Utility.getDirection(type, axis);
+		if(axis.isHorizontal() && extra instanceof WallStandingBlockItem wallItem) {
+			Block wallBlock = ((WallStandingBlockItemAccessor) wallItem).getWallBlock();
+			return allowed(wallBlock) && allowedExtras.get(Utility.getBlockId(wallBlock)).allowed(direction);
+		} else
+			return allowed(extra.getBlock()) && allowedExtras.get(Utility.getBlockId(extra.getBlock())).allowed(direction);
 	}
 
 	protected SlabExtra getExtra() {
@@ -97,6 +120,10 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 
 	public VoxelShape getExtraCollisionShape(BlockView world, BlockPos pos, ShapeContext context) {
 		return getExtra().getCollisionShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos, context);
+	}
+
+	public VoxelShape getExtraRaycastShape(BlockView world, BlockPos pos) {
+		return getExtra().getRaycastShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos);
 	}
 
 //	public static VoxelShape offset(Direction direction, double scale) {
@@ -220,6 +247,10 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 			return getShape(direction, world, pos, context, this.block::getCollisionShape);
 		}
 
+		public VoxelShape getRaycastShape(Direction direction, BlockView world, BlockPos pos) {
+			return getShape(direction, world, pos, ShapeContext.absent(), (d, w, p, c) -> this.block.getRaycastShape(d, w, p));
+		}
+
 		public @Nullable BlockState getState(Direction direction) {
 			return switch(direction) {
 				case DOWN -> bottomState;
@@ -228,6 +259,17 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 				case SOUTH -> southState;
 				case WEST -> westState;
 				case EAST -> eastState;
+			};
+		}
+
+		public boolean allowed(Direction direction) {
+			return switch(direction) {
+				case DOWN -> bottomState != null;
+				case UP -> topState != null;
+				case NORTH -> northState != null;
+				case SOUTH -> southState != null;
+				case WEST -> westState != null;
+				case EAST -> eastState != null;
 			};
 		}
 

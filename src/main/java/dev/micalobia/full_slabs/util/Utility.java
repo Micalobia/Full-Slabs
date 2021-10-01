@@ -34,7 +34,8 @@ public class Utility {
 	public static final VoxelShape EAST_SHAPE;
 	public static final VoxelShape SOUTH_SHAPE;
 	public static final VoxelShape WEST_SHAPE;
-	private static Pair<Block, Block> ghostPair;
+	private static Pair<Block, Block> fullSlabGhost;
+	private static Pair<Block, BlockItem> extraSlabGhost;
 
 	static {
 		TOP_SHAPE = SlabBlockAccessor.getTOP_SHAPE();
@@ -161,12 +162,20 @@ public class Utility {
 				pair.getSecond().getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.BOTTOM);
 	}
 
-	public static Pair<Block, Block> getGhostPair() {
-		return ghostPair;
+	public static Pair<Block, Block> getFullSlabGhost() {
+		return fullSlabGhost;
 	}
 
-	public static void setGhostPair(Pair<Block, Block> pair) {
-		ghostPair = pair;
+	public static void setFullSlabGhost(Block positive, Block negative) {
+		fullSlabGhost = Pair.of(positive, negative);
+	}
+
+	public static Pair<Block, BlockItem> getExtraSlabGhost() {
+		return extraSlabGhost;
+	}
+
+	public static void setExtraSlabGhost(Block base, BlockItem extra) {
+		extraSlabGhost = Pair.of(base, extra);
 	}
 
 	public static <T extends Comparable<T>> void injectBlockProperty(Class<? extends Block> cls, Property<T> property, T defaultValue) {

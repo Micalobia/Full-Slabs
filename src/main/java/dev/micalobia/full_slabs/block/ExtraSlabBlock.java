@@ -2,21 +2,16 @@ package dev.micalobia.full_slabs.block;
 
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -62,8 +57,8 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
 		if(entity == null) return VoxelShapes.empty();
-		VoxelShape base = entity.getBaseState().getRaycastShape(world, pos);
-		VoxelShape extra = entity.getExtraState().getRaycastShape(world, pos);
+		VoxelShape base = entity.getBaseRaycastShape(world, pos);
+		VoxelShape extra = entity.getExtraRaycastShape(world, pos);
 		return VoxelShapes.cuboid(VoxelShapes.union(base, extra).getBoundingBox());
 	}
 
@@ -80,5 +75,4 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 		if(entity == null) return VoxelShapes.empty();
 		return VoxelShapes.union(entity.getBaseCollisionShape(world, pos, context), entity.getExtraCollisionShape(world, pos, context));
 	}
-
 }
