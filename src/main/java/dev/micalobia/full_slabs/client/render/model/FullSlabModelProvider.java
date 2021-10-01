@@ -10,10 +10,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class FullSlabModelProvider implements ModelResourceProvider {
 	private static final Identifier FULL_SLAB_BLOCK_ID = FullSlabsMod.id("block/full_slab_block");
+	private static final Identifier EXTRA_SLAB_BLOCK_ID = FullSlabsMod.id("block/extra_slab_block");
 
 	@Override
 	public @Nullable UnbakedModel loadModelResource(Identifier resourceId, ModelProviderContext context) throws ModelProviderException {
 		if(FULL_SLAB_BLOCK_ID.equals(resourceId)) return new FullSlabModel();
+		if(EXTRA_SLAB_BLOCK_ID.equals(resourceId)) return new ExtraSlabModel();
 		return null;
 	}
 }

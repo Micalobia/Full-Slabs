@@ -1,16 +1,22 @@
 package dev.micalobia.full_slabs.block.entity;
 
 import com.google.gson.*;
+import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.enums.SlabType;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -23,7 +29,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable, RenderAttachmentBlockEntity {
 	public static final Map<Identifier, SlabExtra> allowedExtras;
 
 	static {
@@ -37,7 +43,10 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		super(FullSlabsMod.EXTRA_SLAB_BLOCK_ENTITY, pos, state);
 		if(!allowedExtras.containsKey(extra)) throw new RuntimeException("Not a valid extra");
 		this.extra = allowedExtras.get(extra);
-		this.base = base;
+		if(base instanceof SlabBlock)
+			this.base = base;
+		else
+			this.base = Blocks.SMOOTH_STONE_SLAB;
 	}
 
 	public ExtraSlabBlockEntity(BlockPos pos, BlockState state) {
@@ -51,11 +60,49 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		}
 	}
 
-	public SlabExtra getExtra() {
+	protected SlabExtra getExtra() {
 		return this.extra;
 	}
 
-	public Block getBase() {
+	public BlockState getBaseState() {
+		BlockState state = getCachedState();
+		return getBase()
+				.getDefaultState()
+				.with(Properties.AXIS, state.get(ExtraSlabBlock.AXIS))
+				.with(SlabBlock.TYPE, state.get(ExtraSlabBlock.TYPE));
+	}
+
+	public BlockState getExtraState() {
+		BlockState state = getCachedState();
+		SlabType type = state.get(ExtraSlabBlock.TYPE);
+		Axis axis = state.get(ExtraSlabBlock.AXIS);
+		return getExtra().getState(Utility.getDirection(type, axis));
+	}
+
+	public VoxelShape getBaseOutlineShape(BlockView world, BlockPos pos, ShapeContext context) {
+		return getBaseState().getOutlineShape(world, pos, context);
+	}
+
+	public VoxelShape getBaseCollisionShape(BlockView world, BlockPos pos, ShapeContext context) {
+		return getBaseState().getCollisionShape(world, pos, context);
+	}
+
+	public VoxelShape getBaseRaycastShape(BlockView world, BlockPos pos) {
+		return getBaseState().getRaycastShape(world, pos);
+	}
+
+	public VoxelShape getExtraOutlineShape(BlockView world, BlockPos pos, ShapeContext context) {
+		return getExtra().getOutlineShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos, context);
+	}
+
+	public VoxelShape getExtraCollisionShape(BlockView world, BlockPos pos, ShapeContext context) {
+		return getExtra().getCollisionShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos, context);
+	}
+
+//	public static VoxelShape offset(Direction direction, double scale) {
+//	}
+
+	protected Block getBase() {
 		return this.base;
 	}
 
@@ -73,6 +120,8 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 
 	private void readCommonNbt(NbtCompound nbt) {
 		this.base = Utility.getBlock(new Identifier(nbt.getString("base_identifier")));
+		if(!(this.base instanceof SlabBlock))
+			this.base = Blocks.SMOOTH_STONE_SLAB;
 		Identifier extra = new Identifier(nbt.getString("extra_identifier"));
 		this.extra = allowedExtras.getOrDefault(extra, null);
 	}
@@ -91,6 +140,11 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	@Override
 	public NbtCompound toClientTag(NbtCompound nbt) {
 		return writeCommonNbt(nbt);
+	}
+
+	@Override
+	public @Nullable Object getRenderAttachmentData() {
+		return Pair.of(base, extra);
 	}
 
 	public static class SlabExtra {
@@ -149,20 +203,20 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 			if(state == null) return VoxelShapes.empty();
 			VoxelShape shape = supplier.get(state, world, pos, context);
 			return switch(direction) {
-				case DOWN -> shape.offset(0d, 8d, 0d);
-				case UP -> shape.offset(0d, -8d, 0d);
-				case NORTH -> shape.offset(0d, 0d, 8d);
-				case SOUTH -> shape.offset(0d, 0d, -8d);
-				case WEST -> shape.offset(-8d, 0d, 0d);
-				case EAST -> shape.offset(8d, 0d, 0d);
+				case DOWN -> shape.offset(0d, 0.5d, 0d);
+				case UP -> shape.offset(0d, -0.5d, 0d);
+				case NORTH -> shape.offset(0d, 0d, 0.5d);
+				case SOUTH -> shape.offset(0d, 0d, -0.5d);
+				case WEST -> shape.offset(0.5d, 0d, 0d);
+				case EAST -> shape.offset(-0.5d, 0d, 0d);
 			};
 		}
 
-		public @Nullable VoxelShape getOutlineShape(Direction direction, BlockView world, BlockPos pos, ShapeContext context) {
+		public VoxelShape getOutlineShape(Direction direction, BlockView world, BlockPos pos, ShapeContext context) {
 			return getShape(direction, world, pos, context, this.block::getOutlineShape);
 		}
 
-		public @Nullable VoxelShape getCollisionShape(Direction direction, BlockView world, BlockPos pos, ShapeContext context) {
+		public VoxelShape getCollisionShape(Direction direction, BlockView world, BlockPos pos, ShapeContext context) {
 			return getShape(direction, world, pos, context, this.block::getCollisionShape);
 		}
 
