@@ -7,6 +7,8 @@ import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.config.TiltConfig;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
+import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
@@ -19,6 +21,7 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import virtuoel.statement.api.StateRefresher;
 
 import java.util.Set;
 
@@ -45,5 +48,10 @@ public class FullSlabsMod implements ModInitializer {
 		FULL_SLAB_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("full_slab"), FabricBlockEntityTypeBuilder.create(FullSlabBlockEntity::new, FULL_SLAB_BLOCK).build());
 
 		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
+		RegistryEntryAddedCallback.event(Registry.BLOCK).register(((rawId, id, object) -> {
+			if (object instanceof SlabBlock) Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
+			StateRefresher.INSTANCE.reorderBlockStates();
+		}));
+		StateRefresher.INSTANCE.reorderBlockStates();
 	}
 }
