@@ -11,6 +11,7 @@ import dev.micalobia.full_slabs.config.TiltConfig;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
+import net.fabricmc.fabric.api.event.registry.RegistryIdRemapCallback;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AbstractBlock.Settings;
@@ -67,10 +68,10 @@ public class FullSlabsMod implements ModInitializer {
 			ExtraSlabBlockEntity.allowedExtras.put(Utility.getBlockId(extra.getBlock()), extra);
 		}
 
+		RegistryIdRemapCallback.event(Registry.BLOCK).register((state -> StateRefresher.INSTANCE.reorderBlockStates()));
 		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
 		RegistryEntryAddedCallback.event(Registry.BLOCK).register(((rawId, id, object) -> {
 			if(object instanceof SlabBlock) Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
-			StateRefresher.INSTANCE.reorderBlockStates();
 		}));
 		StateRefresher.INSTANCE.reorderBlockStates();
 	}
