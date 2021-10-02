@@ -10,8 +10,7 @@
   "client": [
     "client.ModelLoaderMixin", "client.network.ClientPlayerInteractionManagerMixin",
     "client.particle.ParticleManagerMixin", "client.render.WorldRendererAccessor",
-    "client.render.block.BlockRenderManagerMixin", "client.render.model.BakedModelManagerMixin",
-    "client.render.model.json.JsonUnbakedModelAccessor"
+    "client.render.block.BlockRenderManagerMixin", "client.render.model.json.JsonUnbakedModelAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

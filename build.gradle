@@ -11,6 +11,7 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
+    maven { url "https://maven.shedaniel.me" }
     maven { url "https://masa.dy.fi/maven" }
     maven { url "https://maven.quiltmc.org/repository/release/" }
     maven { url "https://jitpack.io" }
@@ -28,6 +29,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version}:${project.malilib_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}"
     include modImplementation("curse.maven:statement-340604:3423826")
     include modImplementation("com.github.Virtuoel:StatementVanillaCompatibility:1.0.1-1.16.5-1.17")
     include modImplementation("com.github.Virtuoel:KanosConfig:0.1.4")
