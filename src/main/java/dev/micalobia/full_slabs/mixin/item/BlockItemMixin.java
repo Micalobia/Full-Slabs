@@ -16,7 +16,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

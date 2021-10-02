@@ -23,10 +23,10 @@ public class OverlayRenderer implements IRenderer {
 	public void onRenderWorldLast(MatrixStack matrix, Matrix4f projMatrix) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 
-		if(mc.player != null) this.renderSlabOverlay(matrix, mc);
+		if(mc.player != null) this.renderSlabOverlay(mc);
 	}
 
-	public void renderSlabOverlay(MatrixStack matrix, MinecraftClient mc) {
+	public void renderSlabOverlay(MinecraftClient mc) {
 		Entity entity = mc.getCameraEntity();
 
 		assert mc.player != null;

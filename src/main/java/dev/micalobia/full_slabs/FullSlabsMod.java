@@ -39,16 +39,16 @@ import java.util.Set;
 public class FullSlabsMod implements ModInitializer {
 	public static final String MOD_ID = "full_slabs";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+	public static final Gson GSON = new
+			GsonBuilder()
+			.registerTypeAdapter(TiltConfig.class, new TiltConfig.Deserializer())
+			.registerTypeAdapter(SlabExtra.class, new SlabExtra.Deserializer())
+			.create();
 	private static final String defaultExtraConfig = "[\r\n  {\r\n    \"block\": \"minecraft:wall_torch\",\r\n    \"north\": \"facing=south\",\r\n    \"south\": \"facing=north\",\r\n    \"east\": \"facing=west\",\r\n    \"west\": \"facing=east\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:torch\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:soul_wall_torch\",\r\n    \"north\": \"facing=south\",\r\n    \"south\": \"facing=north\",\r\n    \"east\": \"facing=west\",\r\n    \"west\": \"facing=east\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:soul_torch\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:lantern\",\r\n    \"top\": \"hanging=true\",\r\n    \"bottom\": \"hanging=false\"\r\n  },\r\n  {\r\n    \"block\": \"minecraft:soul_lantern\",\r\n    \"top\": \"hanging=true\",\r\n    \"bottom\": \"hanging=false\"\r\n  },\r\n  {\r\n    \"block\": \"snow\",\r\n    \"bottom\": \"layers=1\"\r\n  },\r\n  {\r\n    \"block\": \"white_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"orange_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"magenta_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"light_blue_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"yellow_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"lime_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"pink_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"gray_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"light_gray_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"cyan_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"purple_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"blue_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"brown_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"green_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"red_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"black_carpet\",\r\n    \"bottom\": \"\"\r\n  },\r\n  {\r\n    \"block\": \"moss_carpet\",\r\n    \"bottom\": \"\"\r\n  }\r\n]";
 	public static BlockEntityType<FullSlabBlockEntity> FULL_SLAB_BLOCK_ENTITY;
 	public static BlockEntityType<ExtraSlabBlockEntity> EXTRA_SLAB_BLOCK_ENTITY;
 	public static Block FULL_SLAB_BLOCK;
 	public static Block EXTRA_SLAB_BLOCK;
-	public static Gson GSON = new
-			GsonBuilder()
-			.registerTypeAdapter(TiltConfig.class, new TiltConfig.Deserializer())
-			.registerTypeAdapter(SlabExtra.class, new SlabExtra.Deserializer())
-			.create();
 	public static Set<Identifier> TILTED_SLABS;
 
 	public static Identifier id(String path) {

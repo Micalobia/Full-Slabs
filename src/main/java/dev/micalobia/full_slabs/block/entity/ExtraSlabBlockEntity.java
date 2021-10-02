@@ -83,10 +83,6 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 			return allowed(extra.getBlock()) && allowedExtras.get(Utility.getBlockId(extra.getBlock())).allowed(direction);
 	}
 
-	public static @Nullable SlabExtra get(Identifier id) {
-		return allowedExtras.get(id);
-	}
-
 	public static @Nullable SlabExtra get(Block block) {
 		return allowedExtras.get(Utility.getBlockId(block));
 	}
@@ -100,14 +96,6 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 
 	protected SlabExtra getExtra() {
 		return this.extra;
-	}
-
-	public @Nullable SlabExtra get(BlockItem item) {
-		Axis axis = getCachedState().get(ExtraSlabBlock.AXIS);
-		if(axis.isHorizontal() && item instanceof WallStandingBlockItem wallItem) {
-			return get(((WallStandingBlockItemAccessor) wallItem).getWallBlock());
-		}
-		return get(item.getBlock());
 	}
 
 	public BlockState getBaseState() {
@@ -133,10 +121,6 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		return getBaseState().getCollisionShape(world, pos, context);
 	}
 
-	public VoxelShape getBaseRaycastShape(BlockView world, BlockPos pos) {
-		return getBaseState().getRaycastShape(world, pos);
-	}
-
 	public VoxelShape getExtraOutlineShape(BlockView world, BlockPos pos, ShapeContext context) {
 		return getExtra().getOutlineShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos, context);
 	}
@@ -144,13 +128,6 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	public VoxelShape getExtraCollisionShape(BlockView world, BlockPos pos, ShapeContext context) {
 		return getExtra().getCollisionShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos, context);
 	}
-
-	public VoxelShape getExtraRaycastShape(BlockView world, BlockPos pos) {
-		return getExtra().getRaycastShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos);
-	}
-
-//	public static VoxelShape offset(Direction direction, double scale) {
-//	}
 
 	protected Block getBase() {
 		return this.base;
@@ -268,10 +245,6 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 
 		public VoxelShape getCollisionShape(Direction direction, BlockView world, BlockPos pos, ShapeContext context) {
 			return getShape(direction, world, pos, context, this.block::getCollisionShape);
-		}
-
-		public VoxelShape getRaycastShape(Direction direction, BlockView world, BlockPos pos) {
-			return getShape(direction, world, pos, ShapeContext.absent(), (d, w, p, c) -> this.block.getRaycastShape(d, w, p));
 		}
 
 		public @Nullable BlockState getState(Direction direction) {

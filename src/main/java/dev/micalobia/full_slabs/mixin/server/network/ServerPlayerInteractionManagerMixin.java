@@ -66,12 +66,8 @@ public class ServerPlayerInteractionManagerMixin {
 					Direction hitDir = Utility.getDirection(axis, hit, pos, type);
 					BlockState slabState = entity.getBaseState();
 					BlockState extraState = entity.getExtraState();
-					if(hitDir == slabDir) {
-						breakSlab(extraState, slabState, pos);
-						breakSlab(slabState, Blocks.AIR.getDefaultState(), pos);
-					} else {
-						breakSlab(extraState, slabState, pos);
-					}
+					breakSlab(extraState, slabState, pos);
+					if(hitDir == slabDir) breakSlab(slabState, Blocks.AIR.getDefaultState(), pos);
 					cir.setReturnValue(true);
 				}
 			}

@@ -16,8 +16,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TiltConfig {
-	protected boolean overritePrev;
-	protected Set<String> entries;
+	protected final boolean overritePrev;
+	protected final Set<String> entries;
 
 	protected TiltConfig(boolean replace, Collection<String> values) {
 		overritePrev = replace;

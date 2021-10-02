@@ -20,9 +20,12 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import virtuoel.statement.api.StateRefresher;
@@ -71,27 +74,6 @@ public class Utility {
 
 	public static SlabType slabType(Direction direction) {
 		return direction.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM;
-	}
-
-	public static boolean contains(VoxelShape shape, Vec3d pos) {
-		for(Box box : shape.getBoundingBoxes())
-			if(box.contains(pos)) return true;
-		return false;
-	}
-
-	public static boolean borders(VoxelShape shape, Vec3d pos, Axis axis) {
-		double value = pos.getComponentAlongAxis(axis);
-		for(Box box : shape.getBoundingBoxes()) {
-			double min = box.getMin(axis);
-			double max = box.getMax(axis);
-			if(equalToEither(value, min, max)) return true;
-		}
-		return false;
-	}
-
-	public static boolean equalToEither(double self, double left, double right) {
-		if(MathHelper.approximatelyEquals(self, left)) return true;
-		return MathHelper.approximatelyEquals(self, right);
 	}
 
 	private static boolean isPositiveX(Vec3d hit, BlockPos pos, SlabType primary) {

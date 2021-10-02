@@ -42,7 +42,6 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 	private static final String templateTiltedBlockstateJson = "{\"variants\":{\"type=double,axis=y\":{\"model\":\"%1$s\"},\"type=bottom,axis=y\":{\"model\":\"%2$s\"},\"type=top,axis=y\":{\"model\":\"%3$s\"},\"type=double,axis=x\":{\"model\":\"%1$s\",\"x\":90,\"y\":90},\"type=bottom,axis=x\":{\"model\":\"%2$s\",\"x\":90,\"y\":90},\"type=top,axis=x\":{\"model\":\"%3$s\",\"x\":90,\"y\":90},\"type=double,axis=z\":{\"model\":\"%1$s\",\"x\":270},\"type=bottom,axis=z\":{\"model\":\"%2$s\",\"x\":270},\"type=top,axis=z\":{\"model\":\"%3$s\",\"x\":270}}}";
 	private static final String templateModelJson = "{\"parent\":\"%s\",\"textures\":{\"bottom\":\"%s\",\"top\":\"%s\",\"side\":\"%s\"}}";
 	boolean processingSlab = false;
-	Identifier createUsing;
 	Map<Identifier, Direction> needToCreate;
 	Map<Direction, String> creationFaces;
 	@Shadow
@@ -114,7 +113,6 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 				southId, Direction.SOUTH,
 				westId, Direction.WEST
 		);
-		createUsing = bottomId;
 		return String.format(templateBlockstateJson,
 				doubleId,
 				bottomId,

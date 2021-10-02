@@ -34,21 +34,12 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 		this(pos, state, Blocks.STONE_SLAB, Blocks.STONE_SLAB);
 	}
 
-	public Block getSlab(boolean positive) {
-		return positive ? positiveSlab : negativeSlab;
-	}
-
 	private BlockState getPositiveSlabState(Axis axis) {
 		return positiveSlab.getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.TOP);
 	}
 
 	private BlockState getNegativeSlabState(Axis axis) {
 		return negativeSlab.getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.BOTTOM);
-	}
-
-	public BlockState getSlabState(boolean positive) {
-		Axis axis = getCachedState().get(Properties.AXIS);
-		return positive ? getPositiveSlabState(axis) : getNegativeSlabState(axis);
 	}
 
 	public BlockState getSlabState(Vec3d hit) {
