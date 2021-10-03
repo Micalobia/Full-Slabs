@@ -137,23 +137,13 @@ public class FullSlabModel implements UnbakedModel, BakedModel, FabricBakedModel
 		BakedModel negativeModel = manager.getModel(negativeState);
 		MeshBuilder builder = renderer.meshBuilder();
 		QuadEmitter quadEmitter = builder.getEmitter();
-//		context.pushTransform(applyMaterial(finder.clear().find()));
-//		context.fallbackConsumer().accept(positiveModel);
-//		context.popTransform();
-//		context.pushTransform(applyMaterial(finder.clear().find()));
-//		context.fallbackConsumer().accept(negativeModel);
-//		context.popTransform();
-		//((FabricBakedModel) positiveModel).emitBlockQuads(blockView, state, pos, randomSupplier, context);
-		//((FabricBakedModel) negativeModel).emitBlockQuads(blockView, state, pos, randomSupplier, context);
-		boolean positiveCull = positiveBlend != BlendMode.SOLID && blockView.getBlockState(pos.offset(axis, 1)).isOf(FullSlabsMod.FULL_SLAB_BLOCK);
-		boolean negativeCull = negativeBlend != BlendMode.SOLID && blockView.getBlockState(pos.offset(axis, -1)).isOf(FullSlabsMod.FULL_SLAB_BLOCK);
 		for(Direction direction : Direction.values()) {
 			for(BakedQuad quad : positiveModel.getQuads(positiveState, direction, randomSupplier.get())) {
-				quadEmitter.fromVanilla(quad, positiveMaterial, positiveCull ? direction : null);
+				quadEmitter.fromVanilla(quad, positiveMaterial, direction);
 				quadEmitter.emit();
 			}
 			for(BakedQuad quad : negativeModel.getQuads(negativeState, direction, randomSupplier.get())) {
-				quadEmitter.fromVanilla(quad, negativeMaterial, negativeCull ? direction : null);
+				quadEmitter.fromVanilla(quad, negativeMaterial, direction);
 				quadEmitter.emit();
 			}
 		}

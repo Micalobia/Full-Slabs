@@ -19,7 +19,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 
-public class FullSlabBlock extends TransparentBlock implements BlockEntityProvider {
+public class FullSlabBlock extends Block implements BlockEntityProvider {
 	public final static EnumProperty<Axis> AXIS;
 
 	static {
