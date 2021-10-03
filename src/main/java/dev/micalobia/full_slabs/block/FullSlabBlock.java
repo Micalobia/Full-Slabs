@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
@@ -21,14 +22,20 @@ import net.minecraft.world.BlockView;
 
 public class FullSlabBlock extends Block implements BlockEntityProvider {
 	public final static EnumProperty<Axis> AXIS;
+	public final static IntProperty LIGHT;
 
 	static {
 		AXIS = Properties.AXIS;
+		LIGHT = IntProperty.of("light", 0, 15);
 	}
 
 	public FullSlabBlock(Settings settings) {
 		super(settings);
-		setDefaultState(getDefaultState().with(AXIS, Axis.Y));
+		setDefaultState(getDefaultState().with(AXIS, Axis.Y).with(LIGHT, 0));
+	}
+
+	public static int stateToLuminance(BlockState state) {
+		return state.get(LIGHT);
 	}
 
 	@Override
@@ -75,6 +82,6 @@ public class FullSlabBlock extends Block implements BlockEntityProvider {
 
 	@Override
 	protected void appendProperties(Builder<Block, BlockState> builder) {
-		builder.add(AXIS);
+		builder.add(AXIS, LIGHT);
 	}
 }
