@@ -1,6 +1,7 @@
 package dev.micalobia.full_slabs.mixin.block;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
 import dev.micalobia.full_slabs.util.Utility.HitPart;
@@ -69,7 +70,13 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 		BlockState state = ctx.getWorld().getBlockState(pos);
 		if(state.getBlock() instanceof SlabBlock) {
 			Axis axis = state.get(Properties.AXIS);
-			cir.setReturnValue(FullSlabsMod.FULL_SLAB_BLOCK.getDefaultState().with(Properties.AXIS, axis));
+			SlabType type = state.get(TYPE);
+			int otherLight = state.getLuminance();
+			int thisLight = getDefaultState().with(TYPE, type).with(Properties.AXIS, axis).getLuminance();
+			BlockState ret = FullSlabsMod.FULL_SLAB_BLOCK.getDefaultState()
+					.with(FullSlabBlock.AXIS, axis)
+					.with(FullSlabBlock.LIGHT, Math.max(otherLight, thisLight));
+			cir.setReturnValue(ret);
 		} else {
 			Direction hitSide = ctx.getSide();
 			Direction facing = ctx.getPlayerFacing();
