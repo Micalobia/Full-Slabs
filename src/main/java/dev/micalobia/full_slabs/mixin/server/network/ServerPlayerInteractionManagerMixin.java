@@ -10,6 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
@@ -62,12 +63,13 @@ public class ServerPlayerInteractionManagerMixin {
 					Vec3d hit = hitResult.getPos();
 					Axis axis = state.get(ExtraSlabBlock.AXIS);
 					SlabType type = state.get(ExtraSlabBlock.TYPE);
+					boolean waterlogged = state.get(ExtraSlabBlock.WATERLOGGED);
 					Direction slabDir = Utility.getDirection(type, axis);
 					Direction hitDir = Utility.getDirection(axis, hit, pos, type);
-					BlockState slabState = entity.getBaseState();
+					BlockState slabState = entity.getBaseState().with(SlabBlock.WATERLOGGED, waterlogged);
 					BlockState extraState = entity.getExtraState();
 					breakSlab(extraState, slabState, pos);
-					if(hitDir == slabDir) breakSlab(slabState, Blocks.AIR.getDefaultState(), pos);
+					if(hitDir == slabDir) breakSlab(slabState, waterlogged ? Fluids.WATER.getDefaultState().getBlockState() : Blocks.AIR.getDefaultState(), pos);
 					cir.setReturnValue(true);
 				}
 			}

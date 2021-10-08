@@ -128,6 +128,10 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		return this.base;
 	}
 
+	public boolean waterloggable() {
+		return this.getExtra().waterloggable();
+	}
+
 	@Override
 	public void readNbt(NbtCompound nbt) {
 		readCommonNbt(nbt);

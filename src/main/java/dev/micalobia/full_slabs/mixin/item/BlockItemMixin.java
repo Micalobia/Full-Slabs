@@ -59,9 +59,9 @@ public abstract class BlockItemMixin implements MixinSelf<BlockItem> {
 		if(!ExtraSlabBlockEntity.allowed(state, self())) return;
 		Axis axis = state.get(Properties.AXIS);
 		SlabType type = state.get(SlabBlock.TYPE);
-		boolean waterlogged = state.get(SlabBlock.WATERLOGGED);
 		SlabExtra extra = ExtraSlabBlockEntity.get(this.getBlock());
 		assert extra != null;
+		boolean waterlogged = extra.waterloggable() && state.get(SlabBlock.WATERLOGGED);
 		int light = Objects.requireNonNull(extra.getState(Utility.getDirection(type, axis))).getLuminance();
 		BlockState ret = FullSlabsMod.EXTRA_SLAB_BLOCK.getDefaultState()
 				.with(ExtraSlabBlock.AXIS, axis)

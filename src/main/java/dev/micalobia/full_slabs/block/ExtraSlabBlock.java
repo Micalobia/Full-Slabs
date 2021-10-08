@@ -5,6 +5,9 @@ import dev.micalobia.full_slabs.util.Utility;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -16,6 +19,7 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
 public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterloggable {
@@ -56,8 +60,20 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	}
 
 	@Override
+	public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+		if(state.get(WATERLOGGED))
+			world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+		return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+	}
+
+	@Override
 	public boolean hasSidedTransparency(BlockState state) {
 		return true;
+	}
+
+	@Override
+	public FluidState getFluidState(BlockState state) {
+		return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
 	}
 
 	@Override
@@ -72,5 +88,21 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
 		if(entity == null) return VoxelShapes.empty();
 		return VoxelShapes.union(entity.getBaseCollisionShape(world, pos, context), entity.getExtraCollisionShape(world, pos, context));
+	}
+
+	@Override
+	public boolean canFillWithFluid(BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
+		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
+		assert entity != null;
+		if(entity.waterloggable()) return Waterloggable.super.canFillWithFluid(world, pos, state, fluid);
+		return false;
+	}
+
+	@Override
+	public boolean tryFillWithFluid(WorldAccess world, BlockPos pos, BlockState state, FluidState fluidState) {
+		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
+		assert entity != null;
+		if(entity.waterloggable()) return Waterloggable.super.tryFillWithFluid(world, pos, state, fluidState);
+		return false;
 	}
 }

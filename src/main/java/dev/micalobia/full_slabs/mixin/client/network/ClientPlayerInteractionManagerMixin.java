@@ -14,6 +14,7 @@ import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -63,15 +64,15 @@ public class ClientPlayerInteractionManagerMixin {
 				Vec3d hit = client.crosshairTarget.getPos();
 				Axis axis = state.get(ExtraSlabBlock.AXIS);
 				SlabType type = state.get(ExtraSlabBlock.TYPE);
+				boolean waterlogged = state.get(ExtraSlabBlock.WATERLOGGED);
 				Direction slabDir = Utility.getDirection(type, axis);
 				Direction hitDir = Utility.getDirection(axis, hit, pos, type);
-				BlockState slabState = entity.getBaseState();
+				BlockState slabState = entity.getBaseState().with(SlabBlock.WATERLOGGED, waterlogged);
 				BlockState extraState = entity.getExtraState();
+				boolean ret = breakSlab(extraState, slabState, pos);
 				if(hitDir == slabDir) {
-					boolean ret = breakSlab(extraState, slabState, pos);
-					cir.setReturnValue(ret | breakSlab(slabState, Blocks.AIR.getDefaultState(), pos));
+					cir.setReturnValue(ret | breakSlab(slabState, waterlogged ? Fluids.WATER.getDefaultState().getBlockState() : Blocks.AIR.getDefaultState(), pos));
 				} else {
-					boolean ret = breakSlab(extraState, slabState, pos);
 					cir.setReturnValue(ret);
 				}
 			}
