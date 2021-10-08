@@ -27,6 +27,7 @@ public class OverlayRenderer implements IRenderer {
 	}
 
 	public void renderSlabOverlay(MatrixStack matrix, MinecraftClient mc) {
+		if(!Utility.getShowWidget()) return;
 		Entity entity = mc.getCameraEntity();
 
 		assert mc.player != null;

@@ -38,6 +38,7 @@ public class Utility {
 	public static final VoxelShape SOUTH_SHAPE;
 	public static final VoxelShape WEST_SHAPE;
 	private static Pair<Block, Block> ghostPair;
+	private static boolean showWidget = true;
 
 	static {
 		TOP_SHAPE = SlabBlockAccessor.getTOP_SHAPE();
@@ -73,6 +74,14 @@ public class Utility {
 
 	public static SlabType slabType(Direction direction) {
 		return direction.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM;
+	}
+
+	public static boolean getShowWidget() {
+		return showWidget;
+	}
+
+	public static void toggleShowWidget() {
+		showWidget = !showWidget;
 	}
 
 	private static boolean isPositiveX(Vec3d hit, BlockPos pos) {
