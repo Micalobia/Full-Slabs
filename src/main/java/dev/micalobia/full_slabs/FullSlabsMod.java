@@ -1,19 +1,21 @@
 package dev.micalobia.full_slabs;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
-import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity.SlabExtra;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.config.ModConfig;
+import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.util.Utility;
 import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.ConfigData;
+import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
-import net.fabricmc.fabric.api.event.registry.RegistryIdRemapCallback;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -27,12 +29,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import virtuoel.statement.api.StateRefresher;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Set;
 
 
@@ -45,9 +41,16 @@ public class FullSlabsMod implements ModInitializer {
 	public static Block FULL_SLAB_BLOCK;
 	public static Block EXTRA_SLAB_BLOCK;
 	public static Set<Identifier> TILTED_SLABS;
+	public static Gson GSON = new GsonBuilder()
+			.registerTypeAdapter(SlabExtra.class, new SlabExtra.Deserializer())
+			.create();
 
 	public static Identifier id(String path) {
 		return new Identifier(MOD_ID, path);
+	}
+
+	private static <T extends ConfigData> GsonConfigSerializer<T> createConfigSerializer(Config definition, Class<T> configClass) {
+		return new GsonConfigSerializer<>(definition, configClass, new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create());
 	}
 
 	@Override
@@ -57,7 +60,7 @@ public class FullSlabsMod implements ModInitializer {
 
 		EXTRA_SLAB_BLOCK = Registry.register(Registry.BLOCK, id("extra_slab_block"), new ExtraSlabBlock(Settings.copy(Blocks.BEDROCK).luminance(ExtraSlabBlock::stateToLuminance)));
 		EXTRA_SLAB_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("extra_slab"), FabricBlockEntityTypeBuilder.create(ExtraSlabBlockEntity::new, EXTRA_SLAB_BLOCK).build());
-		AutoConfig.register(ModConfig.class, GsonConfigSerializer::new);
+		AutoConfig.register(ModConfig.class, FullSlabsMod::createConfigSerializer);
 		TILTED_SLABS = AutoConfig.getConfigHolder(ModConfig.class).getConfig().getTiltableSlabs();
 
 		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
@@ -68,34 +71,5 @@ public class FullSlabsMod implements ModInitializer {
 			}
 		}));
 		StateRefresher.INSTANCE.reorderBlockStates();
-	}
-
-	@SuppressWarnings("ResultOfMethodCallIgnored")
-	private SlabExtra[] getOrCreateExtraConfig() {
-		Path configPath = FabricLoader.getInstance().getConfigDir();
-		File configFile = configPath.resolve("full_slabs/slab_extras.json").toFile();
-		SlabExtra[] ret;
-		LOGGER.info(configFile);
-		LOGGER.info(configFile.exists());
-		if(!configFile.exists()) {
-			try {
-				configFile.getParentFile().mkdirs();
-				configFile.createNewFile();
-				try(FileOutputStream out = new FileOutputStream(configFile)) {
-					out.write(defaultExtraConfig.getBytes(StandardCharsets.UTF_8));
-				}
-			} catch(IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-		try(FileReader reader = new FileReader(configFile)) {
-			ret = GSON.fromJson(reader, SlabExtra[].class);
-		} catch(IOException e) {
-			// TODO: Real error handling
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		return ret;
 	}
 }

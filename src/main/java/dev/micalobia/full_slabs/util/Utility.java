@@ -16,6 +16,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
@@ -28,7 +29,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 import virtuoel.statement.api.StateRefresher;
+
+import java.util.Optional;
 
 public class Utility {
 	public static final VoxelShape TOP_SHAPE;
@@ -142,6 +146,29 @@ public class Utility {
 			case Y -> isPositiveY(hit, pos, primary) ? Direction.UP : Direction.DOWN;
 			case Z -> isPositiveZ(hit, pos, primary) ? Direction.SOUTH : Direction.NORTH;
 		};
+	}
+
+	public static BlockState getStateFromString(Block block, @Nullable String string) {
+		if(string == null) return null;
+		StateManager<Block, BlockState> manager = block.getStateManager();
+		String[] properties = string.split(",");
+		BlockState state = block.getDefaultState();
+		for(String str : properties) {
+			String[] pair = str.split("=");
+			String name = pair[0];
+			if(pair.length != 2) continue;
+			String value = pair[1];
+			Property<?> property = manager.getProperty(name);
+			if(property == null) continue;
+			state = with(state, property, value);
+		}
+		return state;
+	}
+
+	private static <T extends Comparable<T>> BlockState with(BlockState state, Property<T> property, String value) {
+		Optional<T> ret = property.parse(value);
+		if(ret.isPresent()) return state.with(property, ret.get());
+		return state;
 	}
 
 	private static double modOne(double value) {

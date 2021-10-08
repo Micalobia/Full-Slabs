@@ -2,7 +2,7 @@ package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
-import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity.SlabExtra;
+import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
