@@ -2,6 +2,8 @@ package dev.micalobia.full_slabs.mixin.client.render.block;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -16,6 +18,7 @@ import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockRenderView;
@@ -33,10 +36,10 @@ public class BlockRenderManagerMixin {
 
 	@Inject(method = "renderDamage", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/block/BlockModels;getModel(Lnet/minecraft/block/BlockState;)Lnet/minecraft/client/render/model/BakedModel;"))
 	private void skimSlabDamageInfo(BlockState state, BlockPos pos, BlockRenderView world, MatrixStack matrix, VertexConsumer vertexConsumer, CallbackInfo ci) {
-		boolean isFullSlab = state.isOf(FullSlabsMod.FULL_SLAB_BLOCK);
-		if(isFullSlab || state.getBlock() instanceof SlabBlock) {
+		boolean needView = state.isOf(FullSlabsMod.FULL_SLAB_BLOCK) || state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK);
+		if(needView || state.getBlock() instanceof SlabBlock) {
 			this.pos = pos;
-			if(isFullSlab)
+			if(needView)
 				this.view = (RenderAttachedBlockView) world;
 		}
 	}
@@ -55,6 +58,23 @@ public class BlockRenderManagerMixin {
 			Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
 			boolean positive = Utility.isPositive(state.get(Properties.AXIS), hit, this.pos);
 			return state.with(SlabBlock.TYPE, positive ? SlabType.TOP : SlabType.BOTTOM);
-		} else return state;
+		} else if(state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK)) {
+			Pair<Block, SlabExtra> pair = (Pair<Block, SlabExtra>) this.view.getBlockEntityRenderAttachment(this.pos);
+			assert pair != null;
+			assert MinecraftClient.getInstance().crosshairTarget != null;
+			Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
+			Axis axis = state.get(ExtraSlabBlock.AXIS);
+			SlabType type = state.get(ExtraSlabBlock.TYPE);
+			Direction direction = Utility.getDirection(type, axis);
+			boolean positive = Utility.isPositive(axis, hit, this.pos);
+			boolean isBase = positive == (type == SlabType.TOP);
+			if(isBase) {
+				Block base = pair.getFirst();
+				return Utility.getSlabState(base, direction);
+			}
+			SlabExtra extra = pair.getSecond();
+			return extra.getState(direction);
+		}
+		return state;
 	}
 }
