@@ -21,6 +21,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.Nullable;
@@ -122,6 +123,20 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 
 	public VoxelShape getExtraCollisionShape(BlockView world, BlockPos pos, ShapeContext context) {
 		return getExtra().getCollisionShape(ExtraSlabBlock.getDirection(getCachedState()), world, pos, context);
+	}
+
+	public BlockState getState(Vec3d hit) {
+		Axis axis = getCachedState().get(ExtraSlabBlock.AXIS);
+		SlabType type = getCachedState().get(ExtraSlabBlock.TYPE);
+		boolean positive = Utility.isPositive(axis, hit, pos, type);
+		return positive == (type == SlabType.TOP) ? getBaseState() : getExtraState();
+	}
+
+	public BlockState getOppositeState(Vec3d hit) {
+		Axis axis = getCachedState().get(ExtraSlabBlock.AXIS);
+		SlabType type = getCachedState().get(ExtraSlabBlock.TYPE);
+		boolean positive = Utility.isPositive(axis, hit, pos, type);
+		return positive != (type == SlabType.TOP) ? getBaseState() : getExtraState();
 	}
 
 	protected Block getBase() {

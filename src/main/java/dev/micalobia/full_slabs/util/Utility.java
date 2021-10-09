@@ -188,6 +188,12 @@ public class Utility {
 		return getSlabState(pair, axis, isPositive(axis, hit, pos));
 	}
 
+	public static BlockState getSlabState(Block block, Direction direction) {
+		SlabType type = direction.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM;
+		Axis axis = direction.getAxis();
+		return block.getDefaultState().with(SlabBlock.TYPE, type).with(Properties.AXIS, axis);
+	}
+
 	public static BlockState getSlabState(Pair<Block, Block> pair, Axis axis, boolean positive) {
 		return positive ?
 				pair.getFirst().getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.TOP) :

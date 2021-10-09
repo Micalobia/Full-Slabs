@@ -1,13 +1,19 @@
 package dev.micalobia.full_slabs.block;
 
+import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
+import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.util.Utility;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -16,6 +22,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -55,11 +62,6 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	}
 
 	@Override
-	protected void appendProperties(Builder<Block, BlockState> builder) {
-		builder.add(TYPE, AXIS, LIGHT, WATERLOGGED);
-	}
-
-	@Override
 	public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
 		if(state.get(WATERLOGGED))
 			world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
@@ -88,6 +90,45 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
 		if(entity == null) return VoxelShapes.empty();
 		return VoxelShapes.union(entity.getBaseCollisionShape(world, pos, context), entity.getExtraCollisionShape(world, pos, context));
+	}
+
+	@Override
+	public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
+		assert entity != null;
+		Vec3d hit = Utility.crosshair(player).getPos();
+		BlockState hitState = entity.getState(hit);
+		return hitState.getBlock().calcBlockBreakingDelta(hitState, player, world, pos);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
+		RenderAttachedBlockView view = (RenderAttachedBlockView) world;
+		Pair<Block, SlabExtra> pair = (Pair<Block, SlabExtra>) view.getBlockEntityRenderAttachment(pos);
+		assert pair != null;
+		MinecraftClient mc = MinecraftClient.getInstance();
+		assert mc.crosshairTarget != null;
+		Vec3d hit = mc.crosshairTarget.getPos();
+		Axis axis = state.get(AXIS);
+		SlabType type = state.get(TYPE);
+		boolean positive = Utility.isPositive(axis, hit, pos, type);
+		Direction direction = Utility.getDirection(type, axis);
+		boolean isBase = positive == (type == SlabType.TOP);
+		if(isBase) {
+			Block base = pair.getFirst();
+			return base.getPickStack(world, pos, Utility.getSlabState(base, direction));
+		}
+		SlabExtra extra = pair.getSecond();
+		BlockState newState = extra.getState(direction);
+		assert newState != null;
+		Block block = newState.getBlock();
+		return block.getPickStack(world, pos, newState);
+	}
+
+	@Override
+	protected void appendProperties(Builder<Block, BlockState> builder) {
+		builder.add(TYPE, AXIS, LIGHT, WATERLOGGED);
 	}
 
 	@Override
