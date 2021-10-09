@@ -12,54 +12,31 @@ import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.WallStandingBlockItem;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
-@Mixin(BlockItem.class)
-public abstract class BlockItemMixin implements MixinSelf<BlockItem> {
-	@Shadow
-	public abstract Block getBlock();
+@Mixin(WallStandingBlockItem.class)
+public abstract class WallStandingBlockItemMixin extends BlockItem implements MixinSelf<WallStandingBlockItem> {
 
-	@Inject(at = @At("HEAD"), cancellable = true, method = "place(Lnet/minecraft/item/ItemPlacementContext;Lnet/minecraft/block/BlockState;)Z")
-	private void skimOldBlocksWhenSlab(ItemPlacementContext context, BlockState state, CallbackInfoReturnable<Boolean> cir) {
-		boolean isFull = state.isOf(FullSlabsMod.FULL_SLAB_BLOCK);
-		boolean isExtra = state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK);
-		if(!isFull && !isExtra) return;
-		World world = context.getWorld();
-		BlockPos pos = context.getBlockPos();
-		BlockState activeState = world.getBlockState(pos);
-		Block activeBlock = activeState.getBlock();
-		ItemStack stack = context.getStack();
-		BlockItem item = (BlockItem) stack.getItem();
-		if(isFull) {
-			Block placedBlock = ((BlockItem) stack.getItem()).getBlock();
-			boolean activePositive = activeState.get(SlabBlock.TYPE) == SlabType.TOP;
-			Utility.setFullSlabGhost(
-					activePositive ? activeBlock : placedBlock,
-					activePositive ? placedBlock : activeBlock
-			);
-		} else Utility.setExtraSlabGhost(activeBlock, item);
+	public WallStandingBlockItemMixin(Block block, Settings settings) {
+		super(block, settings);
 	}
 
 	@Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)
 	private void interceptExtraSlabPlacement(ItemPlacementContext context, CallbackInfoReturnable<BlockState> cir) {
-		if(!ExtraSlabBlockEntity.allowed(this.getBlock())) return;
 		BlockState state = context.getWorld().getBlockState(context.getBlockPos());
 		if(!(state.getBlock() instanceof SlabBlock)) return;
 		if(!ExtraSlabBlockEntity.allowed(state, self())) return;
 		Axis axis = state.get(Properties.AXIS);
 		SlabType type = state.get(SlabBlock.TYPE);
-		SlabExtra extra = ExtraSlabBlockEntity.get(this.getBlock());
+		SlabExtra extra = ExtraSlabBlockEntity.get(axis, self());
 		assert extra != null;
 		boolean waterlogged = extra.waterloggable() && state.get(SlabBlock.WATERLOGGED);
 		int light = Objects.requireNonNull(extra.getState(Utility.getDirection(type, axis))).getLuminance();

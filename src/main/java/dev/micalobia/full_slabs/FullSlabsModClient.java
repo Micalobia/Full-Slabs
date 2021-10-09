@@ -7,7 +7,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil.Type;
@@ -19,8 +18,7 @@ public class FullSlabsModClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ModelLoadingRegistry.INSTANCE.registerResourceProvider(rm -> new FullSlabModelProvider());
-		WorldRenderEvents.BLOCK_OUTLINE.register(OutlineRenderer::renderSlabOutline);
-		WorldRenderEvents.BLOCK_OUTLINE.register(OutlineRenderer::renderFullSlabOutline);
+		OutlineRenderer.init();
 		if(FabricLoader.getInstance().isModLoaded("malilib")) {
 			OverlayRenderer.init();
 			toggleWidget = KeyBindingHelper.registerKeyBinding(new KeyBinding(

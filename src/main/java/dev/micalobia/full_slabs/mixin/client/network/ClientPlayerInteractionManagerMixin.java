@@ -1,18 +1,23 @@
 package dev.micalobia.full_slabs.mixin.client.network;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Final;
@@ -50,6 +55,26 @@ public class ClientPlayerInteractionManagerMixin {
 				Vec3d hit = client.crosshairTarget.getPos();
 				boolean ret = breakSlab(entity.getSlabState(hit), entity.getOppositeSlabState(hit), pos);
 				cir.setReturnValue(ret);
+			}
+		} else if(state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK)) {
+			ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) client.world.getBlockEntity(pos);
+			if(entity == null) cir.setReturnValue(false);
+			else {
+				assert client.crosshairTarget != null;
+				Vec3d hit = client.crosshairTarget.getPos();
+				Axis axis = state.get(ExtraSlabBlock.AXIS);
+				SlabType type = state.get(ExtraSlabBlock.TYPE);
+				boolean waterlogged = state.get(ExtraSlabBlock.WATERLOGGED);
+				Direction slabDir = Utility.getDirection(type, axis);
+				Direction hitDir = Utility.getDirection(axis, hit, pos, type);
+				BlockState slabState = entity.getBaseState().with(SlabBlock.WATERLOGGED, waterlogged);
+				BlockState extraState = entity.getExtraState();
+				boolean ret = breakSlab(extraState, slabState, pos);
+				if(hitDir == slabDir) {
+					cir.setReturnValue(ret | breakSlab(slabState, waterlogged ? Fluids.WATER.getDefaultState().getBlockState() : Blocks.AIR.getDefaultState(), pos));
+				} else {
+					cir.setReturnValue(ret);
+				}
 			}
 		} else if(state.getBlock() instanceof SlabBlock) {
 			if(state.get(SlabBlock.TYPE) != SlabType.DOUBLE) return;

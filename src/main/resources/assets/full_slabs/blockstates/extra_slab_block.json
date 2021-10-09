@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": {"model": "full_slabs:block/extra_slab_block"}
+  }
+}

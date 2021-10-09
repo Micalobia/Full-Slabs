@@ -16,6 +16,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
@@ -28,7 +29,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 import virtuoel.statement.api.StateRefresher;
+
+import java.util.Optional;
 
 public class Utility {
 	public static final VoxelShape TOP_SHAPE;
@@ -37,7 +41,8 @@ public class Utility {
 	public static final VoxelShape EAST_SHAPE;
 	public static final VoxelShape SOUTH_SHAPE;
 	public static final VoxelShape WEST_SHAPE;
-	private static Pair<Block, Block> ghostPair;
+	private static Pair<Block, Block> fullSlabGhost;
+	private static Pair<Block, BlockItem> extraSlabGhost;
 	private static boolean showWidget = true;
 
 	static {
@@ -84,23 +89,33 @@ public class Utility {
 		showWidget = !showWidget;
 	}
 
-	private static boolean isPositiveX(Vec3d hit, BlockPos pos) {
+	private static boolean isPositiveX(Vec3d hit, BlockPos pos, SlabType primary) {
+		if(primary == SlabType.TOP)
+			return hit.getX() - pos.getX() >= 0.5d;
 		return hit.getX() - pos.getX() > 0.5d;
 	}
 
-	private static boolean isPositiveY(Vec3d hit, BlockPos pos) {
+	private static boolean isPositiveY(Vec3d hit, BlockPos pos, SlabType primary) {
+		if(primary == SlabType.TOP)
+			return hit.getY() - pos.getY() >= 0.5d;
 		return hit.getY() - pos.getY() > 0.5d;
 	}
 
-	private static boolean isPositiveZ(Vec3d hit, BlockPos pos) {
+	private static boolean isPositiveZ(Vec3d hit, BlockPos pos, SlabType primary) {
+		if(primary == SlabType.TOP)
+			return hit.getZ() - pos.getZ() >= 0.5d;
 		return hit.getZ() - pos.getZ() > 0.5d;
 	}
 
 	public static boolean isPositive(Axis axis, Vec3d hit, BlockPos pos) {
+		return isPositive(axis, hit, pos, SlabType.DOUBLE);
+	}
+
+	public static boolean isPositive(Axis axis, Vec3d hit, BlockPos pos, SlabType primary) {
 		return switch(axis) {
-			case X -> isPositiveX(hit, pos);
-			case Y -> isPositiveY(hit, pos);
-			case Z -> isPositiveZ(hit, pos);
+			case X -> isPositiveX(hit, pos, primary);
+			case Y -> isPositiveY(hit, pos, primary);
+			case Z -> isPositiveZ(hit, pos, primary);
 		};
 	}
 
@@ -113,12 +128,47 @@ public class Utility {
 		return FullSlabsMod.TILTED_SLABS.contains(id);
 	}
 
+	public static Identifier getBlockId(Block block) {
+		return Registry.BLOCK.getId(block);
+	}
+
+	public static Block getBlock(Identifier id) {
+		return Registry.BLOCK.get(id);
+	}
+
 	public static Direction getDirection(Axis axis, Vec3d hit, BlockPos pos) {
+		return getDirection(axis, hit, pos, SlabType.DOUBLE);
+	}
+
+	public static Direction getDirection(Axis axis, Vec3d hit, BlockPos pos, SlabType primary) {
 		return switch(axis) {
-			case X -> isPositiveX(hit, pos) ? Direction.EAST : Direction.WEST;
-			case Y -> isPositiveY(hit, pos) ? Direction.UP : Direction.DOWN;
-			case Z -> isPositiveZ(hit, pos) ? Direction.SOUTH : Direction.NORTH;
+			case X -> isPositiveX(hit, pos, primary) ? Direction.EAST : Direction.WEST;
+			case Y -> isPositiveY(hit, pos, primary) ? Direction.UP : Direction.DOWN;
+			case Z -> isPositiveZ(hit, pos, primary) ? Direction.SOUTH : Direction.NORTH;
 		};
+	}
+
+	public static BlockState getStateFromString(Block block, @Nullable String string) {
+		if(string == null) return null;
+		StateManager<Block, BlockState> manager = block.getStateManager();
+		String[] properties = string.split(",");
+		BlockState state = block.getDefaultState();
+		for(String str : properties) {
+			String[] pair = str.split("=");
+			String name = pair[0];
+			if(pair.length != 2) continue;
+			String value = pair[1];
+			Property<?> property = manager.getProperty(name);
+			if(property == null) continue;
+			state = with(state, property, value);
+		}
+		return state;
+	}
+
+	private static <T extends Comparable<T>> BlockState with(BlockState state, Property<T> property, String value) {
+		Optional<T> ret = property.parse(value);
+		if(ret.isPresent()) return state.with(property, ret.get());
+		return state;
 	}
 
 	private static double modOne(double value) {
@@ -138,18 +188,32 @@ public class Utility {
 		return getSlabState(pair, axis, isPositive(axis, hit, pos));
 	}
 
+	public static BlockState getSlabState(Block block, Direction direction) {
+		SlabType type = direction.getDirection() == AxisDirection.POSITIVE ? SlabType.TOP : SlabType.BOTTOM;
+		Axis axis = direction.getAxis();
+		return block.getDefaultState().with(SlabBlock.TYPE, type).with(Properties.AXIS, axis);
+	}
+
 	public static BlockState getSlabState(Pair<Block, Block> pair, Axis axis, boolean positive) {
 		return positive ?
 				pair.getFirst().getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.TOP) :
 				pair.getSecond().getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.BOTTOM);
 	}
 
-	public static Pair<Block, Block> getGhostPair() {
-		return ghostPair;
+	public static Pair<Block, Block> getFullSlabGhost() {
+		return fullSlabGhost;
 	}
 
-	public static void setGhostPair(Pair<Block, Block> pair) {
-		ghostPair = pair;
+	public static void setFullSlabGhost(Block positive, Block negative) {
+		fullSlabGhost = Pair.of(positive, negative);
+	}
+
+	public static Pair<Block, BlockItem> getExtraSlabGhost() {
+		return extraSlabGhost;
+	}
+
+	public static void setExtraSlabGhost(Block base, BlockItem extra) {
+		extraSlabGhost = Pair.of(base, extra);
 	}
 
 	public static <T extends Comparable<T>> void injectBlockProperty(Class<? extends Block> cls, Property<T> property, T defaultValue) {

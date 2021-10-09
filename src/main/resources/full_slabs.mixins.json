@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "block.SlabBlockAccessor", "block.SlabBlockMixin", "entity.EntityMixin", "entity.LivingEntityMixin",
-    "item.BlockItemMixin", "server.network.ServerPlayerInteractionManagerMixin", "world.WorldChunkMixin"
+    "item.BlockItemMixin", "item.WallStandingBlockItemAccessor", "item.WallStandingBlockItemMixin",
+    "server.network.ServerPlayerInteractionManagerMixin", "world.WorldChunkMixin"
   ],
   "client": [
     "client.ModelLoaderMixin", "client.network.ClientPlayerInteractionManagerMixin",

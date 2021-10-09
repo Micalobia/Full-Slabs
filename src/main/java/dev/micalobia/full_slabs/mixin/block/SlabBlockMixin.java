@@ -2,6 +2,7 @@ package dev.micalobia.full_slabs.mixin.block;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
+import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
 import dev.micalobia.full_slabs.util.Utility.HitPart;
 import net.minecraft.block.*;
@@ -44,11 +45,6 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	}
 
 	@Override
-	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-		return VoxelShapes.fullCube();
-	}
-
-	@Override
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
 		if(type == SlabType.DOUBLE) return VoxelShapes.fullCube();
@@ -56,10 +52,11 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	}
 
 	@Redirect(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isOf(Lnet/minecraft/item/Item;)Z"))
-	private boolean changeCanReplaceCondition(ItemStack stack, Item item) {
+	private boolean changeCanReplaceCondition(ItemStack stack, Item item, BlockState state, ItemPlacementContext context) {
 		Item stackItem = stack.getItem();
 		if(!(stackItem instanceof BlockItem blockItem)) return false;
-		return blockItem.getBlock() instanceof SlabBlock;
+		if(blockItem.getBlock() instanceof SlabBlock) return true;
+		return ExtraSlabBlockEntity.allowed(state, blockItem);
 	}
 
 	@Inject(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemPlacementContext;getHitPos()Lnet/minecraft/util/math/Vec3d;"), cancellable = true)

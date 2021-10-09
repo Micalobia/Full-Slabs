@@ -49,11 +49,6 @@ public class FullSlabBlock extends Block implements BlockEntityProvider {
 	}
 
 	@Override
-	public VoxelShape getRaycastShape(BlockState state, BlockView world, BlockPos pos) {
-		return VoxelShapes.fullCube();
-	}
-
-	@Override
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		return VoxelShapes.fullCube();
 	}
