@@ -69,7 +69,8 @@ public class ServerPlayerInteractionManagerMixin {
 					BlockState slabState = entity.getBaseState().with(SlabBlock.WATERLOGGED, waterlogged);
 					BlockState extraState = entity.getExtraState();
 					breakSlab(extraState, slabState, pos);
-					if(hitDir == slabDir) breakSlab(slabState, waterlogged ? Fluids.WATER.getDefaultState().getBlockState() : Blocks.AIR.getDefaultState(), pos);
+					if(hitDir == slabDir)
+						breakSlab(slabState, waterlogged ? Fluids.WATER.getDefaultState().getBlockState() : Blocks.AIR.getDefaultState(), pos);
 					cir.setReturnValue(true);
 				}
 			}
