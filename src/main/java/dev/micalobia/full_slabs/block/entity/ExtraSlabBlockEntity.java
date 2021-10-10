@@ -27,6 +27,7 @@ import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable, RenderAttachmentBlockEntity {
 	public static final Map<Identifier, SlabExtra> allowedExtras;
@@ -69,14 +70,25 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	}
 
 	public static boolean allowed(BlockState state, BlockItem extra) {
-		Axis axis = state.get(ExtraSlabBlock.AXIS);
-		SlabType type = state.get(ExtraSlabBlock.TYPE);
+		SlabType type = state.get(SlabBlock.TYPE);
+		if(type == SlabType.DOUBLE) return false;
+		Axis axis = state.get(Properties.AXIS);
+		SlabExtra ret = get(axis, extra);
+		if(ret == null) return false;
 		Direction direction = Utility.getDirection(type, axis);
-		if(axis.isHorizontal() && extra instanceof WallStandingBlockItem wallItem) {
-			Block wallBlock = ((WallStandingBlockItemAccessor) wallItem).getWallBlock();
-			return allowed(wallBlock) && allowedExtras.get(Utility.getBlockId(wallBlock)).allowed(direction);
-		} else
-			return allowed(extra.getBlock()) && allowedExtras.get(Utility.getBlockId(extra.getBlock())).allowed(direction);
+		return ret.allowed(direction);
+	}
+
+	public static Optional<BlockState> getExtra(BlockState state, BlockItem item) {
+		if(!(state.getBlock() instanceof SlabBlock)) return Optional.empty();
+		SlabType type = state.get(SlabBlock.TYPE);
+		if(type == SlabType.DOUBLE) return Optional.empty();
+		Axis axis = state.get(Properties.AXIS);
+		SlabExtra retExtra = get(axis, item);
+		if(retExtra == null) return Optional.empty();
+		Direction direction = Utility.getDirection(type, axis);
+		BlockState retState = retExtra.getState(direction);
+		return Optional.ofNullable(retState);
 	}
 
 	public static @Nullable SlabExtra get(Block block) {
@@ -84,11 +96,11 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	}
 
 	public static @Nullable SlabExtra get(Axis axis, BlockItem item) {
-		if(axis.isHorizontal() && item instanceof WallStandingBlockItem wallItem) {
+		if(axis.isHorizontal() && item instanceof WallStandingBlockItem wallItem)
 			return get(((WallStandingBlockItemAccessor) wallItem).getWallBlock());
-		}
 		return get(item.getBlock());
 	}
+
 
 	protected SlabExtra getExtra() {
 		return this.extra;
