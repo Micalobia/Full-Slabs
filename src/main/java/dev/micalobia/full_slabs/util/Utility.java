@@ -324,6 +324,58 @@ public class Utility {
 		return side;
 	}
 
+	public static void renderBlockVerticalHalfOverlay(Entity entity, BlockPos pos, Direction side, Vec3d hitVec, BlockState state, MinecraftClient mc) {
+		Direction playerFacing = entity.getHorizontalFacing();
+		Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+		double x = pos.getX() + 0.5d - cameraPos.x;
+		double y = pos.getY() + 0.5d - cameraPos.y;
+		double z = pos.getZ() + 0.5d - cameraPos.z;
+
+		boolean top = hitVec.getY() - pos.getY() > 0.5f;
+		float topOff = top ? 0.5f : 0f;
+
+		MatrixStack globalStack = RenderSystem.getModelViewStack();
+		globalStack.push();
+		blockTargetingOverlayTranslations(x, y, z, side, playerFacing, globalStack);
+		RenderSystem.applyModelViewMatrix();
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.disableTexture();
+
+		Tessellator tessellator = Tessellator.getInstance();
+		BufferBuilder buffer = tessellator.getBuffer();
+		buffer.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+		int hr = 0x00;
+		int hg = 0x7F;
+		int hb = 0xFF;
+		int ha = 0x3F;
+		int c = 0xFF;
+
+
+		if(side.getAxis().isHorizontal()) {
+			buffer.vertex(x - 0.5f, y - 0.5f + topOff, z).color(hr, hg, hb, ha).next();
+			buffer.vertex(x + 0.5f, y - 0.5f + topOff, z).color(hr, hg, hb, ha).next();
+			buffer.vertex(x + 0.5f, y + topOff, z).color(hr, hg, hb, ha).next();
+			buffer.vertex(x - 0.5f, y + topOff, z).color(hr, hg, hb, ha).next();
+		} else {
+			buffer.vertex(x - 0.5f, y - 0.5f, z).color(hr, hg, hb, ha).next();
+			buffer.vertex(x + 0.5f, y - 0.5f, z).color(hr, hg, hb, ha).next();
+			buffer.vertex(x + 0.5f, y + 0.5f, z).color(hr, hg, hb, ha).next();
+			buffer.vertex(x - 0.5f, y + 0.5f, z).color(hr, hg, hb, ha).next();
+		}
+		tessellator.draw();
+
+
+		if(side.getAxis().isHorizontal()) {
+			RenderSystem.lineWidth(1.6f);
+			buffer.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+			buffer.vertex(x - 0.5f, y, z).color(c, c, c, c).next();
+			buffer.vertex(x + 0.5f, y, z).color(c, c, c, c).next();
+			tessellator.draw();
+		}
+
+		globalStack.pop();
+	}
+
 	public static void renderBlockTargetingOverlay(Entity entity, BlockPos pos, Direction side, Vec3d hitVec,
 												   BlockState state, MinecraftClient mc) {
 		Direction playerFacing = entity.getHorizontalFacing();

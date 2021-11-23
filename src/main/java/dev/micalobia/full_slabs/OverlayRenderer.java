@@ -27,7 +27,7 @@ public class OverlayRenderer implements IRenderer {
 	}
 
 	public void renderSlabOverlay(MinecraftClient mc) {
-		if(!Utility.getShowWidget() || !Utility.getVerticalEnabled()) return;
+		if(!Utility.getShowWidget()) return;
 		Entity entity = mc.getCameraEntity();
 
 		assert mc.player != null;
@@ -47,9 +47,14 @@ public class OverlayRenderer implements IRenderer {
 			RenderUtils.setupBlend();
 
 			assert entity != null;
-			Utility.renderBlockTargetingOverlay(
-					entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
-			);
+			if(Utility.getVerticalEnabled())
+				Utility.renderBlockTargetingOverlay(
+						entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
+				);
+			else
+				Utility.renderBlockVerticalHalfOverlay(
+						entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
+				);
 
 			RenderSystem.enableTexture();
 			RenderSystem.enableDepthTest();
