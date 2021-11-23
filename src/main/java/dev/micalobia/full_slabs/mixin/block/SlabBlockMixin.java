@@ -66,6 +66,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 
 	@Inject(method = "getPlacementState", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getFluidState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/fluid/FluidState;"), cancellable = true)
 	private void changePlacementRules(ItemPlacementContext ctx, CallbackInfoReturnable<BlockState> cir) {
+		if(!Utility.getVerticalEnabled()) return;
 		BlockPos pos = ctx.getBlockPos();
 		BlockState state = ctx.getWorld().getBlockState(pos);
 		if(state.getBlock() instanceof SlabBlock) {

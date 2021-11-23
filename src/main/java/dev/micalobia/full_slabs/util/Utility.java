@@ -44,6 +44,7 @@ public class Utility {
 	private static Pair<Block, Block> fullSlabGhost;
 	private static Pair<Block, BlockItem> extraSlabGhost;
 	private static boolean showWidget = true;
+	private static boolean verticalEnabled = true;
 
 	static {
 		TOP_SHAPE = SlabBlockAccessor.getTOP_SHAPE();
@@ -87,6 +88,14 @@ public class Utility {
 
 	public static void toggleShowWidget() {
 		showWidget = !showWidget;
+	}
+
+	public static boolean getVerticalEnabled() {
+		return verticalEnabled;
+	}
+
+	public static void toggleVerticalEnabled() {
+		verticalEnabled = !verticalEnabled;
 	}
 
 	private static boolean isPositiveX(Vec3d hit, BlockPos pos, SlabType primary) {
