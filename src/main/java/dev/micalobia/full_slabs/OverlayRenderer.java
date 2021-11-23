@@ -47,7 +47,7 @@ public class OverlayRenderer implements IRenderer {
 			RenderUtils.setupBlend();
 
 			assert entity != null;
-			if(Utility.getVerticalEnabled())
+			if(Utility.getVerticalEnabled(mc.player.getUuid()))
 				Utility.renderBlockTargetingOverlay(
 						entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
 				);

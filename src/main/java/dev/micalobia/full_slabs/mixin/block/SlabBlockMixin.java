@@ -7,6 +7,7 @@ import dev.micalobia.full_slabs.util.Utility;
 import dev.micalobia.full_slabs.util.Utility.HitPart;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.BlockItem;
@@ -78,7 +79,8 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 					.with(FullSlabBlock.LIGHT, Math.max(otherLight, thisLight));
 			cir.setReturnValue(ret);
 		} else {
-			if(!Utility.getVerticalEnabled()) return;
+			PlayerEntity player = ctx.getPlayer();
+			if(player != null && !Utility.getVerticalEnabled(player.getUuid())) return;
 			Direction hitSide = ctx.getSide();
 			Direction facing = ctx.getPlayerFacing();
 			HitPart part = Utility.getHitPart(hitSide, facing, pos, ctx.getHitPos());

@@ -32,7 +32,10 @@ import net.minecraft.util.shape.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import virtuoel.statement.api.StateRefresher;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class Utility {
 	public static final VoxelShape TOP_SHAPE;
@@ -44,7 +47,7 @@ public class Utility {
 	private static Pair<Block, Block> fullSlabGhost;
 	private static Pair<Block, BlockItem> extraSlabGhost;
 	private static boolean showWidget = true;
-	private static boolean verticalEnabled = true;
+	private static final Map<UUID, Boolean> verticalEnabledMap = new HashMap<>();
 
 	static {
 		TOP_SHAPE = SlabBlockAccessor.getTOP_SHAPE();
@@ -90,12 +93,16 @@ public class Utility {
 		showWidget = !showWidget;
 	}
 
-	public static boolean getVerticalEnabled() {
-		return verticalEnabled;
+	public static boolean getVerticalEnabled(UUID player) {
+		return verticalEnabledMap.computeIfAbsent(player, x -> true);
 	}
 
-	public static void toggleVerticalEnabled() {
-		verticalEnabled = !verticalEnabled;
+	public static void toggleVerticalEnabled(UUID player) {
+		verticalEnabledMap.put(player, !verticalEnabledMap.get(player));
+	}
+
+	public static void setVerticalEnabled(UUID player, boolean value) {
+		verticalEnabledMap.put(player, value);
 	}
 
 	private static boolean isPositiveX(Vec3d hit, BlockPos pos, SlabType primary) {
