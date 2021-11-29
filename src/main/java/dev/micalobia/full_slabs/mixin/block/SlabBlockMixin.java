@@ -5,8 +5,8 @@ import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.config.CustomControls;
-import fi.dy.masa.malilib.util.PositionUtils;
-import fi.dy.masa.malilib.util.PositionUtils.HitPart;
+import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.full_slabs.util.malilib.HitPart;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -85,8 +85,8 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 			if(player != null && !CustomControls.getVerticalEnabled(player.getUuid())) return;
 			Direction hitSide = ctx.getSide();
 			Direction facing = ctx.getPlayerFacing();
-			HitPart part = PositionUtils.getHitPart(hitSide, facing, pos, ctx.getHitPos());
-			Direction slabDir = PositionUtils.getTargetedDirection(hitSide, facing, pos, ctx.getHitPos());
+			HitPart part = Utility.getHitPart(hitSide, facing, pos, ctx.getHitPos());
+			Direction slabDir = Utility.getTargetedDirection(hitSide, facing, pos, ctx.getHitPos());
 			if(part == HitPart.CENTER) slabDir = slabDir.getOpposite();
 			FluidState fluidState = ctx.getWorld().getFluidState(pos);
 			cir.setReturnValue(getDefaultState()

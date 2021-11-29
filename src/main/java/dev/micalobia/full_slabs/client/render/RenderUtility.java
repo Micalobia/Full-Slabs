@@ -3,8 +3,9 @@ package dev.micalobia.full_slabs.client.render;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.micalobia.full_slabs.block.SlabBlockUtility;
-import fi.dy.masa.malilib.util.PositionUtils;
-import fi.dy.masa.malilib.util.PositionUtils.HitPart;
+import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.full_slabs.util.malilib.HitPart;
+import dev.micalobia.full_slabs.util.malilib.HitPartQuad;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
@@ -77,7 +78,7 @@ public class RenderUtility {
 	public static void renderBlockTargetingOverlay(Entity entity, BlockPos pos, Direction side, Vec3d hitVec,
 												   BlockState state, MinecraftClient mc) {
 		Direction playerFacing = entity.getHorizontalFacing();
-		HitPart part = PositionUtils.getHitPart(side, playerFacing, pos, hitVec);
+		HitPart part = Utility.getHitPart(side, playerFacing, pos, hitVec);
 		Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
 
 		double x = pos.getX() + 0.5d - cameraPos.x;
@@ -407,23 +408,4 @@ public class RenderUtility {
 		};
 	}
 
-	private enum HitPartQuad {
-		CENTER_FULL,
-		CENTER_TOP,
-		CENTER_LEFT,
-		CENTER_RIGHT,
-		CENTER_BOTTOM,
-		TOP_FULL,
-		TOP_LEFT,
-		TOP_RIGHT,
-		LEFT_FULL,
-		LEFT_TOP,
-		LEFT_BOTTOM,
-		RIGHT_FULL,
-		RIGHT_TOP,
-		RIGHT_BOTTOM,
-		BOTTOM_FULL,
-		BOTTOM_LEFT,
-		BOTTOM_RIGHT
-	}
 }
