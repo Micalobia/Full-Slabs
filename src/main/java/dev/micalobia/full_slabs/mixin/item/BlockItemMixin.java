@@ -2,9 +2,9 @@ package dev.micalobia.full_slabs.mixin.item;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.util.MixinSelf;
-import dev.micalobia.full_slabs.util.Utility;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
@@ -43,11 +43,11 @@ public abstract class BlockItemMixin implements MixinSelf<BlockItem> {
 		if(isFull) {
 			Block placedBlock = ((BlockItem) stack.getItem()).getBlock();
 			boolean activePositive = activeState.get(SlabBlock.TYPE) == SlabType.TOP;
-			Utility.setFullSlabGhost(
+			SlabBlockUtility.setFullSlabGhost(
 					activePositive ? activeBlock : placedBlock,
 					activePositive ? placedBlock : activeBlock
 			);
-		} else Utility.setExtraSlabGhost(activeBlock, item);
+		} else SlabBlockUtility.setExtraSlabGhost(activeBlock, item);
 	}
 
 	@Inject(method = "getPlacementState", at = @At("HEAD"), cancellable = true)

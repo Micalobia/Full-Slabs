@@ -48,7 +48,7 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	}
 
 	public static Direction getDirection(BlockState state) {
-		return Utility.getDirection(state.get(TYPE), state.get(AXIS));
+		return SlabBlockUtility.getDirection(state.get(TYPE), state.get(AXIS));
 	}
 
 	public static int stateToLuminance(BlockState state) {
@@ -112,12 +112,12 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 		Vec3d hit = mc.crosshairTarget.getPos();
 		Axis axis = state.get(AXIS);
 		SlabType type = state.get(TYPE);
-		boolean positive = Utility.isPositive(axis, hit, pos, type);
-		Direction direction = Utility.getDirection(type, axis);
+		boolean positive = SlabBlockUtility.isPositive(axis, hit, pos, type);
+		Direction direction = SlabBlockUtility.getDirection(type, axis);
 		boolean isBase = positive == (type == SlabType.TOP);
 		if(isBase) {
 			Block base = pair.getFirst();
-			return base.getPickStack(world, pos, Utility.getSlabState(base, direction));
+			return base.getPickStack(world, pos, SlabBlockUtility.getSlabState(base, direction));
 		}
 		SlabExtra extra = pair.getSecond();
 		BlockState newState = extra.getState(direction);

@@ -2,7 +2,7 @@ package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
-import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.Block;
@@ -21,8 +21,8 @@ public class FullSlabModel extends BasicModel {
 		RenderAttachedBlockView view = (RenderAttachedBlockView) blockView;
 		Pair<Block, Block> pair = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(pos);
 		Axis axis = state.get(FullSlabBlock.AXIS);
-		BlockState positiveState = Utility.getSlabState(pair, axis, true);
-		BlockState negativeState = Utility.getSlabState(pair, axis, false);
+		BlockState positiveState = SlabBlockUtility.getSlabState(pair, axis, true);
+		BlockState negativeState = SlabBlockUtility.getSlabState(pair, axis, false);
 		emitModel(view, positiveState, pos, randomSupplier, context);
 		emitModel(view, negativeState, pos, randomSupplier, context);
 	}

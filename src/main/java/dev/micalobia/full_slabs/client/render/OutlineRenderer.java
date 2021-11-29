@@ -3,9 +3,9 @@ package dev.micalobia.full_slabs.client.render;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.mixin.client.render.WorldRendererAccessor;
-import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext.BlockOutlineContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -89,7 +89,7 @@ public class OutlineRenderer {
 	private static VoxelShape getRenderedFullSlabOutlineShape(BlockState state, BlockPos pos) {
 		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
 		if(hitResult == null) return VoxelShapes.fullCube();
-		return Utility.getShape(Utility.getDirection(state.get(FullSlabBlock.AXIS), hitResult.getPos(), pos));
+		return SlabBlockUtility.getShape(SlabBlockUtility.getDirection(state.get(FullSlabBlock.AXIS), hitResult.getPos(), pos));
 	}
 
 	private static VoxelShape getRenderedSlabOutlineShape(BlockState state, BlockPos pos) {
@@ -98,9 +98,9 @@ public class OutlineRenderer {
 		if(type == SlabType.DOUBLE) {
 			HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
 			if(hitResult == null) return VoxelShapes.fullCube();
-			direction = Utility.getDirection(state.get(Properties.AXIS), hitResult.getPos(), pos);
-		} else direction = Utility.getDirection(type, state.get(Properties.AXIS));
-		return Utility.getShape(direction);
+			direction = SlabBlockUtility.getDirection(state.get(Properties.AXIS), hitResult.getPos(), pos);
+		} else direction = SlabBlockUtility.getDirection(type, state.get(Properties.AXIS));
+		return SlabBlockUtility.getShape(direction);
 	}
 
 	private static VoxelShape getRenderedExtraSlabOutlineShape(BlockState state, BlockPos pos, BlockView world) {
@@ -108,11 +108,11 @@ public class OutlineRenderer {
 		if(hitResult == null) return VoxelShapes.fullCube();
 		SlabType type = state.get(ExtraSlabBlock.TYPE);
 		Axis axis = state.get(ExtraSlabBlock.AXIS);
-		Direction slabDir = Utility.getDirection(type, axis);
-		Direction hitDir = Utility.getDirection(axis, hitResult.getPos(), pos, type);
-		if(slabDir == hitDir) return Utility.getShape(slabDir);
+		Direction slabDir = SlabBlockUtility.getDirection(type, axis);
+		Direction hitDir = SlabBlockUtility.getDirection(axis, hitResult.getPos(), pos, type);
+		if(slabDir == hitDir) return SlabBlockUtility.getShape(slabDir);
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
-		if(entity == null) return Utility.getShape(hitDir);
+		if(entity == null) return SlabBlockUtility.getShape(hitDir);
 		return entity.getExtraOutlineShape(world, pos, ShapeContext.absent());
 	}
 

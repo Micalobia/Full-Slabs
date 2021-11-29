@@ -2,9 +2,11 @@ package dev.micalobia.full_slabs.mixin.block;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
-import dev.micalobia.full_slabs.util.Utility;
-import dev.micalobia.full_slabs.util.Utility.HitPart;
+import dev.micalobia.full_slabs.config.CustomControls;
+import fi.dy.masa.malilib.util.PositionUtils;
+import fi.dy.masa.malilib.util.PositionUtils.HitPart;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -49,7 +51,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		SlabType type = state.get(TYPE);
 		if(type == SlabType.DOUBLE) return VoxelShapes.fullCube();
-		return Utility.getShape(Utility.getDirection(type, state.get(Properties.AXIS)));
+		return SlabBlockUtility.getShape(SlabBlockUtility.getDirection(type, state.get(Properties.AXIS)));
 	}
 
 	@Redirect(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;isOf(Lnet/minecraft/item/Item;)Z"))
@@ -62,7 +64,7 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 
 	@Inject(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemPlacementContext;getHitPos()Lnet/minecraft/util/math/Vec3d;"), cancellable = true)
 	private void changeCanReplaceMath(BlockState state, ItemPlacementContext context, CallbackInfoReturnable<Boolean> cir) {
-		cir.setReturnValue(Utility.insideSlab(state.getBlock(), context.getHitPos()));
+		cir.setReturnValue(SlabBlockUtility.insideSlab(state.getBlock(), context.getHitPos()));
 	}
 
 	@Inject(method = "getPlacementState", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getFluidState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/fluid/FluidState;"), cancellable = true)
@@ -80,15 +82,15 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 			cir.setReturnValue(ret);
 		} else {
 			PlayerEntity player = ctx.getPlayer();
-			if(player != null && !Utility.getVerticalEnabled(player.getUuid())) return;
+			if(player != null && !CustomControls.getVerticalEnabled(player.getUuid())) return;
 			Direction hitSide = ctx.getSide();
 			Direction facing = ctx.getPlayerFacing();
-			HitPart part = Utility.getHitPart(hitSide, facing, pos, ctx.getHitPos());
-			Direction slabDir = Utility.getTargetedDirection(hitSide, facing, pos, ctx.getHitPos());
+			HitPart part = PositionUtils.getHitPart(hitSide, facing, pos, ctx.getHitPos());
+			Direction slabDir = PositionUtils.getTargetedDirection(hitSide, facing, pos, ctx.getHitPos());
 			if(part == HitPart.CENTER) slabDir = slabDir.getOpposite();
 			FluidState fluidState = ctx.getWorld().getFluidState(pos);
 			cir.setReturnValue(getDefaultState()
-					.with(TYPE, Utility.slabType(slabDir))
+					.with(TYPE, SlabBlockUtility.slabType(slabDir))
 					.with(Properties.AXIS, slabDir.getAxis())
 					.with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER));
 		}
@@ -96,6 +98,6 @@ public abstract class SlabBlockMixin extends Block implements Waterloggable {
 
 	@Inject(method = "canReplace", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemPlacementContext;getHitPos()Lnet/minecraft/util/math/Vec3d;"), cancellable = true)
 	private void changeReplacementRules(BlockState state, ItemPlacementContext context, CallbackInfoReturnable<Boolean> cir) {
-		cir.setReturnValue(Utility.insideSlab(state.getBlock(), context.getHitPos()));
+		cir.setReturnValue(SlabBlockUtility.insideSlab(state.getBlock(), context.getHitPos()));
 	}
 }

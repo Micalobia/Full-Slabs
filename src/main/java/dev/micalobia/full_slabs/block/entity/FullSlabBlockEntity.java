@@ -2,7 +2,7 @@ package dev.micalobia.full_slabs.block.entity;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
-import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.Block;
@@ -44,13 +44,13 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 
 	public BlockState getSlabState(Vec3d hit) {
 		Axis axis = getCachedState().get(Properties.AXIS);
-		boolean positive = Utility.isPositive(axis, hit, pos);
+		boolean positive = SlabBlockUtility.isPositive(axis, hit, pos);
 		return positive ? getPositiveSlabState(axis) : getNegativeSlabState(axis);
 	}
 
 	public BlockState getOppositeSlabState(Vec3d hit) {
 		Axis axis = getCachedState().get(Properties.AXIS);
-		boolean positive = Utility.isPositive(axis, hit, pos);
+		boolean positive = SlabBlockUtility.isPositive(axis, hit, pos);
 		return positive ? getNegativeSlabState(axis) : getPositiveSlabState(axis);
 	}
 

@@ -1,9 +1,9 @@
 package dev.micalobia.full_slabs.mixin.world;
 
 import com.mojang.datafixers.util.Pair;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
-import dev.micalobia.full_slabs.util.Utility;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.BlockItem;
@@ -25,10 +25,10 @@ public abstract class WorldChunkMixin {
 	private BlockEntity changeFullSlabBlockEntityCarpet(BlockEntity entity) {
 		BlockEntity blockEntity;
 		if(entity instanceof FullSlabBlockEntity) {
-			Pair<Block, Block> pair = Utility.getFullSlabGhost();
+			Pair<Block, Block> pair = SlabBlockUtility.getFullSlabGhost();
 			blockEntity = new FullSlabBlockEntity(entity.getPos(), entity.getCachedState(), pair.getFirst(), pair.getSecond());
 		} else if(entity instanceof ExtraSlabBlockEntity) {
-			Pair<Block, BlockItem> pair = Utility.getExtraSlabGhost();
+			Pair<Block, BlockItem> pair = SlabBlockUtility.getExtraSlabGhost();
 			blockEntity = new ExtraSlabBlockEntity(entity.getPos(), entity.getCachedState(), pair.getFirst(), pair.getSecond());
 		} else return entity;
 		this.setBlockEntity(blockEntity);
@@ -38,10 +38,10 @@ public abstract class WorldChunkMixin {
 	@ModifyVariable(method = "setBlockState", at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/block/BlockEntityProvider;createBlockEntity(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Lnet/minecraft/block/entity/BlockEntity;"))
 	private BlockEntity changeFullSlabEntity(BlockEntity entity) {
 		if(entity instanceof FullSlabBlockEntity) {
-			Pair<Block, Block> pair = Utility.getFullSlabGhost();
+			Pair<Block, Block> pair = SlabBlockUtility.getFullSlabGhost();
 			return new FullSlabBlockEntity(entity.getPos(), entity.getCachedState(), pair.getFirst(), pair.getSecond());
 		} else if(entity instanceof ExtraSlabBlockEntity) {
-			Pair<Block, BlockItem> pair = Utility.getExtraSlabGhost();
+			Pair<Block, BlockItem> pair = SlabBlockUtility.getExtraSlabGhost();
 			return new ExtraSlabBlockEntity(entity.getPos(), entity.getCachedState(), pair.getFirst(), pair.getSecond());
 		} else return entity;
 	}

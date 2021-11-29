@@ -2,8 +2,8 @@ package dev.micalobia.full_slabs.client.render.model;
 
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.config.SlabExtra;
-import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.Block;
@@ -24,8 +24,8 @@ public class ExtraSlabModel extends BasicModel {
 		Pair<Block, SlabExtra> pair = (Pair<Block, SlabExtra>) view.getBlockEntityRenderAttachment(pos);
 		assert pair != null;
 		Block base = pair.getFirst();
-		Direction direction = Utility.getDirection(state.get(ExtraSlabBlock.TYPE), state.get(ExtraSlabBlock.AXIS));
-		BlockState baseState = Utility.getSlabState(base, direction);
+		Direction direction = SlabBlockUtility.getDirection(state.get(ExtraSlabBlock.TYPE), state.get(ExtraSlabBlock.AXIS));
+		BlockState baseState = SlabBlockUtility.getSlabState(base, direction);
 		SlabExtra extra = pair.getSecond();
 		BlockState extraState = extra.getState(direction);
 		emitModel(blockView, baseState, pos, randomSupplier, context);

@@ -2,9 +2,9 @@ package dev.micalobia.full_slabs.mixin.client.network;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
-import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
@@ -65,8 +65,8 @@ public class ClientPlayerInteractionManagerMixin {
 				Axis axis = state.get(ExtraSlabBlock.AXIS);
 				SlabType type = state.get(ExtraSlabBlock.TYPE);
 				boolean waterlogged = state.get(ExtraSlabBlock.WATERLOGGED);
-				Direction slabDir = Utility.getDirection(type, axis);
-				Direction hitDir = Utility.getDirection(axis, hit, pos, type);
+				Direction slabDir = SlabBlockUtility.getDirection(type, axis);
+				Direction hitDir = SlabBlockUtility.getDirection(axis, hit, pos, type);
 				BlockState slabState = entity.getBaseState().with(SlabBlock.WATERLOGGED, waterlogged);
 				BlockState extraState = entity.getExtraState();
 				boolean ret = breakSlab(extraState, slabState, pos);
@@ -81,7 +81,7 @@ public class ClientPlayerInteractionManagerMixin {
 			assert client.crosshairTarget != null;
 			Vec3d hit = client.crosshairTarget.getPos();
 			Axis axis = state.get(Properties.AXIS);
-			boolean positive = Utility.isPositive(axis, hit, pos);
+			boolean positive = SlabBlockUtility.isPositive(axis, hit, pos);
 			BlockState brokenState = state.with(SlabBlock.TYPE, positive ? SlabType.TOP : SlabType.BOTTOM);
 			BlockState leftoverState = state.with(SlabBlock.TYPE, positive ? SlabType.BOTTOM : SlabType.TOP);
 			boolean ret = breakSlab(brokenState, leftoverState, pos);

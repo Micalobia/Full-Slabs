@@ -15,10 +15,12 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.state.property.Properties;
@@ -41,9 +43,6 @@ public class FullSlabsMod implements ModInitializer {
 	public static Block FULL_SLAB_BLOCK;
 	public static Block EXTRA_SLAB_BLOCK;
 	public static Set<Identifier> TILTED_SLABS;
-	public static Gson GSON = new GsonBuilder()
-			.registerTypeAdapter(SlabExtra.class, new SlabExtra.Deserializer())
-			.create();
 
 	public static Identifier id(String path) {
 		return new Identifier(MOD_ID, path);

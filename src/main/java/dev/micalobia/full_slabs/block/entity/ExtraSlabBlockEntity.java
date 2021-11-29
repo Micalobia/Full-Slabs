@@ -3,6 +3,7 @@ package dev.micalobia.full_slabs.block.entity;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.config.ModConfig;
 import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.mixin.item.WallStandingBlockItemAccessor;
@@ -75,7 +76,7 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		Axis axis = state.get(Properties.AXIS);
 		SlabExtra ret = get(axis, extra);
 		if(ret == null) return false;
-		Direction direction = Utility.getDirection(type, axis);
+		Direction direction = SlabBlockUtility.getDirection(type, axis);
 		return ret.allowed(direction);
 	}
 
@@ -86,7 +87,7 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		Axis axis = state.get(Properties.AXIS);
 		SlabExtra retExtra = get(axis, item);
 		if(retExtra == null) return Optional.empty();
-		Direction direction = Utility.getDirection(type, axis);
+		Direction direction = SlabBlockUtility.getDirection(type, axis);
 		BlockState retState = retExtra.getState(direction);
 		return Optional.ofNullable(retState);
 	}
@@ -118,7 +119,7 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		BlockState state = getCachedState();
 		SlabType type = state.get(ExtraSlabBlock.TYPE);
 		Axis axis = state.get(ExtraSlabBlock.AXIS);
-		return getExtra().getState(Utility.getDirection(type, axis));
+		return getExtra().getState(SlabBlockUtility.getDirection(type, axis));
 	}
 
 	public VoxelShape getBaseOutlineShape(BlockView world, BlockPos pos, ShapeContext context) {
@@ -140,14 +141,14 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	public BlockState getState(Vec3d hit) {
 		Axis axis = getCachedState().get(ExtraSlabBlock.AXIS);
 		SlabType type = getCachedState().get(ExtraSlabBlock.TYPE);
-		boolean positive = Utility.isPositive(axis, hit, pos, type);
+		boolean positive = SlabBlockUtility.isPositive(axis, hit, pos, type);
 		return positive == (type == SlabType.TOP) ? getBaseState() : getExtraState();
 	}
 
 	public BlockState getOppositeState(Vec3d hit) {
 		Axis axis = getCachedState().get(ExtraSlabBlock.AXIS);
 		SlabType type = getCachedState().get(ExtraSlabBlock.TYPE);
-		boolean positive = Utility.isPositive(axis, hit, pos, type);
+		boolean positive = SlabBlockUtility.isPositive(axis, hit, pos, type);
 		return positive != (type == SlabType.TOP) ? getBaseState() : getExtraState();
 	}
 
