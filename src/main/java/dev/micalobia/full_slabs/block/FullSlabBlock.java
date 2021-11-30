@@ -71,7 +71,7 @@ public class FullSlabBlock extends Block implements BlockEntityProvider {
 		assert mc.crosshairTarget != null;
 		Vec3d hit = mc.crosshairTarget.getPos();
 		Axis axis = state.get(AXIS);
-		BlockState newState = Utility.getSlabState(slabs, axis, hit, pos);
+		BlockState newState = SlabBlockUtility.getSlabState(slabs, axis, hit, pos);
 		return newState.getBlock().getPickStack(world, pos, newState);
 	}
 

@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.mixin.client.render.model.json.JsonUnbakedModelAccessor;
 import dev.micalobia.full_slabs.util.MixinSelf;
-import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.fabric.impl.client.model.ModelLoaderHooks;
 import net.minecraft.block.Block;
 import net.minecraft.block.SlabBlock;
@@ -155,7 +155,7 @@ public abstract class ModelLoaderMixin implements MixinSelf<ModelLoader> {
 			if(block instanceof SlabBlock) {
 				processingSlab = true;
 				needToCreate = new HashMap<>();
-				boolean tilted = Utility.tilted(pure);
+				boolean tilted = SlabBlockUtility.tilted(pure);
 				JsonUnbakedModel creationModel = fetchJsonModel(getVariantLocation(list.get(0).getSecond(), "type=bottom"));
 				creationFaces = getDirectionalFaces(creationModel, ((ModelLoaderHooks) self())::fabric_loadModel);
 				for(int i = 0; i < list.size(); ++i) {

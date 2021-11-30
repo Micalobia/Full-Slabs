@@ -3,8 +3,8 @@ package dev.micalobia.full_slabs.mixin.client.render.block;
 import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.config.SlabExtra;
-import dev.micalobia.full_slabs.util.Utility;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
@@ -52,11 +52,11 @@ public class BlockRenderManagerMixin {
 			assert MinecraftClient.getInstance().crosshairTarget != null;
 			Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
 			Pair<Block, Block> pair = (Pair<Block, Block>) this.view.getBlockEntityRenderAttachment(this.pos);
-			return Utility.getSlabState(pair, axis, hit, this.pos);
+			return SlabBlockUtility.getSlabState(pair, axis, hit, this.pos);
 		} else if(state.getBlock() instanceof SlabBlock && state.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
 			assert MinecraftClient.getInstance().crosshairTarget != null;
 			Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
-			boolean positive = Utility.isPositive(state.get(Properties.AXIS), hit, this.pos);
+			boolean positive = SlabBlockUtility.isPositive(state.get(Properties.AXIS), hit, this.pos);
 			return state.with(SlabBlock.TYPE, positive ? SlabType.TOP : SlabType.BOTTOM);
 		} else if(state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK)) {
 			Pair<Block, SlabExtra> pair = (Pair<Block, SlabExtra>) this.view.getBlockEntityRenderAttachment(this.pos);
@@ -65,12 +65,12 @@ public class BlockRenderManagerMixin {
 			Vec3d hit = MinecraftClient.getInstance().crosshairTarget.getPos();
 			Axis axis = state.get(ExtraSlabBlock.AXIS);
 			SlabType type = state.get(ExtraSlabBlock.TYPE);
-			Direction direction = Utility.getDirection(type, axis);
-			boolean positive = Utility.isPositive(axis, hit, this.pos);
+			Direction direction = SlabBlockUtility.getDirection(type, axis);
+			boolean positive = SlabBlockUtility.isPositive(axis, hit, this.pos);
 			boolean isBase = positive == (type == SlabType.TOP);
 			if(isBase) {
 				Block base = pair.getFirst();
-				return Utility.getSlabState(base, direction);
+				return SlabBlockUtility.getSlabState(base, direction);
 			}
 			SlabExtra extra = pair.getSecond();
 			return extra.getState(direction);

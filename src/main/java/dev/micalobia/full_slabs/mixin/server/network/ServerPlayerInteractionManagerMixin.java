@@ -2,6 +2,7 @@ package dev.micalobia.full_slabs.mixin.server.network;
 
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
@@ -64,8 +65,8 @@ public class ServerPlayerInteractionManagerMixin {
 					Axis axis = state.get(ExtraSlabBlock.AXIS);
 					SlabType type = state.get(ExtraSlabBlock.TYPE);
 					boolean waterlogged = state.get(ExtraSlabBlock.WATERLOGGED);
-					Direction slabDir = Utility.getDirection(type, axis);
-					Direction hitDir = Utility.getDirection(axis, hit, pos, type);
+					Direction slabDir = SlabBlockUtility.getDirection(type, axis);
+					Direction hitDir = SlabBlockUtility.getDirection(axis, hit, pos, type);
 					BlockState slabState = entity.getBaseState().with(SlabBlock.WATERLOGGED, waterlogged);
 					BlockState extraState = entity.getExtraState();
 					breakSlab(extraState, slabState, pos);
@@ -81,7 +82,7 @@ public class ServerPlayerInteractionManagerMixin {
 			else {
 				Vec3d hit = hitResult.getPos();
 				Axis axis = state.get(Properties.AXIS);
-				boolean positive = Utility.isPositive(axis, hit, pos);
+				boolean positive = SlabBlockUtility.isPositive(axis, hit, pos);
 				BlockState brokenState = state.with(SlabBlock.TYPE, positive ? SlabType.TOP : SlabType.BOTTOM);
 				BlockState leftoverState = state.with(SlabBlock.TYPE, positive ? SlabType.BOTTOM : SlabType.TOP);
 				breakSlab(brokenState, leftoverState, pos);

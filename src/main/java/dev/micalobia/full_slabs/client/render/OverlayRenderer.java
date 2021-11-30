@@ -1,7 +1,8 @@
-package dev.micalobia.full_slabs;
+package dev.micalobia.full_slabs.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.full_slabs.block.SlabBlockUtility;
+import dev.micalobia.full_slabs.config.CustomControls;
 import fi.dy.masa.malilib.event.RenderEventHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
 import fi.dy.masa.malilib.render.RenderUtils;
@@ -27,17 +28,17 @@ public class OverlayRenderer implements IRenderer {
 	}
 
 	public void renderSlabOverlay(MinecraftClient mc) {
-		if(!Utility.getShowWidget()) return;
+		if(!CustomControls.getShowWidget()) return;
 		Entity entity = mc.getCameraEntity();
 
 		assert mc.player != null;
-		boolean hasSlab = Utility.isSlabBlock(mc.player.getMainHandStack()) || Utility.isSlabBlock(mc.player.getOffHandStack());
+		boolean hasSlab = SlabBlockUtility.isSlabBlock(mc.player.getMainHandStack()) || SlabBlockUtility.isSlabBlock(mc.player.getOffHandStack());
 
 		if(hasSlab && mc.crosshairTarget != null && mc.crosshairTarget.getType() == Type.BLOCK) {
 			BlockHitResult hitResult = (BlockHitResult) mc.crosshairTarget;
 			assert mc.world != null;
 			BlockState state = mc.world.getBlockState(hitResult.getBlockPos());
-			if(Utility.insideSlab(state.getBlock(), hitResult.getPos())) return;
+			if(SlabBlockUtility.insideSlab(state.getBlock(), hitResult.getPos())) return;
 
 			RenderSystem.depthMask(false);
 			RenderSystem.disableCull();
@@ -47,12 +48,12 @@ public class OverlayRenderer implements IRenderer {
 			RenderUtils.setupBlend();
 
 			assert entity != null;
-			if(Utility.getVerticalEnabled(mc.player.getUuid()))
-				Utility.renderBlockTargetingOverlay(
+			if(CustomControls.getVerticalEnabled(mc.player.getUuid()))
+				RenderUtility.renderBlockTargetingOverlay(
 						entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
 				);
 			else
-				Utility.renderBlockVerticalHalfOverlay(
+				RenderUtility.renderBlockVerticalHalfOverlay(
 						entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc
 				);
 
