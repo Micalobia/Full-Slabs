@@ -1,13 +1,11 @@
 package dev.micalobia.full_slabs;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.config.ModConfig;
-import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.util.Utility;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
@@ -15,12 +13,10 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.state.property.Properties;

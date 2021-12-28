@@ -1,15 +1,12 @@
 package dev.micalobia.full_slabs.block.entity;
 
-import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.SlabBlockUtility;
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+import dev.micalobia.micalibria.block.entity.MBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.state.property.Properties;
@@ -18,9 +15,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
-import org.jetbrains.annotations.Nullable;
 
-public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable, RenderAttachmentBlockEntity {
+public class FullSlabBlockEntity extends MBlockEntity {
 	private Block positiveSlab;
 	private Block negativeSlab;
 
@@ -38,8 +34,16 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 		return positiveSlab.getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.TOP);
 	}
 
+	public BlockState getPositiveSlabState() {
+		return positiveSlab.getDefaultState().with(Properties.AXIS, getCachedState().get(Properties.AXIS)).with(SlabBlock.TYPE, SlabType.TOP);
+	}
+
 	private BlockState getNegativeSlabState(Axis axis) {
 		return negativeSlab.getDefaultState().with(Properties.AXIS, axis).with(SlabBlock.TYPE, SlabType.BOTTOM);
+	}
+
+	public BlockState getNegativeSlabState() {
+		return negativeSlab.getDefaultState().with(Properties.AXIS, getCachedState().get(Properties.AXIS)).with(SlabBlock.TYPE, SlabType.BOTTOM);
 	}
 
 	public BlockState getSlabState(Vec3d hit) {
@@ -55,34 +59,13 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 	}
 
 	@Override
-	public void readNbt(NbtCompound nbt) {
-		super.readNbt(nbt);
-		readCommonNbt(nbt);
-	}
-
-	@Override
-	public NbtCompound writeNbt(NbtCompound nbt) {
-		super.writeNbt(nbt);
-		return writeCommonNbt(nbt);
-	}
-
-	@Override
-	public void fromClientTag(NbtCompound nbt) {
-		readCommonNbt(nbt);
-	}
-
-	@Override
-	public NbtCompound toClientTag(NbtCompound nbt) {
-		return writeCommonNbt(nbt);
-	}
-
-	private NbtCompound writeCommonNbt(NbtCompound nbt) {
+	public void writeToNbt(NbtCompound nbt) {
 		nbt.putString("positive_id", Registry.BLOCK.getId(positiveSlab).toString());
 		nbt.putString("negative_id", Registry.BLOCK.getId(negativeSlab).toString());
-		return nbt;
 	}
 
-	private void readCommonNbt(NbtCompound nbt) {
+	@Override
+	public void readFromNbt(NbtCompound nbt) {
 		positiveSlab = Registry.BLOCK.get(new Identifier(nbt.getString("positive_id")));
 		negativeSlab = Registry.BLOCK.get(new Identifier(nbt.getString("negative_id")));
 		if(!(positiveSlab instanceof SlabBlock)) positiveSlab = Blocks.STONE_SLAB;
@@ -90,7 +73,16 @@ public class FullSlabBlockEntity extends BlockEntity implements BlockEntityClien
 	}
 
 	@Override
-	public @Nullable Object getRenderAttachmentData() {
-		return Pair.of(positiveSlab, negativeSlab);
+	public void writeToClientNbt(NbtCompound nbt) {
+		nbt.putString("positive_id", Registry.BLOCK.getId(positiveSlab).toString());
+		nbt.putString("negative_id", Registry.BLOCK.getId(negativeSlab).toString());
+	}
+
+	@Override
+	public void readFromClientNbt(NbtCompound nbt) {
+		positiveSlab = Registry.BLOCK.get(new Identifier(nbt.getString("positive_id")));
+		negativeSlab = Registry.BLOCK.get(new Identifier(nbt.getString("negative_id")));
+		if(!(positiveSlab instanceof SlabBlock)) positiveSlab = Blocks.STONE_SLAB;
+		if(!(negativeSlab instanceof SlabBlock)) negativeSlab = Blocks.STONE_SLAB;
 	}
 }

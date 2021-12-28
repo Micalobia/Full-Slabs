@@ -1,6 +1,5 @@
 package dev.micalobia.full_slabs.block.entity;
 
-import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.FullSlabsMod;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.block.SlabBlockUtility;
@@ -8,11 +7,9 @@ import dev.micalobia.full_slabs.config.ModConfig;
 import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.mixin.item.WallStandingBlockItemAccessor;
 import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.micalibria.block.entity.MBlockEntity;
 import me.shedaniel.autoconfig.AutoConfig;
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.WallStandingBlockItem;
@@ -30,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.Optional;
 
-public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClientSerializable, RenderAttachmentBlockEntity {
+public class ExtraSlabBlockEntity extends MBlockEntity {
 	public static final Map<Identifier, SlabExtra> allowedExtras;
 
 	static {
@@ -161,18 +158,13 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 	}
 
 	@Override
-	public void readNbt(NbtCompound nbt) {
-		readCommonNbt(nbt);
-		super.readNbt(nbt);
+	public void writeToNbt(NbtCompound nbt) {
+		nbt.putString("base_identifier", Utility.getBlockId(this.base).toString());
+		nbt.putString("extra_identifier", Utility.getBlockId(this.extra.getBlock()).toString());
 	}
 
 	@Override
-	public NbtCompound writeNbt(NbtCompound nbt) {
-		writeCommonNbt(nbt);
-		return super.writeNbt(nbt);
-	}
-
-	private void readCommonNbt(NbtCompound nbt) {
+	public void readFromNbt(NbtCompound nbt) {
 		this.base = Utility.getBlock(new Identifier(nbt.getString("base_identifier")));
 		if(!(this.base instanceof SlabBlock))
 			this.base = Blocks.SMOOTH_STONE_SLAB;
@@ -180,24 +172,18 @@ public class ExtraSlabBlockEntity extends BlockEntity implements BlockEntityClie
 		this.extra = allowedExtras.getOrDefault(extra, null);
 	}
 
-	private NbtCompound writeCommonNbt(NbtCompound nbt) {
+	@Override
+	public void writeToClientNbt(NbtCompound nbt) {
 		nbt.putString("base_identifier", Utility.getBlockId(this.base).toString());
 		nbt.putString("extra_identifier", Utility.getBlockId(this.extra.getBlock()).toString());
-		return nbt;
 	}
 
 	@Override
-	public void fromClientTag(NbtCompound nbt) {
-		readCommonNbt(nbt);
-	}
-
-	@Override
-	public NbtCompound toClientTag(NbtCompound nbt) {
-		return writeCommonNbt(nbt);
-	}
-
-	@Override
-	public @Nullable Object getRenderAttachmentData() {
-		return Pair.of(base, extra);
+	public void readFromClientNbt(NbtCompound nbt) {
+		this.base = Utility.getBlock(new Identifier(nbt.getString("base_identifier")));
+		if(!(this.base instanceof SlabBlock))
+			this.base = Blocks.SMOOTH_STONE_SLAB;
+		Identifier extra = new Identifier(nbt.getString("extra_identifier"));
+		this.extra = allowedExtras.getOrDefault(extra, null);
 	}
 }

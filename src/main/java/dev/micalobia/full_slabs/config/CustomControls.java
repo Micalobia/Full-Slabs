@@ -83,7 +83,6 @@ public class CustomControls {
 
 	@Environment(EnvType.CLIENT)
 	public static void clientInit() {
-		FullSlabsMod.LOGGER.info("Init");
 		toggleVertical = register("key.full_slabs.toggle_vertical", "category.full_slabs.full_slabs", InputUtil.UNKNOWN_KEY.getCode());
 		toggleWidget = register("key.full_slabs.toggle_widget", "category.full_slabs.full_slabs", GLFW.GLFW_KEY_V);
 		ClientTickEvents.END_CLIENT_TICK.register(CustomControls::handleVerticalToggle);

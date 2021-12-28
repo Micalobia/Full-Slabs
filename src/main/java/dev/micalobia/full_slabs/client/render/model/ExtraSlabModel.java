@@ -1,12 +1,9 @@
 package dev.micalobia.full_slabs.client.render.model;
 
-import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.ExtraSlabBlock;
 import dev.micalobia.full_slabs.block.SlabBlockUtility;
-import dev.micalobia.full_slabs.config.SlabExtra;
+import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -19,16 +16,13 @@ import java.util.function.Supplier;
 public class ExtraSlabModel extends BasicModel {
 	@SuppressWarnings("unchecked")
 	@Override
-	public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
-		RenderAttachedBlockView view = (RenderAttachedBlockView) blockView;
-		Pair<Block, SlabExtra> pair = (Pair<Block, SlabExtra>) view.getBlockEntityRenderAttachment(pos);
-		assert pair != null;
-		Block base = pair.getFirst();
+	public void emitBlockQuads(BlockRenderView view, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) view.getBlockEntity(pos);
+		if(entity == null) return;
 		Direction direction = SlabBlockUtility.getDirection(state.get(ExtraSlabBlock.TYPE), state.get(ExtraSlabBlock.AXIS));
-		BlockState baseState = SlabBlockUtility.getSlabState(base, direction);
-		SlabExtra extra = pair.getSecond();
-		BlockState extraState = extra.getState(direction);
-		emitModel(blockView, baseState, pos, randomSupplier, context);
+		BlockState baseState = entity.getBaseState();
+		BlockState extraState = entity.getExtraState();
+		emitModel(view, baseState, pos, randomSupplier, context);
 		if(extraState != null) {
 			// This section just translates the extra model half a block
 			Vec3f unit = direction.getOpposite().getUnitVector();
@@ -41,7 +35,7 @@ public class ExtraSlabModel extends BasicModel {
 				}
 				return true;
 			});
-			emitModel(blockView, extraState, pos, randomSupplier, context);
+			emitModel(view, extraState, pos, randomSupplier, context);
 			context.popTransform();
 		}
 	}
