@@ -20,6 +20,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 
+import java.util.Objects;
+
 public class FullSlabBlock extends Block implements BlockEntityProvider {
 	public final static EnumProperty<Axis> AXIS;
 	public final static IntProperty LIGHT;
@@ -56,7 +58,7 @@ public class FullSlabBlock extends Block implements BlockEntityProvider {
 	@Override
 	public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
 		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
-		assert entity != null;
+		Objects.requireNonNull(entity);
 		Vec3d hit = Utility.crosshair(player).getPos();
 		BlockState hitState = entity.getSlabState(hit);
 		return hitState.getBlock().calcBlockBreakingDelta(hitState, player, world, pos);

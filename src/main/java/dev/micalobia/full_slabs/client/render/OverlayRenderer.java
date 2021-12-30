@@ -14,6 +14,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.Matrix4f;
 
+import java.util.Objects;
+
 public class OverlayRenderer implements IRenderer {
 	public static void init() {
 		IRenderer renderer = new OverlayRenderer();
@@ -31,12 +33,12 @@ public class OverlayRenderer implements IRenderer {
 		if(!CustomControls.getShowWidget()) return;
 		Entity entity = mc.getCameraEntity();
 
-		assert mc.player != null;
+		Objects.requireNonNull(mc.player);
 		boolean hasSlab = SlabBlockUtility.isSlabBlock(mc.player.getMainHandStack()) || SlabBlockUtility.isSlabBlock(mc.player.getOffHandStack());
 
 		if(hasSlab && mc.crosshairTarget != null && mc.crosshairTarget.getType() == Type.BLOCK) {
 			BlockHitResult hitResult = (BlockHitResult) mc.crosshairTarget;
-			assert mc.world != null;
+			Objects.requireNonNull(mc.world);
 			BlockState state = mc.world.getBlockState(hitResult.getBlockPos());
 			if(SlabBlockUtility.insideSlab(state.getBlock(), hitResult.getPos())) return;
 
@@ -47,7 +49,7 @@ public class OverlayRenderer implements IRenderer {
 
 			RenderUtils.setupBlend();
 
-			assert entity != null;
+			Objects.requireNonNull(entity);
 			if(CustomControls.getVerticalEnabled(mc.player.getUuid()))
 				RenderUtility.renderBlockTargetingOverlay(
 						entity, hitResult.getBlockPos(), hitResult.getSide(), hitResult.getPos(), state, mc

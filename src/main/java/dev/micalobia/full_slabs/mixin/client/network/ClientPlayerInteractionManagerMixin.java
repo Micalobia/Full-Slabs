@@ -27,6 +27,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Objects;
+
 @Environment(EnvType.CLIENT)
 @Mixin(ClientPlayerInteractionManager.class)
 public class ClientPlayerInteractionManagerMixin {
@@ -37,7 +39,7 @@ public class ClientPlayerInteractionManagerMixin {
 	private boolean breakSlab(BlockState brokenState, BlockState leftoverState, BlockPos pos) {
 		Block broken = brokenState.getBlock();
 		broken.onBreak(client.world, pos, brokenState, client.player);
-		assert client.world != null;
+		Objects.requireNonNull(client.world);
 		boolean changed = client.world.setBlockState(pos, leftoverState, 11);
 		if(changed) broken.onBroken(client.world, pos, brokenState);
 		return changed;
@@ -45,13 +47,13 @@ public class ClientPlayerInteractionManagerMixin {
 
 	@Inject(method = "breakBlock", cancellable = true, at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;onBreak(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)V"))
 	private void interceptSlabBreak(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-		assert client.world != null;
+		Objects.requireNonNull(client.world);
 		BlockState state = client.world.getBlockState(pos);
 		if(state.isOf(FullSlabsMod.FULL_SLAB_BLOCK)) {
 			FullSlabBlockEntity entity = (FullSlabBlockEntity) client.world.getBlockEntity(pos);
 			if(entity == null) cir.setReturnValue(false);
 			else {
-				assert client.crosshairTarget != null;
+				Objects.requireNonNull(client.crosshairTarget);
 				Vec3d hit = client.crosshairTarget.getPos();
 				boolean ret = breakSlab(entity.getSlabState(hit), entity.getOppositeSlabState(hit), pos);
 				cir.setReturnValue(ret);
@@ -60,7 +62,7 @@ public class ClientPlayerInteractionManagerMixin {
 			ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) client.world.getBlockEntity(pos);
 			if(entity == null) cir.setReturnValue(false);
 			else {
-				assert client.crosshairTarget != null;
+				Objects.requireNonNull(client.crosshairTarget);
 				Vec3d hit = client.crosshairTarget.getPos();
 				Axis axis = state.get(ExtraSlabBlock.AXIS);
 				SlabType type = state.get(ExtraSlabBlock.TYPE);
@@ -78,7 +80,7 @@ public class ClientPlayerInteractionManagerMixin {
 			}
 		} else if(state.getBlock() instanceof SlabBlock) {
 			if(state.get(SlabBlock.TYPE) != SlabType.DOUBLE) return;
-			assert client.crosshairTarget != null;
+			Objects.requireNonNull(client.crosshairTarget);
 			Vec3d hit = client.crosshairTarget.getPos();
 			Axis axis = state.get(Properties.AXIS);
 			boolean positive = SlabBlockUtility.isPositive(axis, hit, pos);

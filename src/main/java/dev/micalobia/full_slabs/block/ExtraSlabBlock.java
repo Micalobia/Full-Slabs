@@ -28,6 +28,8 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterloggable {
 	public static final EnumProperty<SlabType> TYPE;
 	public static final EnumProperty<Axis> AXIS;
@@ -94,7 +96,7 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	@Override
 	public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
-		assert entity != null;
+		Objects.requireNonNull(entity);
 		Vec3d hit = Utility.crosshair(player).getPos();
 		BlockState hitState = entity.getState(hit);
 		return hitState.getBlock().calcBlockBreakingDelta(hitState, player, world, pos);
@@ -119,7 +121,7 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	@Override
 	public boolean canFillWithFluid(BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
-		assert entity != null;
+		Objects.requireNonNull(entity);
 		if(entity.waterloggable()) return Waterloggable.super.canFillWithFluid(world, pos, state, fluid);
 		return false;
 	}
@@ -127,7 +129,7 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 	@Override
 	public boolean tryFillWithFluid(WorldAccess world, BlockPos pos, BlockState state, FluidState fluidState) {
 		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
-		assert entity != null;
+		Objects.requireNonNull(entity);
 		if(entity.waterloggable()) return Waterloggable.super.tryFillWithFluid(world, pos, state, fluidState);
 		return false;
 	}

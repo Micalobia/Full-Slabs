@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
+import java.util.Objects;
+
 @Environment(EnvType.CLIENT)
 @Mixin(ParticleManager.class)
 public abstract class ParticleManagerMixin {
@@ -24,7 +26,7 @@ public abstract class ParticleManagerMixin {
 		if(!state.isOf(FullSlabsMod.FULL_SLAB_BLOCK) && !state.isOf(FullSlabsMod.EXTRA_SLAB_BLOCK))
 			return state;
 		MinecraftClient mc = MinecraftClient.getInstance();
-		assert mc.crosshairTarget != null;
+		Objects.requireNonNull(mc.crosshairTarget);
 		Vec3d hit = mc.crosshairTarget.getPos();
 		BlockEntity entity = world.getBlockEntity(pos);
 		if(entity instanceof FullSlabBlockEntity fullEntity) return fullEntity.getSlabState(hit);
