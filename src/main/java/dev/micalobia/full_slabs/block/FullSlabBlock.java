@@ -1,9 +1,7 @@
 package dev.micalobia.full_slabs.block;
 
-import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.util.Utility;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -13,6 +11,8 @@ import net.minecraft.state.StateManager.Builder;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
@@ -62,17 +62,15 @@ public class FullSlabBlock extends Block implements BlockEntityProvider {
 		return hitState.getBlock().calcBlockBreakingDelta(hitState, player, world, pos);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
-		RenderAttachedBlockView view = (RenderAttachedBlockView) world;
-		Pair<Block, Block> slabs = (Pair<Block, Block>) view.getBlockEntityRenderAttachment(pos);
-		MinecraftClient mc = MinecraftClient.getInstance();
-		assert mc.crosshairTarget != null;
-		Vec3d hit = mc.crosshairTarget.getPos();
-		Axis axis = state.get(AXIS);
-		BlockState newState = SlabBlockUtility.getSlabState(slabs, axis, hit, pos);
-		return newState.getBlock().getPickStack(world, pos, newState);
+		FullSlabBlockEntity entity = (FullSlabBlockEntity) world.getBlockEntity(pos);
+		if(entity == null) return ItemStack.EMPTY;
+		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
+		BlockState pickState;
+		if(hitResult == null || hitResult.getType() != Type.BLOCK) pickState = entity.getPositiveSlabState();
+		else pickState = entity.getSlabState(hitResult.getPos());
+		return pickState.getBlock().getPickStack(world, pos, pickState);
 	}
 
 	@Override

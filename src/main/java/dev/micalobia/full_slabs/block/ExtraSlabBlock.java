@@ -1,10 +1,7 @@
 package dev.micalobia.full_slabs.block;
 
-import com.mojang.datafixers.util.Pair;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
-import dev.micalobia.full_slabs.config.SlabExtra;
 import dev.micalobia.full_slabs.util.Utility;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
@@ -19,6 +16,8 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.hit.HitResult.Type;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
@@ -101,29 +100,15 @@ public class ExtraSlabBlock extends Block implements BlockEntityProvider, Waterl
 		return hitState.getBlock().calcBlockBreakingDelta(hitState, player, world, pos);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
-		RenderAttachedBlockView view = (RenderAttachedBlockView) world;
-		Pair<Block, SlabExtra> pair = (Pair<Block, SlabExtra>) view.getBlockEntityRenderAttachment(pos);
-		assert pair != null;
-		MinecraftClient mc = MinecraftClient.getInstance();
-		assert mc.crosshairTarget != null;
-		Vec3d hit = mc.crosshairTarget.getPos();
-		Axis axis = state.get(AXIS);
-		SlabType type = state.get(TYPE);
-		boolean positive = SlabBlockUtility.isPositive(axis, hit, pos, type);
-		Direction direction = SlabBlockUtility.getDirection(type, axis);
-		boolean isBase = positive == (type == SlabType.TOP);
-		if(isBase) {
-			Block base = pair.getFirst();
-			return base.getPickStack(world, pos, SlabBlockUtility.getSlabState(base, direction));
-		}
-		SlabExtra extra = pair.getSecond();
-		BlockState newState = extra.getState(direction);
-		assert newState != null;
-		Block block = newState.getBlock();
-		return block.getPickStack(world, pos, newState);
+		ExtraSlabBlockEntity entity = (ExtraSlabBlockEntity) world.getBlockEntity(pos);
+		if(entity == null) return ItemStack.EMPTY;
+		HitResult hitResult = MinecraftClient.getInstance().crosshairTarget;
+		BlockState pickState;
+		if(hitResult == null || hitResult.getType() != Type.BLOCK) pickState = entity.getBaseState();
+		else pickState = entity.getState(hitResult.getPos());
+		return pickState.getBlock().getPickStack(world, pos, pickState);
 	}
 
 	@Override
