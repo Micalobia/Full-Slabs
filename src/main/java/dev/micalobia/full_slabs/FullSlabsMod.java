@@ -6,13 +6,12 @@ import dev.micalobia.full_slabs.block.FullSlabBlock;
 import dev.micalobia.full_slabs.block.entity.ExtraSlabBlockEntity;
 import dev.micalobia.full_slabs.block.entity.FullSlabBlockEntity;
 import dev.micalobia.full_slabs.config.ModConfig;
-import dev.micalobia.full_slabs.util.Utility;
+import dev.micalobia.micalibria.block.BlockUtility;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
@@ -25,7 +24,6 @@ import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import virtuoel.statement.api.StateRefresher;
 
 import java.util.Set;
 
@@ -58,13 +56,6 @@ public class FullSlabsMod implements ModInitializer {
 		AutoConfig.register(ModConfig.class, FullSlabsMod::createConfigSerializer);
 		TILTED_SLABS = AutoConfig.getConfigHolder(ModConfig.class).getConfig().getTiltableSlabs();
 
-		Utility.injectBlockProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
-		RegistryEntryAddedCallback.event(Registry.BLOCK).register(((rawId, id, block) -> {
-			if(block instanceof SlabBlock) {
-				Utility.injectBlockProperty(block, Properties.AXIS, Axis.Y);
-				StateRefresher.INSTANCE.reorderBlockStates();
-			}
-		}));
-		StateRefresher.INSTANCE.reorderBlockStates();
+		BlockUtility.injectBlockstateProperty(SlabBlock.class, Properties.AXIS, Axis.Y);
 	}
 }

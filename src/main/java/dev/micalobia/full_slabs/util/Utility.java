@@ -14,7 +14,6 @@ import net.minecraft.util.math.Direction.AxisDirection;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
-import virtuoel.statement.api.StateRefresher;
 
 import java.util.Optional;
 
@@ -52,18 +51,6 @@ public class Utility {
 		Optional<T> ret = property.parse(value);
 		if(ret.isPresent()) return state.with(property, ret.get());
 		return state;
-	}
-
-	public static <T extends Comparable<T>> void injectBlockProperty(Class<? extends Block> cls, Property<T> property, T defaultValue) {
-		for(Block block : Registry.BLOCK) {
-			if(cls.isAssignableFrom(block.getClass())) {
-				injectBlockProperty(block, property, defaultValue);
-			}
-		}
-	}
-
-	public static <T extends Comparable<T>> void injectBlockProperty(Block block, Property<T> property, T defaultValue) {
-		StateRefresher.INSTANCE.addBlockProperty(block, property, defaultValue);
 	}
 
 	// All code below exists because of a linkage error that I need to fix somehow, as well as util.malilib
