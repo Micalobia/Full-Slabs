@@ -26,10 +26,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
     modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
     modImplementation "dev.architectury:architectury-fabric:$rootProject.architectury_api_version"
-    modApi("com.github.Virtuoel:Statement:${project.statement_version}", {
-        exclude group: "net.fabricmc.fabric-api"
-    })
-    include "com.github.Virtuoel:Statement:${project.statement_version}"
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')

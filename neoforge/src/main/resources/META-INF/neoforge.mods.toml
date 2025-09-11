@@ -1,17 +1,17 @@
 modLoader = "javafml"
 loaderVersion = "[9,)"
-#issueTrackerURL = ""
-license = "Insert License Here"
+issueTrackerURL = "https://github.com/Micalobia/Full-Slabs/issues"
+license = "MIT"
 
 [[mods]]
 modId = "fullslabs"
 version = "${version}"
 displayName = "FullSlabs"
-authors = "Me!"
+authors = "Micalobia"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+This adds vertical and mixed slabs into the game!
 '''
-#logoFile = ""
+logoFile = "assets/fullslabs/icon.png"
 
 [[dependencies.fullslabs]]
 modId = "neoforge"
