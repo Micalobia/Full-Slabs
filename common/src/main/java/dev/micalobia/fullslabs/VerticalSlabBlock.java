@@ -1,4 +1,4 @@
-package dev.micalobia;
+package dev.micalobia.fullslabs;
 
 import net.minecraft.block.*;
 import net.minecraft.entity.LivingEntity;

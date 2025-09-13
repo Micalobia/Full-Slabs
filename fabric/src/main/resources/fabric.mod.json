@@ -18,10 +18,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.micalobia.fabric.FullSlabsFabric"
+        "dev.micalobia.fullslabs.fabric.FullSlabsFabric"
     ],
     "client": [
-      "dev.micalobia.fabric.client.FullSlabsFabricClient"
+        "dev.micalobia.fullslabs.fabric.client.FullSlabsFabricClient"
     ]
   },
   "mixins": [

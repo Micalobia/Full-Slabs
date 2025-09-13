@@ -1,4 +1,4 @@
-package dev.micalobia;
+package dev.micalobia.fullslabs;
 
 import dev.architectury.registry.registries.DeferredRegister;
 import net.minecraft.block.AbstractBlock;

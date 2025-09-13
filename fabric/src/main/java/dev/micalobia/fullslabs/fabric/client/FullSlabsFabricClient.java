@@ -1,4 +1,4 @@
-package dev.micalobia.fabric.client;
+package dev.micalobia.fullslabs.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
 

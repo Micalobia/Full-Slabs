@@ -1,8 +1,8 @@
-package dev.micalobia.fabric;
+package dev.micalobia.fullslabs.fabric;
 
 import net.fabricmc.api.ModInitializer;
 
-import dev.micalobia.FullSlabs;
+import dev.micalobia.fullslabs.FullSlabs;
 
 public final class FullSlabsFabric implements ModInitializer {
     @Override
