@@ -133,26 +133,41 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return MAP.get(block);
     }
 
-    public static boolean isPure(SlabBlock block) {
-        if (block instanceof BlockEntityProvider) return false;
+    public static boolean hasVertical(SlabBlock block) {
+        return MAP.containsKey(block);
+    }
+
+    public record PurityResult(boolean pure, @Nullable String message) {
+        public static PurityResult success() {
+            return new PurityResult(true, null);
+        }
+
+        public static PurityResult fail(String msg) {
+            return new PurityResult(false, msg);
+        }
+    }
+
+    public static PurityResult isPure(SlabBlock block) {
+        if (block instanceof BlockEntityProvider) return PurityResult.fail("Block has a block entity");
         var stateManager = block.getStateManager();
         var properties = stateManager.getProperties();
-        if (properties.size() != 2) return false;
-        if (!properties.contains(SlabBlock.TYPE)) return false;
-        if (!properties.contains(Properties.WATERLOGGED)) return false;
+        if (properties.size() != 2) return PurityResult.fail("Unexpected property count");
+        if (!properties.contains(SlabBlock.TYPE)) return PurityResult.fail("Missing `type` property");
+        if (!properties.contains(Properties.WATERLOGGED)) return PurityResult.fail("Missing `waterlogged` property");
         var states = stateManager.getStates();
-        if (states.size() != 6) return false;
+        if (states.size() != 6) return PurityResult.fail("Unexpected number of states");
         int luminance = -1;
         for (var state : states) {
-            if (state.getRenderType() != BlockRenderType.MODEL) return false;
-            if (state.hasRandomTicks()) return false;
-            if (state.emitsRedstonePower()) return false;
-            if (state.hasComparatorOutput()) return false;
+            if (state.getRenderType() != BlockRenderType.MODEL) return PurityResult.fail("Non-model render type");
+            if (state.hasRandomTicks()) return PurityResult.fail("Has random ticks");
+            if (state.emitsRedstonePower()) return PurityResult.fail("Emits redstone power");
+            ;
+            if (state.hasComparatorOutput()) return PurityResult.fail("Has comparator output");
             int l = state.getLuminance();
             if (luminance < 0) luminance = l;
-            else if (l != luminance) return false;
+            else if (l != luminance) return PurityResult.fail("Inconsistent luminance across states");
         }
-        return true;
+        return PurityResult.success();
     }
 
     public enum VerticalType implements StringIdentifiable {
