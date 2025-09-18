@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "fullslabs:block/debug" }
+    }
+}

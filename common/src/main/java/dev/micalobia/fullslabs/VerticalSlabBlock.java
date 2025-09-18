@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs;
 
+import dev.micalobia.fullslabs.util.Result;
 import net.minecraft.block.*;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.NavigationType;
@@ -30,7 +31,7 @@ import java.util.Map;
 
 public class VerticalSlabBlock extends Block implements Waterloggable {
     private static final Map<SlabBlock, VerticalSlabBlock> MAP = new HashMap<>();
-    public static final EnumProperty<Axis> AXIS = Properties.HORIZONTAL_AXIS;
+    public static final EnumProperty<Direction> DIRECTION = Properties.HORIZONTAL_FACING;
     public static final EnumProperty<VerticalType> TYPE = EnumProperty.of("type", VerticalType.class);
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     public static final VoxelShape NORTH_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 16f, 16f, 8f);
@@ -45,44 +46,49 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         super(settings);
         this.parent = block;
         MAP.put(block, this);
-        this.setDefaultState(this.getDefaultState().with(AXIS, Axis.X).with(TYPE, VerticalType.NEGATIVE).with(WATERLOGGED, false));
+        this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.WEST).with(TYPE, VerticalType.TOWARDS).with(WATERLOGGED, false));
     }
 
 
     @Override
     protected boolean hasSidedTransparency(BlockState state) {
-        return state.get(TYPE) != VerticalType.DOUBLE;
+        return state.get(TYPE) != VerticalType.FULL;
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(AXIS, TYPE, WATERLOGGED);
+        builder.add(DIRECTION, TYPE, WATERLOGGED);
     }
 
     @Override
     protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        var axis = state.get(AXIS);
-        return switch (state.get(TYPE)) {
-            case POSITIVE -> axis == Axis.X ? EAST_SHAPE : SOUTH_SHAPE;
-            case NEGATIVE -> axis == Axis.X ? WEST_SHAPE : NORTH_SHAPE;
-            case DOUBLE -> VoxelShapes.fullCube();
+        var type = state.get(TYPE);
+        if (type == VerticalType.FULL) return VoxelShapes.fullCube();
+        var towards = type == VerticalType.TOWARDS;
+        return switch (state.get(DIRECTION)) {
+            case NORTH -> towards ? NORTH_SHAPE : SOUTH_SHAPE;
+            case EAST -> towards ? EAST_SHAPE : WEST_SHAPE;
+            case SOUTH -> towards ? SOUTH_SHAPE : NORTH_SHAPE;
+            case WEST -> towards ? WEST_SHAPE : EAST_SHAPE;
+            default -> throw new IllegalArgumentException();
         };
     }
 
     @Override
     protected boolean canReplace(BlockState state, ItemPlacementContext context) {
+        //noinspection PointlessBooleanExpression
+        if (true == true) return false;
         var stack = context.getStack();
         if (!stack.isOf(this.parent.asItem())) return false;
-        var type = state.get(TYPE);
-        if (type == VerticalType.DOUBLE) return false;
+        if (state.get(TYPE) == VerticalType.FULL) return false;
         if (context.canReplaceExisting()) {
-            var axis = state.get(AXIS);
+            var direction = state.get(DIRECTION);
+            var axis = direction.getAxis();
             var face = context.getSide();
             var pos = context.getBlockPos();
-
             var local = axis == Axis.X ? context.getHitPos().x - pos.getX() : context.getHitPos().z - pos.getZ();
             var hitPositive = local >= 0.5d;
-            var emptyIsPositive = type == VerticalType.NEGATIVE;
+            var emptyIsPositive = direction == Direction.WEST || direction == Direction.NORTH;
             var towardEmpty = axis == Axis.X ? emptyIsPositive ? Direction.EAST : Direction.WEST : emptyIsPositive ? Direction.SOUTH : Direction.NORTH;
             if (face == towardEmpty) return true;
             if (face.getAxis() != axis && (hitPositive == emptyIsPositive)) return true;
@@ -98,12 +104,12 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
 
     @Override
     public boolean tryFillWithFluid(WorldAccess world, BlockPos pos, BlockState state, FluidState fluidState) {
-        return state.get(TYPE) != VerticalType.DOUBLE && Waterloggable.super.tryFillWithFluid(world, pos, state, fluidState);
+        return state.get(TYPE) != VerticalType.FULL && Waterloggable.super.tryFillWithFluid(world, pos, state, fluidState);
     }
 
     @Override
     public boolean canFillWithFluid(@Nullable LivingEntity filler, BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
-        return state.get(TYPE) != VerticalType.DOUBLE && Waterloggable.super.canFillWithFluid(filler, world, pos, state, fluid);
+        return state.get(TYPE) != VerticalType.FULL && Waterloggable.super.canFillWithFluid(filler, world, pos, state, fluid);
     }
 
     @Override
@@ -137,43 +143,32 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return MAP.containsKey(block);
     }
 
-    public record PurityResult(boolean pure, @Nullable String message) {
-        public static PurityResult success() {
-            return new PurityResult(true, null);
-        }
-
-        public static PurityResult fail(String msg) {
-            return new PurityResult(false, msg);
-        }
-    }
-
-    public static PurityResult isPure(SlabBlock block) {
-        if (block instanceof BlockEntityProvider) return PurityResult.fail("Block has a block entity");
+    public static Result isPure(SlabBlock block) {
+        if (block instanceof BlockEntityProvider) return Result.fail("Block has a block entity");
         var stateManager = block.getStateManager();
         var properties = stateManager.getProperties();
-        if (properties.size() != 2) return PurityResult.fail("Unexpected property count");
-        if (!properties.contains(SlabBlock.TYPE)) return PurityResult.fail("Missing `type` property");
-        if (!properties.contains(Properties.WATERLOGGED)) return PurityResult.fail("Missing `waterlogged` property");
+        if (properties.size() != 2) return Result.fail("Unexpected property count");
+        if (!properties.contains(SlabBlock.TYPE)) return Result.fail("Missing `type` property");
+        if (!properties.contains(Properties.WATERLOGGED)) return Result.fail("Missing `waterlogged` property");
         var states = stateManager.getStates();
-        if (states.size() != 6) return PurityResult.fail("Unexpected number of states");
+        if (states.size() != 6) return Result.fail("Unexpected number of states");
         int luminance = -1;
         for (var state : states) {
-            if (state.getRenderType() != BlockRenderType.MODEL) return PurityResult.fail("Non-model render type");
-            if (state.hasRandomTicks()) return PurityResult.fail("Has random ticks");
-            if (state.emitsRedstonePower()) return PurityResult.fail("Emits redstone power");
-            ;
-            if (state.hasComparatorOutput()) return PurityResult.fail("Has comparator output");
+            if (state.getRenderType() != BlockRenderType.MODEL) return Result.fail("Non-model render type");
+            if (state.hasRandomTicks()) return Result.fail("Has random ticks");
+            if (state.emitsRedstonePower()) return Result.fail("Emits redstone power");
+            if (state.hasComparatorOutput()) return Result.fail("Has comparator output");
             int l = state.getLuminance();
             if (luminance < 0) luminance = l;
-            else if (l != luminance) return PurityResult.fail("Inconsistent luminance across states");
+            else if (l != luminance) return Result.fail("Inconsistent luminance across states");
         }
-        return PurityResult.success();
+        return Result.success();
     }
 
     public enum VerticalType implements StringIdentifiable {
-        POSITIVE("positive"),
-        NEGATIVE("negative"),
-        DOUBLE("double");
+        TOWARDS("towards"),
+        AWAY("away"),
+        FULL("full");
 
         private final String name;
 

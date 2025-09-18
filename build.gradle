@@ -24,6 +24,8 @@ subprojects {
     }
 
     repositories {
+        maven { name 'Xander Maven'; url 'https://maven.isxander.dev/releases' }
+        maven { name = "Terraformers"; url = "https://maven.terraformersmc.com/releases" }
     }
 
     dependencies {
@@ -53,7 +55,6 @@ subprojects {
             }
         }
 
-        repositories {
-        }
+        repositories {}
     }
 }
