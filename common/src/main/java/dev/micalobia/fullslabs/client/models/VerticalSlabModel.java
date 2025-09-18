@@ -8,6 +8,7 @@ import dev.micalobia.fullslabs.mixin.client.BakerImplOuterAccessor;
 import dev.micalobia.fullslabs.mixin.client.ModelBakerAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
+import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.render.model.*;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
@@ -49,6 +50,11 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
         else
             templateId = FullSlabs.id(String.format("block/vertical/normal/%s", (type == VerticalType.AWAY ? facing.getOpposite() : facing).asString()));
         var parentState = this.parent.getDefaultState();
+        parentState = switch (type) {
+            case AWAY -> parentState.with(SlabBlock.TYPE, SlabType.BOTTOM);
+            case TOWARDS -> parentState.with(SlabBlock.TYPE, SlabType.TOP);
+            case FULL -> parentState.with(SlabBlock.TYPE, SlabType.DOUBLE);
+        };
         var outer = ((BakerImplOuterAccessor) baker).fullslabs$getOuter();
         var grouped = ((ModelBakerAccessor) outer).fullslabs$getBlockModels().get(parentState);
         if (grouped == null) throw new IllegalStateException("Parent slab state wasn't discovered: " + parentState);

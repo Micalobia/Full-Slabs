@@ -2,6 +2,7 @@ package dev.micalobia.fullslabs.fabric.client;
 
 import dev.micalobia.fullslabs.VerticalSlabBlock;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
@@ -12,7 +13,7 @@ public final class FullSlabsFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ModelLoadingPlugin.register(new VerticalModelLoadingPlugin());
-        Registries.BLOCK.stream().filter(block -> block instanceof VerticalSlabBlock).map(block -> (VerticalSlabBlock) block).forEach(FullSlabsFabricClient::renderLayer);
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> Registries.BLOCK.stream().filter(block -> block instanceof VerticalSlabBlock).map(block -> (VerticalSlabBlock) block).forEach(FullSlabsFabricClient::renderLayer));
         RegistryEntryAddedCallback.event(Registries.BLOCK).register(((i, identifier, block) -> {
             if (!(block instanceof VerticalSlabBlock slab)) return;
             renderLayer(slab);

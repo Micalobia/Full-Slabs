@@ -11,6 +11,13 @@ architectury {
 allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
+
+    configurations.configureEach {
+        resolutionStrategy {
+            // This removes some error noise on launch
+            force "dev.architectury:architectury-transformer:5.2.88"
+        }
+    }
 }
 
 
