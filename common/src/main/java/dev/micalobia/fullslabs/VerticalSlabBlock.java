@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs;
 
 import dev.micalobia.fullslabs.util.Result;
+import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.*;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.NavigationType;
@@ -8,6 +9,7 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
@@ -16,7 +18,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
@@ -76,24 +77,12 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
 
     @Override
     protected boolean canReplace(BlockState state, ItemPlacementContext context) {
-        //noinspection PointlessBooleanExpression
-        if (true == true) return false;
         var stack = context.getStack();
-        if (!stack.isOf(this.parent.asItem())) return false;
-        if (state.get(TYPE) == VerticalType.FULL) return false;
-        if (context.canReplaceExisting()) {
-            var direction = state.get(DIRECTION);
-            var axis = direction.getAxis();
-            var face = context.getSide();
-            var pos = context.getBlockPos();
-            var local = axis == Axis.X ? context.getHitPos().x - pos.getX() : context.getHitPos().z - pos.getZ();
-            var hitPositive = local >= 0.5d;
-            var emptyIsPositive = direction == Direction.WEST || direction == Direction.NORTH;
-            var towardEmpty = axis == Axis.X ? emptyIsPositive ? Direction.EAST : Direction.WEST : emptyIsPositive ? Direction.SOUTH : Direction.NORTH;
-            if (face == towardEmpty) return true;
-            if (face.getAxis() != axis && (hitPositive == emptyIsPositive)) return true;
+        var type = state.get(TYPE);
+        if (type == VerticalType.FULL || !stack.isOf(this.parent.asItem()))
             return false;
-        }
+        if (context.canReplaceExisting())
+            return Utility.isInsideSlab(state, context.getBlockPos(), context.getHitPos());
         return true;
     }
 
@@ -141,6 +130,11 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
 
     public static boolean hasVertical(SlabBlock block) {
         return MAP.containsKey(block);
+    }
+
+    @Override
+    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
+        return new ItemStack(this.parent.asItem());
     }
 
     public static Result isPure(SlabBlock block) {
