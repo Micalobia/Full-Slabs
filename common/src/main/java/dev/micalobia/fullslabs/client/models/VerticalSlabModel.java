@@ -3,9 +3,10 @@ package dev.micalobia.fullslabs.client.models;
 import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.VerticalSlabBlock;
 import dev.micalobia.fullslabs.VerticalSlabBlock.VerticalType;
-import dev.micalobia.fullslabs.config.ConfigManager;
+import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.mixin.client.BakerImplOuterAccessor;
 import dev.micalobia.fullslabs.mixin.client.ModelBakerAccessor;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
@@ -24,12 +25,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
-    private final SlabBlock parent;
     @SuppressWarnings("deprecation")
     private static final Identifier ATLAS = SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
 
-    public VerticalSlabModel(VerticalSlabBlock block) {
-        this.parent = block.parent;
+    public VerticalSlabModel() {
     }
 
     public static Identifier makeModelId(BlockState state) {
@@ -37,24 +36,39 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
         return FullSlabs.id(String.format("block/%s/%s_%s", Registries.BLOCK.getId(state.getBlock()).getPath(), state.get(VerticalSlabBlock.DIRECTION).asString(), state.get(VerticalSlabBlock.TYPE).asString()));
     }
 
-    @Override
-    public BlockStateModel bake(BlockState state, Baker baker) {
-        var cfg = ConfigManager.get();
+    private static VerticalSlabBlock verifyVertical(Block block) {
+        if (!(block instanceof VerticalSlabBlock slab)) throw new IllegalArgumentException();
+        return slab;
+    }
+
+    public static Identifier templateId(BlockState state) {
+        var slab = verifyVertical(state.getBlock());
         var facing = state.get(VerticalSlabBlock.DIRECTION);
         var type = state.get(VerticalSlabBlock.TYPE);
-        var tilted = cfg.isTilted(this.parent);
-        Identifier templateId;
+        var tilted = Config.isTilted(slab.parent);
         if (tilted)
-            templateId = FullSlabs.id(String.format("block/vertical/tilted/%s_%s", facing.asString(), type.asString()));
-        else if (type == VerticalType.FULL) templateId = FullSlabs.id("block/vertical/normal/full");
-        else
-            templateId = FullSlabs.id(String.format("block/vertical/normal/%s", (type == VerticalType.AWAY ? facing.getOpposite() : facing).asString()));
-        var parentState = this.parent.getDefaultState();
-        parentState = switch (type) {
+            return FullSlabs.id(String.format("block/vertical/tilted/%s_%s", facing.asString(), type.asString()));
+        if (type == VerticalType.FULL) return FullSlabs.id("block/vertical/normal/full");
+        return FullSlabs.id(String.format("block/vertical/normal/%s", (type == VerticalType.AWAY ? facing.getOpposite() : facing).asString()));
+    }
+
+    public static BlockState parentState(BlockState state) {
+        var slab = verifyVertical(state.getBlock());
+        var type = state.get(VerticalSlabBlock.TYPE);
+        var parentState = slab.parent.getDefaultState();
+        return switch (type) {
             case AWAY -> parentState.with(SlabBlock.TYPE, SlabType.BOTTOM);
             case TOWARDS -> parentState.with(SlabBlock.TYPE, SlabType.TOP);
             case FULL -> parentState.with(SlabBlock.TYPE, SlabType.DOUBLE);
         };
+    }
+
+    @Override
+    public BlockStateModel bake(BlockState state, Baker baker) {
+        var slab = verifyVertical(state.getBlock());
+        var parentId = Registries.BLOCK.getId(slab.parent);
+        var templateId = templateId(state);
+        var parentState = parentState(state);
         var outer = ((BakerImplOuterAccessor) baker).fullslabs$getOuter();
         var grouped = ((ModelBakerAccessor) outer).fullslabs$getBlockModels().get(parentState);
         if (grouped == null) throw new IllegalStateException("Parent slab state wasn't discovered: " + parentState);
@@ -64,7 +78,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
         var list = parts.stream().<HasQuads>map(x -> x::getQuads).toList();
         var useAO = parts.stream().findFirst().map(BlockModelPart::useAmbientOcclusion).orElse(true);
         var textures = Textures.fetch(particle, list);
-        var mapped = mapped(textures);
+        var mapped = mapped(parentId.toString(), textures);
         var template = baker.getModel(templateId);
         var geometry = template.getGeometry();
         var quads = geometry.bake(mapped, baker, ModelRotation.X0_Y0, template);
@@ -74,7 +88,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
 
     @Override
     public Object getEqualityGroup(BlockState state) {
-        var id = Registries.BLOCK.getId(this.parent);
+        var id = Registries.BLOCK.getId(state.getBlock());
         var facing = state.get(VerticalSlabBlock.DIRECTION).asString();
         var type = state.get(VerticalSlabBlock.TYPE).asString();
         return id + "|" + facing + "|" + type;
@@ -93,30 +107,29 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
     }
 
     @FunctionalInterface
-    private interface HasQuads {
+    public interface HasQuads {
         List<BakedQuad> getQuads(@Nullable Direction direction);
     }
 
-    private ModelTextures mapped(Textures textures) {
-        return mapped(textures.particle, textures.side, textures.top, textures.bottom);
+    public static ModelTextures mapped(String simple, Textures textures) {
+        return mapped(simple, textures.particle, textures.side, textures.top, textures.bottom);
     }
 
-    private ModelTextures mapped(Sprite particle, Sprite side, Sprite top, Sprite bottom) {
+    public static ModelTextures mapped(String simple, Sprite particle, Sprite side, Sprite top, Sprite bottom) {
         var table = new ModelTextures.Textures.Builder()
                 .addSprite("side", spriteId(side))
                 .addSprite("top", spriteId(top))
                 .addSprite("bottom", spriteId(bottom))
                 .addSprite("particle", spriteId(particle))
                 .build();
-        final var str = Registries.BLOCK.getId(this.parent).toString();
-        return new ModelTextures.Builder().addLast(table).build(() -> str);
+        return new ModelTextures.Builder().addLast(table).build(() -> simple);
     }
 
     private static SpriteIdentifier spriteId(Sprite sprite) {
         return new SpriteIdentifier(ATLAS, sprite.getContents().getId());
     }
 
-    private record Textures(Sprite particle, Sprite side, Sprite top, Sprite bottom) {
+    public record Textures(Sprite particle, Sprite side, Sprite top, Sprite bottom) {
         public static Textures fetch(Sprite particle, List<HasQuads> quads) {
             var side = Stream.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)
                     .map(dir -> fetchFace(dir, quads))
@@ -127,11 +140,11 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
             return new Textures(particle, side, top, bottom);
         }
 
-        private static Optional<Sprite> fetchFace(Direction direction, List<HasQuads> parts) {
+        public static Optional<Sprite> fetchFace(Direction direction, List<HasQuads> parts) {
             return parts.stream().map(hasQuads -> fetchFace(direction, hasQuads)).findFirst().filter(Optional::isPresent).map(Optional::get).stream().findFirst();
         }
 
-        private static Optional<Sprite> fetchFace(Direction direction, HasQuads parent) {
+        public static Optional<Sprite> fetchFace(Direction direction, HasQuads parent) {
             return parent.getQuads(direction).stream().map(BakedQuad::sprite).findFirst().or(() -> parent.getQuads(null).stream().filter(q -> q.face() == direction).map(BakedQuad::sprite).findFirst());
         }
     }

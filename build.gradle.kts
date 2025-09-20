@@ -40,7 +40,7 @@ subprojects {
 
     repositories {
         maven(url = "https://maven.terraformersmc.com/releases")
-        maven(url = "https://maven.isxander.dev/releases/")
+        maven(url = "https://api.modrinth.com/maven")
     }
 
     val loom = extensions.getByName("loom") as LoomGradleExtensionAPI

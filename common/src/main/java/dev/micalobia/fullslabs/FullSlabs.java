@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs;
 
-import dev.micalobia.fullslabs.config.ConfigManager;
+import dev.micalobia.fullslabs.config.Config;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +11,7 @@ public final class FullSlabs {
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     public static void init() {
-        ConfigManager.init();
+        MidnightConfig.init(MODID, Config.class);
         SlabRegistryBridge.init();
     }
 
@@ -20,5 +21,9 @@ public final class FullSlabs {
 
     public static String verticalPath(Identifier parent) {
         return "vertical/" + parent.toString().replace(':', '/');
+    }
+
+    public static Config config() {
+        return (Config) MidnightConfig.getClass(MODID);
     }
 }

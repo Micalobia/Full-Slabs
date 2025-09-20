@@ -19,7 +19,7 @@ public final class VerticalModelLoadingPlugin implements ModelLoadingPlugin {
         context.modifyBlockModelOnLoad().register((model, ctx) -> {
             var state = ctx.state();
             if (!(state.getBlock() instanceof VerticalSlabBlock slab)) return model;
-            return new VerticalSlabModel(slab);
+            return new VerticalSlabModel();
         });
     }
 }

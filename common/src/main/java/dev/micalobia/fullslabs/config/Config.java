@@ -1,19 +1,21 @@
 package dev.micalobia.fullslabs.config;
 
 
-import dev.isxander.yacl3.config.v2.api.SerialEntry;
+import com.google.common.collect.Lists;
+import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.block.Block;
 import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Config {
-    @SerialEntry
-    public List<String> tiltedSlabs = new ArrayList<>();
+public class Config extends MidnightConfig {
+    public static final String GENERAL = "general";
+    @Entry(category = GENERAL, idMode = 1, width = 1000)
+    public static List<Identifier> tiltedSlabs = Lists.newArrayList(Identifier.ofVanilla("smooth_stone_slab"));
 
-    public boolean isTilted(Block block) {
+    public static boolean isTilted(Block block) {
         var id = Registries.BLOCK.getId(block);
-        return tiltedSlabs.contains(id.toString());
+        return tiltedSlabs.contains(id);
     }
 }

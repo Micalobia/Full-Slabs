@@ -44,7 +44,7 @@ dependencies {
     add("modImplementation", "net.fabricmc.fabric-api:fabric-api:${rootProject.findProperty("fabric_api_version")}")
     add("modImplementation", "dev.architectury:architectury-fabric:${rootProject.findProperty("architectury_api_version")}")
     add("modImplementation", "com.terraformersmc:modmenu:${rootProject.findProperty("modmenu_version")}")
-    add("modImplementation", "dev.isxander:yet-another-config-lib:${rootProject.findProperty("yacl_version")}-fabric")
+    add("modImplementation", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-fabric")
 
     // common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     (add("common", project(mapOf("path" to ":common", "configuration" to "namedElements"))) as ProjectDependency)

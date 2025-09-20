@@ -9,5 +9,5 @@ architectury {
 dependencies {
     add("modImplementation", "net.fabricmc:fabric-loader:${rootProject.findProperty("fabric_loader_version")}")
     add("modImplementation", "dev.architectury:architectury:${rootProject.findProperty("architectury_api_version")}")
-    add("modImplementation", "dev.isxander:yet-another-config-lib:${rootProject.findProperty("yacl_version")}-fabric")
+    add("modCompileOnly", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-fabric")
 }

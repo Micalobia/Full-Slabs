@@ -1,5 +1,5 @@
 {
-    "fullslabs.config.title": "Full Slabs",
-    "fullslabs.config.title.general": "General",
-    "fullslabs.config.general.tilted": "Tilted Slabs"
+    "fullslabs.midnightconfig.title": "Full Slabs",
+    "fullslabs.midnightconfig.tiltedSlabs": "Tilted Slabs",
+    "fullslabs.midnightconfig.category.general": "General"
 }

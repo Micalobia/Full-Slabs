@@ -39,6 +39,8 @@ dependencies {
 
     add("modImplementation", "dev.architectury:architectury-neoforge:${rootProject.findProperty("architectury_api_version")}")
 
+    add("modImplementation", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-neoforge")
+
     (add("common", project(mapOf("path" to ":common", "configuration" to "namedElements"))) as ProjectDependency)
         .isTransitive = false
 
