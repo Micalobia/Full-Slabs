@@ -7,6 +7,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -16,28 +19,10 @@ public class Utility {
         return Config.edgeWidth;
     }
 
-    public static LookingAt getLookingAt(Direction blockFace, Direction playerFacing, BlockPos pos, Vec3d hit) {
-        Vec3d positions = getLookingAtPosition(blockFace, playerFacing, pos, hit);
-        double posH = positions.x;
-        double posV = positions.y;
-        double offH = Math.abs(posH - 0.5d);
-        double offV = Math.abs(posV - 0.5d);
-
-        if (offH > edgeWidth() || offV > edgeWidth()) {
-            if (offH > offV) {
-                return posH < 0.5d ? LookingAt.LEFT : LookingAt.RIGHT;
-            } else {
-                return posV < 0.5d ? LookingAt.BOTTOM : LookingAt.TOP;
-            }
-        } else {
-            return LookingAt.CENTER;
-        }
-    }
-
     public static Vec3d getLookingAtPosition(Direction blockFace, Direction playerFacing, BlockPos pos, Vec3d hit) {
-        double x = hit.x - pos.getX();
-        double y = hit.y - pos.getY();
-        double z = hit.z - pos.getZ();
+        var x = hit.x - pos.getX();
+        var y = hit.y - pos.getY();
+        var z = hit.z - pos.getZ();
         double posH = 0;
         double posV = 0;
 
@@ -83,8 +68,8 @@ public class Utility {
         Vec3d positions = getLookingAtPosition(blockFace, playerFacing, pos, hit);
         double posH = positions.x;
         double posV = positions.y;
-        double offH = Math.abs(posH - 0.5d);
-        double offV = Math.abs(posV - 0.5d);
+        var offH = Math.abs(posH - 0.5d);
+        var offV = Math.abs(posV - 0.5d);
 
         if (offH > edgeWidth() || offV > edgeWidth()) {
             if (blockFace.getAxis().isVertical()) {
@@ -134,6 +119,30 @@ public class Utility {
                         .with(VerticalSlabBlock.DIRECTION, towards ? target : target.getOpposite());
             }
         };
+    }
+
+    public static boolean isSlabWithVertical(ItemStack stack) {
+        return isSlabWithVertical(stack.getItem());
+    }
+
+    public static boolean isSlabWithVertical(Item item) {
+        return item instanceof BlockItem blockItem && isSlabWithVertical(blockItem.getBlock());
+    }
+
+    public static boolean isSlabWithVertical(BlockState state) {
+        return isSlabWithVertical(state.getBlock());
+    }
+
+    public static boolean isSlabWithVertical(Block block) {
+        return block instanceof VerticalSlabBlock || block instanceof SlabBlock slab && VerticalSlabBlock.hasVertical(slab);
+    }
+
+    public static boolean isSlab(ItemStack stack) {
+        return isSlab(stack.getItem());
+    }
+
+    public static boolean isSlab(Item item) {
+        return item instanceof BlockItem blockItem && isSlab(blockItem.getBlock());
     }
 
     public static boolean isSlab(BlockState state) {
