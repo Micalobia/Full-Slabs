@@ -7,4 +7,8 @@ public class SlabRegistryBridgeImpl {
     public static void initSlabListener() {
         // no-op
     }
+
+    public static void postInit() {
+
+    }
 }
