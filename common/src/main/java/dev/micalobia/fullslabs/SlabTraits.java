@@ -5,9 +5,11 @@ import dev.micalobia.fullslabs.traits.OxidizableTrait;
 import dev.micalobia.fullslabs.traits.SlabTrait;
 import dev.micalobia.fullslabs.traits.SlabTrait.Requirements;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.Oxidizable;
 import net.minecraft.block.OxidizableSlabBlock;
 import net.minecraft.block.SlabBlock;
+import net.minecraft.item.HoneycombItem;
+import net.minecraft.registry.Registries;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,14 +23,9 @@ public final class SlabTraits {
     public static void postInit() {
         for (var slab : REGISTRY.keySet()) {
             for (var trait : REGISTRY.get(slab)) {
-                postInit(slab, trait);
+                trait.postInit();
             }
         }
-    }
-
-    @ExpectPlatform
-    public static void postInit(SlabBlock slab, SlabTrait trait) {
-        throw new AssertionError();
     }
 
     @ExpectPlatform
@@ -37,9 +34,7 @@ public final class SlabTraits {
     }
 
     public static void seedExisting() {
-        registerOxidizableSlab(Blocks.CUT_COPPER_SLAB);
-        registerOxidizableSlab(Blocks.EXPOSED_CUT_COPPER_SLAB);
-        registerOxidizableSlab(Blocks.WEATHERED_CUT_COPPER_SLAB);
+        Registries.BLOCK.stream().filter(block -> block instanceof OxidizableSlabBlock).map(block -> (OxidizableSlabBlock) block).forEach(SlabTraits::registerOxidizableSlab);
     }
 
     private static void registerOxidizableSlab(Block block) {
@@ -57,7 +52,7 @@ public final class SlabTraits {
     }
 
     public static Requirements requirements(SlabBlock block) {
-        return REQUIREMENTS.getOrDefault(block, Requirements.NONE);
+        return REQUIREMENTS.getOrDefault(block, Requirements.EMPTY);
     }
 
     public static List<SlabTrait> traits(SlabBlock block) {

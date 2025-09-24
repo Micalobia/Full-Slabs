@@ -7,6 +7,8 @@
         "client.BakerImplOuterAccessor", "client.ModelBakerAccessor"
     ],
     "mixins": [
+        "HoneycombItemMixin",
+        "OxidizableMixin",
         "SlabBlockMixin"
     ],
     "injectors": {

@@ -4,13 +4,16 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.registries.DeferredRegister;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
+import net.minecraft.block.Oxidizable;
 import net.minecraft.block.SlabBlock;
+import net.minecraft.item.HoneycombItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -60,6 +63,18 @@ public class SlabRegistryBridge {
     @ExpectPlatform
     public static void initSlabListener() {
         throw new AssertionError();
+    }
+
+    public static void registerOxidizableBlockPair(Block less, Block more) {
+        Objects.requireNonNull(less, "Oxidizable block cannot be null!");
+        Objects.requireNonNull(more, "Oxidizable block cannot be null!");
+        Oxidizable.OXIDATION_LEVEL_INCREASES.get().put(less, more);
+    }
+
+    public static void registerWaxableBlockPair(Block unwaxed, Block waxed) {
+        Objects.requireNonNull(unwaxed, "Unwaxed block cannot be null!");
+        Objects.requireNonNull(waxed, "Waxed block cannot be null!");
+        HoneycombItem.UNWAXED_TO_WAXED_BLOCKS.get().put(unwaxed, waxed);
     }
 
     public static void tryRegisterVertical(Identifier id, Block block) {

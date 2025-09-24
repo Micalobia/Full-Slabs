@@ -118,6 +118,21 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     }
 
     @Override
+    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getStrongRedstonePower(state, world, pos, direction)).max().orElse(0);
+    }
+
+    @Override
+    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getWeakRedstonePower(state, world, pos, direction)).max().orElse(0);
+    }
+
+    @Override
+    protected boolean emitsRedstonePower(BlockState state) {
+        return SlabTraits.requirements(this.parent).redstonePower();
+    }
+
+    @Override
     protected BlockState getStateForNeighborUpdate(
             BlockState state,
             WorldView world,

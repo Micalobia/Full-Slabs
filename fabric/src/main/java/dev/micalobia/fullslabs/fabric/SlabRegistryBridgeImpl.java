@@ -17,10 +17,5 @@ public class SlabRegistryBridgeImpl {
     }
 
     public static void postInit() {
-        var weathered = VerticalSlabBlock.getVertical((SlabBlock) Blocks.WEATHERED_CUT_COPPER_SLAB);
-        var oxidized = VerticalSlabBlock.getVertical((SlabBlock) Blocks.OXIDIZED_CUT_COPPER_SLAB);
-        var waxed = VerticalSlabBlock.getVertical((SlabBlock) Blocks.WAXED_OXIDIZED_CUT_COPPER_SLAB);
-        OxidizableBlocksRegistry.registerOxidizableBlockPair(weathered, oxidized);
-        OxidizableBlocksRegistry.registerWaxableBlockPair(oxidized, waxed);
     }
 }
