@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs;
 
+import dev.micalobia.fullslabs.traits.SlabTrait;
 import dev.micalobia.fullslabs.util.Result;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.*;
@@ -11,6 +12,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -28,6 +30,7 @@ import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VerticalSlabBlock extends Block implements Waterloggable {
@@ -50,6 +53,9 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.WEST).with(TYPE, VerticalType.TOWARDS).with(WATERLOGGED, false));
     }
 
+    private List<SlabTrait> traits() {
+        return SlabTraits.traits(this.parent);
+    }
 
     @Override
     protected boolean hasSidedTransparency(BlockState state) {
@@ -102,6 +108,16 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     }
 
     @Override
+    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        this.traits().stream().filter(SlabTrait::requiresRandomTicks).forEach(trait -> trait.randomTick(state, world, pos, random));
+    }
+
+    @Override
+    protected boolean hasRandomTicks(BlockState state) {
+        return SlabTraits.requirements(this.parent).randomTicks();
+    }
+
+    @Override
     protected BlockState getStateForNeighborUpdate(
             BlockState state,
             WorldView world,
@@ -137,7 +153,7 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return new ItemStack(this.parent.asItem());
     }
 
-    public static Result isPure(SlabBlock block) {
+    public static Result isValid(SlabBlock block) {
         if (block instanceof BlockEntityProvider) return Result.fail("Block has a block entity");
         var stateManager = block.getStateManager();
         var properties = stateManager.getProperties();
@@ -147,9 +163,12 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         var states = stateManager.getStates();
         if (states.size() != 6) return Result.fail("Unexpected number of states");
         int luminance = -1;
+        var requirements = SlabTraits.requirements(block);
+        var requiresRandomTicks = requirements.randomTicks();
         for (var state : states) {
             if (state.getRenderType() != BlockRenderType.MODEL) return Result.fail("Non-model render type");
-            if (state.hasRandomTicks()) return Result.fail("Has random ticks");
+            if (state.hasRandomTicks() && !requiresRandomTicks)
+                return Result.fail("Has random ticks");
             if (state.emitsRedstonePower()) return Result.fail("Emits redstone power");
             if (state.hasComparatorOutput()) return Result.fail("Has comparator output");
             int l = state.getLuminance();

@@ -28,11 +28,14 @@ public class SlabRegistryBridge {
     }
 
     public static void init() {
+        SlabTraits.initListener();
         initSlabListener();
 //        registerDebug();
+        SlabTraits.seedExisting();
         seedExistingSlabs();
         BLOCKS.register();
         GENERATED.register();
+        SlabTraits.postInit();
     }
 
     private static void registerDebug() {
@@ -55,15 +58,14 @@ public class SlabRegistryBridge {
 
     public static void tryRegisterVertical(Identifier id, Block block) {
         if (!(block instanceof SlabBlock slab)) return;
-        var result = VerticalSlabBlock.isPure(slab);
-        var pure = result.pure();
-        Identifier slabId = Registries.BLOCK.getId(block);
-        if (!pure) {
-            FullSlabs.LOGGER.warn("{} isn't pure: '{}'", slabId, result.message());
+        var result = VerticalSlabBlock.isValid(slab);
+        var valid = result.value();
+        if (!valid) {
+            FullSlabs.LOGGER.warn("{} isn't valid: '{}'", id, result.message());
             return;
         }
 
-        var verticalId = FullSlabs.id(FullSlabs.verticalPath(slabId));
+        var verticalId = FullSlabs.id(FullSlabs.verticalPath(id));
         if (!QUEUED_VERTICALS.add(verticalId)) return;
 
         GENERATED.register(verticalId, () -> {
