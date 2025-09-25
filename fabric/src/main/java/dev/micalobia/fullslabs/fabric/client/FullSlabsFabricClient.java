@@ -35,7 +35,7 @@ public final class FullSlabsFabricClient implements ClientModInitializer {
             var face = bhr.getSide();
             var state = world.getBlockState(pos);
             var camera = ctx.camera();
-            BlockFaceOverlay.renderFaceOverlay(camera, world, pos, state, face, hit);
+            BlockFaceOverlay.renderFaceOverlay(player, camera, world, pos, state, face, hit);
             return true;
         });
     }
