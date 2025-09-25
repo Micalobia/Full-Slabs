@@ -1,11 +1,4 @@
-import org.gradle.api.JavaVersion
-import org.gradle.api.plugins.BasePluginExtension
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.compile.JavaCompile
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import net.fabricmc.loom.api.mappings.layered.spec.LayeredMappingSpecBuilder // <-- correct type
 
 plugins {
     id("dev.architectury.loom") version "1.11-SNAPSHOT" apply false

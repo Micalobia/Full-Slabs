@@ -2,8 +2,6 @@ package dev.micalobia.fullslabs.fabric;
 
 import dev.micalobia.fullslabs.FullSlabs;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
-import net.minecraft.registry.Registries;
 
 public final class FullSlabsFabric implements ModInitializer {
     @Override

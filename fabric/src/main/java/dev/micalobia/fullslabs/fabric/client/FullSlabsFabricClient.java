@@ -1,6 +1,5 @@
 package dev.micalobia.fullslabs.fabric.client;
 
-import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.VerticalSlabBlock;
 import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import dev.micalobia.fullslabs.util.Utility;

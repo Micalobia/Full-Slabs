@@ -1,11 +1,7 @@
 package dev.micalobia.fullslabs.fabric;
 
 import dev.micalobia.fullslabs.SlabRegistryBridge;
-import dev.micalobia.fullslabs.VerticalSlabBlock;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
-import net.fabricmc.fabric.api.registry.OxidizableBlocksRegistry;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SlabBlock;
 import net.minecraft.registry.Registries;
 
 public class SlabRegistryBridgeImpl {
