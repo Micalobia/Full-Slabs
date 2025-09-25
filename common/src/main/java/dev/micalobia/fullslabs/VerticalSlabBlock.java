@@ -180,11 +180,12 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         int luminance = -1;
         var requirements = SlabTraits.requirements(block);
         var requiresRandomTicks = requirements.randomTicks();
+        var requiresRedstonePower = requirements.redstonePower();
         for (var state : states) {
             if (state.getRenderType() != BlockRenderType.MODEL) return Result.fail("Non-model render type");
             if (state.hasRandomTicks() && !requiresRandomTicks)
                 return Result.fail("Has random ticks");
-            if (state.emitsRedstonePower()) return Result.fail("Emits redstone power");
+            if (state.emitsRedstonePower() && !requiresRedstonePower) return Result.fail("Emits redstone power");
             if (state.hasComparatorOutput()) return Result.fail("Has comparator output");
             int l = state.getLuminance();
             if (luminance < 0) luminance = l;

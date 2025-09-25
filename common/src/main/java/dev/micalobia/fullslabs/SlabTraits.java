@@ -2,14 +2,14 @@ package dev.micalobia.fullslabs;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.micalobia.fullslabs.traits.OxidizableTrait;
+import dev.micalobia.fullslabs.traits.SimpleRedstoneTrait;
 import dev.micalobia.fullslabs.traits.SlabTrait;
 import dev.micalobia.fullslabs.traits.SlabTrait.Requirements;
 import net.minecraft.block.Block;
-import net.minecraft.block.Oxidizable;
 import net.minecraft.block.OxidizableSlabBlock;
 import net.minecraft.block.SlabBlock;
-import net.minecraft.item.HoneycombItem;
 import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public final class SlabTraits {
+    private final static Map<Class<? extends SlabBlock>, List<SlabTraitFactory>> GROUPS = new HashMap<>();
+    private final static Map<Identifier, List<SlabTraitFactory>> PENDING = new HashMap<>();
     private final static Map<SlabBlock, List<SlabTrait>> REGISTRY = new HashMap<>();
     private final static Map<SlabBlock, Requirements> REQUIREMENTS = new HashMap<>();
 
@@ -34,17 +36,31 @@ public final class SlabTraits {
     }
 
     public static void seedExisting() {
-        Registries.BLOCK.stream().filter(block -> block instanceof OxidizableSlabBlock).map(block -> (OxidizableSlabBlock) block).forEach(SlabTraits::registerOxidizableSlab);
+        register(OxidizableSlabBlock.class, slab -> new OxidizableTrait((OxidizableSlabBlock) slab));
+        register(Identifier.of("blockus:redstone_brick_slab"), slab -> new SimpleRedstoneTrait(slab, 15, 0));
+        Registries.BLOCK.getEntrySet().forEach(entry -> resolvePending(entry.getKey().getValue(), entry.getValue()));
     }
 
-    private static void registerOxidizableSlab(Block block) {
-        if (!(block instanceof OxidizableSlabBlock slab)) throw new IllegalArgumentException("Not an oxidizable slab!");
-        register(slab, new OxidizableTrait(slab));
-    }
-
-    public static void register(SlabBlock parent, SlabTrait trait) {
+    public static void register(SlabBlock parent, SlabTraitFactory factory) {
+        var trait = factory.create(parent);
         REGISTRY.computeIfAbsent(parent, slab -> new ArrayList<>()).add(trait);
         REQUIREMENTS.compute(parent, (block, old) -> old == null ? trait.requirements() : old.add(trait.requirements()));
+    }
+
+    public static void register(Identifier parent, SlabTraitFactory factory) {
+        PENDING.computeIfAbsent(parent, id -> new ArrayList<>()).add(factory);
+    }
+
+    public static <T extends SlabBlock> void register(Class<T> klass, SlabTraitFactory factory) {
+        GROUPS.computeIfAbsent(klass, cls -> new ArrayList<>()).add(factory);
+    }
+
+    public static void resolvePending(Identifier id, Block block) {
+        if (!(block instanceof SlabBlock slab)) return;
+        if (PENDING.containsKey(id))
+            PENDING.remove(id).forEach(factory -> register(slab, factory));
+
+        GROUPS.entrySet().stream().filter(entry -> entry.getKey().isInstance(slab)).forEach(entry -> entry.getValue().forEach(factory -> register(slab, factory)));
     }
 
     public static boolean hasTraits(SlabBlock block) {
