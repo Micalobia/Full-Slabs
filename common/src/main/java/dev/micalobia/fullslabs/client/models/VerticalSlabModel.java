@@ -27,13 +27,9 @@ import java.util.stream.Stream;
 public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
     @SuppressWarnings("deprecation")
     private static final Identifier ATLAS = SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
+    public static final VerticalSlabModel INSTANCE = new VerticalSlabModel();
 
-    public VerticalSlabModel() {
-    }
-
-    public static Identifier makeModelId(BlockState state) {
-        if (!(state.getBlock() instanceof VerticalSlabBlock)) throw new RuntimeException("Not a vertical slab!");
-        return FullSlabs.id(String.format("block/%s/%s_%s", Registries.BLOCK.getId(state.getBlock()).getPath(), state.get(VerticalSlabBlock.DIRECTION).asString(), state.get(VerticalSlabBlock.TYPE).asString()));
+    private VerticalSlabModel() {
     }
 
     private static VerticalSlabBlock verifyVertical(Block block) {
