@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs.client.models;
 
+import com.google.common.collect.ImmutableList;
 import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.VerticalSlabBlock;
 import dev.micalobia.fullslabs.VerticalSlabBlock.VerticalType;
@@ -22,12 +23,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
     @SuppressWarnings("deprecation")
     private static final Identifier ATLAS = SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
     public static final VerticalSlabModel INSTANCE = new VerticalSlabModel();
+
+    public static List<Identifier> TEMPLATES = templates();
 
     private VerticalSlabModel() {
     }
@@ -57,6 +59,11 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
             case TOWARDS -> parentState.with(SlabBlock.TYPE, SlabType.TOP);
             case FULL -> parentState.with(SlabBlock.TYPE, SlabType.DOUBLE);
         };
+    }
+
+    public static Identifier makeModelId(BlockState state) {
+        verifyVertical(state.getBlock());
+        return FullSlabs.id(String.format("block/%s/%s_%s", Registries.BLOCK.getId(state.getBlock()).getPath(), state.get(VerticalSlabBlock.DIRECTION).asString(), state.get(VerticalSlabBlock.TYPE).asString()));
     }
 
     @Override
@@ -92,14 +99,20 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
 
     @Override
     public void resolve(Resolver resolver) {
+        TEMPLATES.forEach(resolver::markDependency);
+    }
+
+    private static List<Identifier> templates() {
+        var builder = new ImmutableList.Builder<Identifier>();
         Direction.Type.HORIZONTAL.forEach(direction -> {
             var str = direction.asString();
-            resolver.markDependency(FullSlabs.id(String.format("block/vertical/tilted/%s_towards", str)));
-            resolver.markDependency(FullSlabs.id(String.format("block/vertical/tilted/%s_away", str)));
-            resolver.markDependency(FullSlabs.id(String.format("block/vertical/tilted/%s_full", str)));
-            resolver.markDependency(FullSlabs.id(String.format("block/vertical/normal/%s", str)));
+            builder.add(FullSlabs.id(String.format("block/vertical/tilted/%s_towards", str)));
+            builder.add(FullSlabs.id(String.format("block/vertical/tilted/%s_away", str)));
+            builder.add(FullSlabs.id(String.format("block/vertical/tilted/%s_full", str)));
+            builder.add(FullSlabs.id(String.format("block/vertical/normal/%s", str)));
         });
-        resolver.markDependency(FullSlabs.id("block/vertical/normal/full"));
+        builder.add(FullSlabs.id("block/vertical/normal/full"));
+        return builder.build();
     }
 
     @FunctionalInterface
@@ -127,7 +140,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
 
     public record Textures(Sprite particle, Sprite side, Sprite top, Sprite bottom) {
         public static Textures fetch(Sprite particle, List<HasQuads> quads) {
-            var side = Stream.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)
+            var side = Direction.Type.HORIZONTAL.stream()
                     .map(dir -> fetchFace(dir, quads))
                     .filter(Optional::isPresent).map(Optional::get)
                     .findFirst().orElse(particle);
