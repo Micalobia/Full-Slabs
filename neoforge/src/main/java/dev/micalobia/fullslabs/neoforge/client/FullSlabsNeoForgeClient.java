@@ -2,14 +2,17 @@ package dev.micalobia.fullslabs.neoforge.client;
 
 import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.VerticalSlabBlock;
+import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import dev.micalobia.fullslabs.client.models.VerticalSlabModel;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.model.Baker;
 import net.minecraft.client.render.model.BlockStateModel;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import net.neoforged.neoforge.client.model.standalone.UnbakedStandaloneModel;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +49,13 @@ public final class FullSlabsNeoForgeClient {
                 blockStateModels.put(state, model);
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void renderOverlay(RenderLevelStageEvent.AfterBlockEntities event) {
+        var client = MinecraftClient.getInstance();
+        if (client.options.hudHidden) return;
+        BlockFaceOverlay.renderFaceOverlay(event.getCamera());
     }
 
     public static class VerticalWrapper implements UnbakedStandaloneModel<BlockStateModel> {

@@ -4,6 +4,7 @@ import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -11,6 +12,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec2f;
@@ -24,13 +26,30 @@ public final class BlockFaceOverlay {
     private static final double EPSILON = 1e-4d;
     private static final int FILL_COLOR = 0x3F007FFF;
     private static final int LINE_COLOR = 0xFFFFFFFF;
+
     private static final RenderLayer QUAD_LAYER = RenderLayer.getDebugQuads();
     private static final RenderLayer LINE_LAYER = RenderLayer.getDebugLineStrip(2f);
 
     private BlockFaceOverlay() {
     }
 
-    public static void renderFaceOverlay(PlayerEntity player, Camera camera, BlockRenderView world, BlockPos pos, BlockState state, Direction face, Vec3d hit) {
+    public static void renderFaceOverlay(Camera camera) {
+        var mc = MinecraftClient.getInstance();
+        if (!(mc.crosshairTarget instanceof BlockHitResult bhr)) return;
+        var player = mc.player;
+        if (player == null) return;
+        if (!player.isHolding(Utility::isSlabWithVertical)) return;
+
+        var world = mc.world;
+        if (world == null) return;
+        var pos = bhr.getBlockPos();
+        var face = bhr.getSide();
+        var hit = bhr.getPos();
+        var state = world.getBlockState(pos);
+        renderFaceOverlay(player, camera, world, pos, state, face, hit);
+    }
+
+    private static void renderFaceOverlay(PlayerEntity player, Camera camera, BlockRenderView world, BlockPos pos, BlockState state, Direction face, Vec3d hit) {
         final var frame = FaceFrame.create(face);
         final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(frame, pos, hit);
         final var outline = state.getOutlineShape(world, pos, ShapeContext.of(player));
