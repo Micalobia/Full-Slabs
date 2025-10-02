@@ -19,7 +19,7 @@ public final class FullSlabsFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ModelLoadingPlugin.register(new VerticalModelLoadingPlugin());
-        ClientLifecycleEvents.CLIENT_STARTED.register(client -> Registries.BLOCK.stream().filter(block -> block instanceof VerticalSlabBlock).map(block -> (VerticalSlabBlock) block).forEach(FullSlabsFabricClient::renderLayer));
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> VerticalSlabBlock.MAP_VIEW.values().forEach(FullSlabsFabricClient::renderLayer));
         RegistryEntryAddedCallback.event(Registries.BLOCK).register(((i, identifier, block) -> {
             if (!(block instanceof VerticalSlabBlock slab)) return;
             renderLayer(slab);

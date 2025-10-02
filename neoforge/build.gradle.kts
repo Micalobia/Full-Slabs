@@ -1,7 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.Copy
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
@@ -37,7 +34,10 @@ repositories {
 dependencies {
     add("neoForge", "net.neoforged:neoforge:${rootProject.findProperty("neoforge_version")}")
 
-    add("modImplementation", "dev.architectury:architectury-neoforge:${rootProject.findProperty("architectury_api_version")}")
+    add(
+        "modImplementation",
+        "dev.architectury:architectury-neoforge:${rootProject.findProperty("architectury_api_version")}"
+    )
 
     add("modImplementation", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-neoforge")
 

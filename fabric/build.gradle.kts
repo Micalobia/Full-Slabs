@@ -1,8 +1,4 @@
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.compile.JavaCompile
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.artifacts.ProjectDependency
 
 plugins {
     id("com.gradleup.shadow")
@@ -42,7 +38,10 @@ configurations {
 dependencies {
     add("modImplementation", "net.fabricmc:fabric-loader:${rootProject.findProperty("fabric_loader_version")}")
     add("modImplementation", "net.fabricmc.fabric-api:fabric-api:${rootProject.findProperty("fabric_api_version")}")
-    add("modImplementation", "dev.architectury:architectury-fabric:${rootProject.findProperty("architectury_api_version")}")
+    add(
+        "modImplementation",
+        "dev.architectury:architectury-fabric:${rootProject.findProperty("architectury_api_version")}"
+    )
     add("modImplementation", "com.terraformersmc:modmenu:${rootProject.findProperty("modmenu_version")}")
     add("modImplementation", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-fabric")
 

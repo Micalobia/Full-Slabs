@@ -45,9 +45,9 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
         var type = state.get(VerticalSlabBlock.TYPE);
         var tilted = Config.isTilted(slab.parent);
         if (tilted)
-            return FullSlabs.id(String.format("block/vertical/tilted/%s_%s", facing.asString(), type.asString()));
+            return FullSlabs.id("block/vertical/tilted/%s_%s".formatted(facing.asString(), type.asString()));
         if (type == VerticalType.FULL) return FullSlabs.id("block/vertical/normal/full");
-        return FullSlabs.id(String.format("block/vertical/normal/%s", (type == VerticalType.AWAY ? facing.getOpposite() : facing).asString()));
+        return FullSlabs.id("block/vertical/normal/%s".formatted((type == VerticalType.AWAY ? facing.getOpposite() : facing).asString()));
     }
 
     public static BlockState parentState(BlockState state) {
@@ -63,7 +63,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
 
     public static Identifier makeModelId(BlockState state) {
         verifyVertical(state.getBlock());
-        return FullSlabs.id(String.format("block/%s/%s_%s", Registries.BLOCK.getId(state.getBlock()).getPath(), state.get(VerticalSlabBlock.DIRECTION).asString(), state.get(VerticalSlabBlock.TYPE).asString()));
+        return FullSlabs.id("block/%s/%s_%s".formatted(Registries.BLOCK.getId(state.getBlock()).getPath(), state.get(VerticalSlabBlock.DIRECTION).asString(), state.get(VerticalSlabBlock.TYPE).asString()));
     }
 
     @Override
@@ -106,10 +106,10 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
         var builder = new ImmutableList.Builder<Identifier>();
         Direction.Type.HORIZONTAL.forEach(direction -> {
             var str = direction.asString();
-            builder.add(FullSlabs.id(String.format("block/vertical/tilted/%s_towards", str)));
-            builder.add(FullSlabs.id(String.format("block/vertical/tilted/%s_away", str)));
-            builder.add(FullSlabs.id(String.format("block/vertical/tilted/%s_full", str)));
-            builder.add(FullSlabs.id(String.format("block/vertical/normal/%s", str)));
+            builder.add(FullSlabs.id("block/vertical/tilted/%s_towards".formatted(str)));
+            builder.add(FullSlabs.id("block/vertical/tilted/%s_away".formatted(str)));
+            builder.add(FullSlabs.id("block/vertical/tilted/%s_full".formatted(str)));
+            builder.add(FullSlabs.id("block/vertical/normal/%s".formatted(str)));
         });
         builder.add(FullSlabs.id("block/vertical/normal/full"));
         return builder.build();

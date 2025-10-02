@@ -96,7 +96,7 @@ public class SlabRegistryBridge {
     }
 
     private static void seedExistingSlabs() {
-        var slabs = Registries.BLOCK.stream().filter(block -> block instanceof SlabBlock).toList();
+        var slabs = Registries.BLOCK.stream().filter(SlabBlock.class::isInstance).toList();
         for (var block : slabs) tryRegisterVertical(Registries.BLOCK.getId(block), block);
     }
 }
