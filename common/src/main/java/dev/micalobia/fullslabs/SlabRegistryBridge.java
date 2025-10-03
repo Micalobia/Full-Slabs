@@ -40,12 +40,6 @@ public class SlabRegistryBridge {
         BLOCKS.register();
         GENERATED.register();
         SlabTraits.postInit();
-        postInit();
-    }
-
-    @ExpectPlatform
-    public static void postInit() {
-        throw new AssertionError();
     }
 
     private static void registerDebug() {

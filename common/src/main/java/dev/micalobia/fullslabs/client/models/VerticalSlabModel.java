@@ -29,7 +29,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
     private static final Identifier ATLAS = SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
     public static final VerticalSlabModel INSTANCE = new VerticalSlabModel();
 
-    public static List<Identifier> TEMPLATES = templates();
+    public static final List<Identifier> TEMPLATES = templates();
 
     private VerticalSlabModel() {
     }

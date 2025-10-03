@@ -11,7 +11,4 @@ public class SlabRegistryBridgeImpl {
     public static void initSlabListener() {
         RegistryEntryAddedCallback.event(Registries.BLOCK).register((i, identifier, block) -> SlabRegistryBridge.tryRegisterVertical(identifier, block));
     }
-
-    public static void postInit() {
-    }
 }

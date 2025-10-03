@@ -22,8 +22,4 @@ public final class FullSlabs {
     public static String verticalPath(Identifier parent) {
         return "vertical/" + parent.toString().replace(':', '/');
     }
-
-    public static Config config() {
-        return (Config) MidnightConfig.getClass(MODID);
-    }
 }

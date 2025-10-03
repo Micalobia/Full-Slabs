@@ -42,7 +42,7 @@ public interface SlabTrait {
     }
 
     record Requirements(boolean randomTicks, boolean redstonePower) {
-        public static Requirements EMPTY = new Requirements(false, false);
+        public static final Requirements EMPTY = new Requirements(false, false);
 
         public Requirements add(Requirements other) {
             return new Requirements(

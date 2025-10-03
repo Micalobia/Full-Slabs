@@ -3,6 +3,7 @@ package dev.micalobia.fullslabs.neoforge.client;
 import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.client.BlockFaceOverlay;
+import dev.micalobia.fullslabs.client.FullSlabsClient;
 import dev.micalobia.fullslabs.client.models.VerticalSlabModel;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -23,6 +24,10 @@ import java.util.Map;
 @EventBusSubscriber(value = Dist.CLIENT, modid = FullSlabs.MODID)
 public final class FullSlabsNeoForgeClient {
     public static final Map<BlockState, StandaloneModelKey<BlockStateModel>> keys = new HashMap<>();
+
+    public static void init() {
+        FullSlabsClient.init();
+    }
 
     @SubscribeEvent
     public static void registerVerticalStandalones(ModelEvent.RegisterStandalone event) {
