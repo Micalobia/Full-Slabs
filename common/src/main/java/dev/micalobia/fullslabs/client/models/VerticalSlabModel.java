@@ -2,8 +2,8 @@ package dev.micalobia.fullslabs.client.models;
 
 import com.google.common.collect.ImmutableList;
 import dev.micalobia.fullslabs.FullSlabs;
-import dev.micalobia.fullslabs.VerticalSlabBlock;
-import dev.micalobia.fullslabs.VerticalSlabBlock.VerticalType;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.mixin.client.BakerImplOuterAccessor;
 import dev.micalobia.fullslabs.mixin.client.ModelBakerAccessor;

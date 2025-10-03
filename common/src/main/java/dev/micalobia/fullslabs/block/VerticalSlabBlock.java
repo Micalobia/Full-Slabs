@@ -1,5 +1,6 @@
-package dev.micalobia.fullslabs;
+package dev.micalobia.fullslabs.block;
 
+import dev.micalobia.fullslabs.SlabTraits;
 import dev.micalobia.fullslabs.traits.SlabTrait;
 import dev.micalobia.fullslabs.util.Result;
 import dev.micalobia.fullslabs.util.Utility;

@@ -1,7 +1,7 @@
 package dev.micalobia.fullslabs.util;
 
-import dev.micalobia.fullslabs.VerticalSlabBlock;
-import dev.micalobia.fullslabs.VerticalSlabBlock.VerticalType;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.config.Config;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

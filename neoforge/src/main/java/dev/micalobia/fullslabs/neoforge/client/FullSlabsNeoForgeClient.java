@@ -1,7 +1,7 @@
 package dev.micalobia.fullslabs.neoforge.client;
 
 import dev.micalobia.fullslabs.FullSlabs;
-import dev.micalobia.fullslabs.VerticalSlabBlock;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import dev.micalobia.fullslabs.client.models.VerticalSlabModel;
 import net.minecraft.block.BlockState;

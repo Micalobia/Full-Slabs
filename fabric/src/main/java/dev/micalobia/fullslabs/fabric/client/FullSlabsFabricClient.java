@@ -1,6 +1,6 @@
 package dev.micalobia.fullslabs.fabric.client;
 
-import dev.micalobia.fullslabs.VerticalSlabBlock;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;

@@ -1,7 +1,7 @@
 package dev.micalobia.fullslabs.traits;
 
 import dev.micalobia.fullslabs.SlabRegistryBridge;
-import dev.micalobia.fullslabs.VerticalSlabBlock;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Oxidizable;
 import net.minecraft.block.OxidizableSlabBlock;

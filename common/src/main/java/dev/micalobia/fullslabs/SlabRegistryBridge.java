@@ -2,6 +2,7 @@ package dev.micalobia.fullslabs;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.registries.DeferredRegister;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Oxidizable;
