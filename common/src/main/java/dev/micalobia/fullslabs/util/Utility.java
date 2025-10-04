@@ -7,12 +7,19 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class Utility {
     private static double edgeWidth() {
@@ -153,6 +160,11 @@ public class Utility {
         return block instanceof SlabBlock || block instanceof VerticalSlabBlock;
     }
 
+    public static boolean isDoubleSlab(BlockState state) {
+        return state.getBlock() instanceof SlabBlock && state.get(Properties.SLAB_TYPE) == SlabType.DOUBLE ||
+                state.getBlock() instanceof VerticalSlabBlock && state.get(VerticalSlabBlock.TYPE) == VerticalType.FULL;
+    }
+
     public static boolean isInsideSlab(BlockState state, BlockPos blockPos, Vec3d hitPos) {
         var block = state.getBlock();
         if (!isSlab(block)) return false;
@@ -174,5 +186,46 @@ public class Utility {
             default -> false;
         };
     }
+
+    public static Direction getAxisTargetDirection(Vec3d hit, BlockPos pos, Axis axis) {
+        return switch (axis) {
+            case X -> hit.x - pos.getX() > 0.5d ? Direction.EAST : Direction.WEST;
+            case Y -> hit.y - pos.getY() > 0.5d ? Direction.UP : Direction.DOWN;
+            case Z -> hit.z - pos.getZ() > 0.5d ? Direction.SOUTH : Direction.NORTH;
+        };
+    }
+
+    public static HitResult crosshair(PlayerEntity player) {
+        return player.raycast(player.getBlockInteractionRange(), 1f, false);
+    }
+
+    public static @Nullable StatePair breakHalf(BlockState state, BlockPos pos, HitResult crosshair) {
+        Objects.requireNonNull(state);
+        Objects.requireNonNull(pos);
+        Objects.requireNonNull(crosshair);
+        var hit = crosshair.getPos();
+        var block = state.getBlock();
+        if (!isDoubleSlab(state)) return null;
+        if (block instanceof SlabBlock) {
+            var target = getAxisTargetDirection(hit, pos, Axis.Y);
+            var top = target == Direction.UP;
+            return new StatePair(
+                    state.with(Properties.SLAB_TYPE, top ? SlabType.TOP : SlabType.BOTTOM),
+                    state.with(Properties.SLAB_TYPE, top ? SlabType.BOTTOM : SlabType.TOP)
+            );
+        }
+        if (block instanceof VerticalSlabBlock) {
+            var facing = state.get(Properties.HORIZONTAL_FACING);
+            var target = Utility.getAxisTargetDirection(hit, pos, facing.getAxis());
+            var towards = facing == target;
+            return new StatePair(
+                    state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY),
+                    state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.AWAY : VerticalType.TOWARDS)
+            );
+        }
+        throw new AssertionError();
+    }
+
+    public record StatePair(BlockState left, BlockState right) {}
 }
 

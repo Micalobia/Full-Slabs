@@ -4,11 +4,16 @@
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [
-        "client.BakerImplOuterAccessor", "client.ModelBakerAccessor"
+        "client.BakerImplOuterAccessor",
+        "client.BlockRenderManagerMixin",
+        "client.ClientPlayerInteractionManagerMixin",
+        "client.ModelBakerAccessor",
+        "client.WorldRendererMixin"
     ],
     "mixins": [
         "HoneycombItemMixin",
         "OxidizableMixin",
+        "ServerPlayerInteractionManagerMixin",
         "SlabBlockMixin"
     ],
     "injectors": {
