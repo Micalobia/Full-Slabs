@@ -5,8 +5,10 @@ import dev.micalobia.fullslabs.traits.SlabTrait;
 import dev.micalobia.fullslabs.util.Result;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.NavigationType;
+import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
@@ -19,12 +21,14 @@ import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
@@ -56,6 +60,8 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.WEST).with(TYPE, VerticalType.TOWARDS).with(WATERLOGGED, false));
     }
 
+    // Trait stuff
+
     public void initializeTraits() {
         this.traits().forEach(trait -> trait.init(this));
     }
@@ -63,6 +69,47 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     private List<SlabTrait> traits() {
         return SlabTraits.traits(this.parent);
     }
+
+    @Override
+    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        this.traits().stream().filter(SlabTrait::requiresRandomTicks).forEach(trait -> trait.randomTick(state, world, pos, random));
+    }
+
+    @Override
+    protected boolean hasRandomTicks(BlockState state) {
+        return SlabTraits.requirements(this.parent).randomTicks();
+    }
+
+    @Override
+    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getStrongRedstonePower(state, world, pos, direction)).max().orElse(0);
+    }
+
+    @Override
+    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
+        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getWeakRedstonePower(state, world, pos, direction)).max().orElse(0);
+    }
+
+    @Override
+    protected boolean emitsRedstonePower(BlockState state) {
+        return SlabTraits.requirements(this.parent).redstonePower();
+    }
+
+    // The following methods don't use Traits because as far as I can tell they don't have to, but that can change
+    // There might be more methods I need to do this to, we'll squash stuff like that if it comes up
+
+    @Override
+    protected void onProjectileHit(World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {
+        var parentState = this.parent.getDefaultState();
+        parentState.onProjectileHit(world, parentState, hit, projectile);
+    }
+
+    @Override
+    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
+        this.parent.onSteppedOn(world, pos, this.parent.getDefaultState(), entity);
+    }
+
+    // Standard slab stuff
 
     @Override
     protected boolean hasSidedTransparency(BlockState state) {
@@ -115,31 +162,6 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        this.traits().stream().filter(SlabTrait::requiresRandomTicks).forEach(trait -> trait.randomTick(state, world, pos, random));
-    }
-
-    @Override
-    protected boolean hasRandomTicks(BlockState state) {
-        return SlabTraits.requirements(this.parent).randomTicks();
-    }
-
-    @Override
-    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getStrongRedstonePower(state, world, pos, direction)).max().orElse(0);
-    }
-
-    @Override
-    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getWeakRedstonePower(state, world, pos, direction)).max().orElse(0);
-    }
-
-    @Override
-    protected boolean emitsRedstonePower(BlockState state) {
-        return SlabTraits.requirements(this.parent).redstonePower();
-    }
-
-    @Override
     protected BlockState getStateForNeighborUpdate(
             BlockState state,
             WorldView world,
@@ -162,17 +184,19 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return type == NavigationType.WATER && state.getFluidState().isIn(FluidTags.WATER);
     }
 
+    @Override
+    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
+        return new ItemStack(this.parent.asItem());
+    }
+
+    // Static helpers and such
+
     public static VerticalSlabBlock getVertical(SlabBlock block) {
         return MAP.get(block);
     }
 
     public static boolean hasVertical(SlabBlock block) {
         return MAP.containsKey(block);
-    }
-
-    @Override
-    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
-        return new ItemStack(this.parent.asItem());
     }
 
     public static Result isValid(SlabBlock block) {

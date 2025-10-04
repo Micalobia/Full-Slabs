@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Might design an entry point for other mods to use at some point, could be powerful, would have to flesh out the API for it though.
 public final class SlabTraits {
     private final static Map<Class<? extends SlabBlock>, List<SlabTraitFactory>> GROUPS = new HashMap<>();
     private final static Map<Identifier, List<SlabTraitFactory>> PENDING = new HashMap<>();
