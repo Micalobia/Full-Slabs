@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.traits.OxidizableTrait;
 import dev.micalobia.fullslabs.traits.SimpleRedstoneTrait;
 import dev.micalobia.fullslabs.traits.SlabTrait;
@@ -22,12 +23,8 @@ public final class SlabTraits {
     private final static Map<SlabBlock, List<SlabTrait>> REGISTRY = new HashMap<>();
     private final static Map<SlabBlock, Requirements> REQUIREMENTS = new HashMap<>();
 
-    public static void postInit() {
-        for (var slab : REGISTRY.keySet()) {
-            for (var trait : REGISTRY.get(slab)) {
-                trait.postInit();
-            }
-        }
+    public static void init() {
+        VerticalSlabBlock.MAP_VIEW.values().forEach(VerticalSlabBlock::initializeTraits);
     }
 
     @ExpectPlatform

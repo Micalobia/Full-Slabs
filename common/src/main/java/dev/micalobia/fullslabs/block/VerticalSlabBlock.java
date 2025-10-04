@@ -56,6 +56,10 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.WEST).with(TYPE, VerticalType.TOWARDS).with(WATERLOGGED, false));
     }
 
+    public void initializeTraits() {
+        this.traits().forEach(trait -> trait.init(this));
+    }
+
     private List<SlabTrait> traits() {
         return SlabTraits.traits(this.parent);
     }

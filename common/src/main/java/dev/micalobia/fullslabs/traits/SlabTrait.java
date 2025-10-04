@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs.traits;
 
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.server.world.ServerWorld;
@@ -16,7 +17,7 @@ public interface SlabTrait {
         return Requirements.EMPTY;
     }
 
-    default void postInit() {
+    default void init(VerticalSlabBlock slab) {
     }
 
     default void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {

@@ -36,18 +36,17 @@ public final class OxidizableTrait implements SlabTrait {
     }
 
     @Override
-    public void postInit() {
-        var original = VerticalSlabBlock.getVertical(this.parent);
+    public void init(VerticalSlabBlock slab) {
         var oxidized = Oxidizable.getIncreasedOxidationBlock(this.parent).map(block -> VerticalSlabBlock.getVertical((SlabBlock) block));
         var waxed = HoneycombItem.getWaxedState(this.parent.getDefaultState()).map(state -> VerticalSlabBlock.getVertical((SlabBlock) state.getBlock()));
         var waxed_oxidized = Oxidizable.getIncreasedOxidationBlock(this.parent)
                 .flatMap(block -> HoneycombItem.getWaxedState(block.getDefaultState()))
                 .map(state -> VerticalSlabBlock.getVertical((SlabBlock) state.getBlock()));
         oxidized.ifPresent(oxBlock -> {
-            SlabRegistryBridge.registerOxidizableBlockPair(original, oxBlock);
+            SlabRegistryBridge.registerOxidizableBlockPair(slab, oxBlock);
             // This is so that the max oxidization gets registered correctly, since it doesn't get the trait naturally
             waxed_oxidized.ifPresent(waxBlock -> SlabRegistryBridge.registerWaxableBlockPair(oxBlock, waxBlock));
         });
-        waxed.ifPresent(block -> SlabRegistryBridge.registerWaxableBlockPair(original, block));
+        waxed.ifPresent(block -> SlabRegistryBridge.registerWaxableBlockPair(slab, block));
     }
 }

@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs;
 
+import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
@@ -39,7 +40,7 @@ public class SlabRegistryBridge {
         seedExistingSlabs();
         BLOCKS.register();
         GENERATED.register();
-        SlabTraits.postInit();
+        LifecycleEvent.SETUP.register(SlabTraits::init);
     }
 
     private static void registerDebug() {
