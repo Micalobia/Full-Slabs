@@ -14,7 +14,8 @@
         "HoneycombItemMixin",
         "OxidizableMixin",
         "ServerPlayerInteractionManagerMixin",
-        "SlabBlockMixin"
+        "SlabBlockMixin",
+        "TagGroupLoaderMixin"
     ],
     "injectors": {
         "defaultRequire": 1
