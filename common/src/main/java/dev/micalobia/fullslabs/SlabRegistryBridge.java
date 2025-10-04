@@ -16,6 +16,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -86,7 +87,7 @@ public class SlabRegistryBridge {
         if (!QUEUED_VERTICALS.add(verticalId)) return;
 
         GENERATED.register(verticalId, () -> {
-            var settings = Settings.copy(slab).registryKey(generateKey(verticalId));
+            var settings = Settings.copy(slab).registryKey(generateKey(verticalId)).lootTable(slab.getLootTableKey());
             return new VerticalSlabBlock(slab, settings);
         });
     }

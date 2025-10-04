@@ -1,6 +1,8 @@
 package dev.micalobia.fullslabs;
 
+import dev.architectury.event.events.common.LootEvent;
 import dev.micalobia.fullslabs.config.Config;
+import dev.micalobia.fullslabs.loot.VerticalLootTable;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
@@ -13,6 +15,7 @@ public final class FullSlabs {
     public static void init() {
         MidnightConfig.init(MODID, Config.class);
         SlabRegistryBridge.init();
+        LootEvent.MODIFY_LOOT_TABLE.register(new VerticalLootTable());
     }
 
     public static Identifier id(String path) {
