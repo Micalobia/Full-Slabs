@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class VerticalSlabBlock extends Block implements Waterloggable {
     private static final Map<SlabBlock, VerticalSlabBlock> MAP = new HashMap<>();
@@ -138,10 +139,21 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return MAP.get(block);
     }
 
+    public static Optional<VerticalSlabBlock> tryGetVertical(Block block) {
+        if (block instanceof SlabBlock slab)
+            return Optional.ofNullable(MAP.get(slab));
+        if (block instanceof VerticalSlabBlock slab) return Optional.of(slab);
+        return Optional.empty();
+    }
+
     public static SlabBlock getRoot(Block block) {
-        if (block instanceof SlabBlock slab && hasVertical(slab)) return slab;
-        if (block instanceof VerticalSlabBlock slab) return slab.parent;
-        throw new IllegalArgumentException("Not a slab or missing vertical!");
+        return tryGetRoot(block).orElseThrow(() -> new IllegalArgumentException("Not a slab or missing vertical!"));
+    }
+
+    public static Optional<SlabBlock> tryGetRoot(Block block) {
+        if (block instanceof SlabBlock slab && hasVertical(slab)) return Optional.of(slab);
+        if (block instanceof VerticalSlabBlock slab) return Optional.of(slab.parent);
+        return Optional.empty();
     }
 
     public static boolean hasVertical(SlabBlock block) {

@@ -69,6 +69,11 @@ public class MixedSlabBlock extends Block implements BlockEntityProvider {
         return true; // Not ideal, mixed into redstone dust to accurately connect
     }
 
+    // This reflects the truth
+    public boolean emitsRedstonePower(BlockView world, BlockPos pos) {
+        return forwardValue(world, pos, ((context, slab, slabState) -> MixedHandlers.getOrThrow(slab).emitsRedstonePower(context, slabState)), Boolean::logicalOr);
+    }
+
     @Override
     protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
         return forwardValue(world, pos, (context, slab, slabState) -> MixedHandlers.getOrThrow(slab).getWeakRedstonePower(context, slabState, world, pos, direction), Math::max);
@@ -82,6 +87,10 @@ public class MixedSlabBlock extends Block implements BlockEntityProvider {
     @Override
     protected boolean hasComparatorOutput(BlockState state) {
         return true; // Not ideal, mixed into comparator block to prevent signal blocking
+    }
+
+    public boolean hasComparatorOutput(BlockView world, BlockPos pos) {
+        return forwardValue(world, pos, ((context, slab, slabState) -> MixedHandlers.getOrThrow(slab).hasComparatorOutput(context, slabState)), Boolean::logicalOr);
     }
 
     @Override

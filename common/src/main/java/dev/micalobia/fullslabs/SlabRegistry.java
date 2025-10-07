@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs;
 
+import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -11,6 +12,7 @@ import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.handlers.OxidizableMixedHandler;
 import dev.micalobia.fullslabs.handlers.VanillaMixedHandler;
 import dev.micalobia.fullslabs.mixin.BlockEntityTypeAccessor;
+import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.AbstractBlock.Settings;
 import net.minecraft.block.Block;
 import net.minecraft.block.Oxidizable;
@@ -22,6 +24,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -66,25 +69,19 @@ public class SlabRegistry {
         BLOCKS.register();
         BLOCK_ENTITIES.register();
         GENERATED.register();
+        LifecycleEvent.SETUP.register(() -> {
+            VerticalSlabBlock.MAP_VIEW.keySet().stream().filter(slab -> POST_INIT.containsKey(slab.getClass())).forEach(slab -> {
+                //noinspection unchecked
+                POST_INIT.get(slab.getClass()).consume(slab, VerticalSlabBlock.getVertical(slab));
+            });
+        });
     }
 
     private static void registerVanilla() {
         registerVertical(SlabBlock.class, VerticalSlabBlock::new);
-        MixedHandlers.register(SlabBlock.class, new VanillaMixedHandler());
-        registerVertical(OxidizableSlabBlock.class, OxidizableVerticalSlabBlock::new, (slab, vertical) -> {
-            Oxidizable.getIncreasedOxidationBlock(slab)
-                    .map((Block block) -> VerticalSlabBlock.getVertical((SlabBlock) block))
-                    .ifPresent(more -> {
-                        registerOxidizableBlockPair(vertical, more);
-                        HoneycombItem.getWaxedState(more.parent.getDefaultState())
-                                .map(waxed -> VerticalSlabBlock.getVertical((SlabBlock) waxed.getBlock()))
-                                .ifPresent(waxed -> registerWaxableBlockPair(more, waxed));
-                    });
-            HoneycombItem.getWaxedState(slab.getDefaultState())
-                    .map(state -> VerticalSlabBlock.getVertical((SlabBlock) state.getBlock()))
-                    .ifPresent(waxed -> registerWaxableBlockPair(vertical, waxed));
-        });
-        MixedHandlers.register(OxidizableSlabBlock.class, new OxidizableMixedHandler());
+        MixedHandlers.register(SlabBlock.class, VanillaMixedHandler.INSTANCE);
+        registerVertical(OxidizableSlabBlock.class, OxidizableVerticalSlabBlock::new, SlabRegistry::registerOxidizableSlabs);
+        MixedHandlers.register(OxidizableSlabBlock.class, OxidizableMixedHandler.INSTANCE);
     }
 
     private static void registerDebug() {
@@ -117,6 +114,38 @@ public class SlabRegistry {
         HoneycombItem.UNWAXED_TO_WAXED_BLOCKS.get().forcePut(unwaxed, waxed);
     }
 
+    // This is probably more aggresive than is required, but this is what finally ended up working
+    private static void registerOxidizableSlabs(SlabBlock slab, VerticalSlabBlock vertical) {
+        var less = Oxidizable.getDecreasedOxidationBlock(slab);
+        var more = Oxidizable.getIncreasedOxidationBlock(slab);
+        var lessWaxed = less.flatMap(Utility::getWaxed);
+        var slabWaxed = Utility.getWaxed(slab);
+        var moreWaxed = more.flatMap(Utility::getWaxed);
+        var lessVertical = less.flatMap(VerticalSlabBlock::tryGetVertical);
+        var moreVertical = more.flatMap(VerticalSlabBlock::tryGetVertical);
+        var lessWaxedVertical = lessWaxed.flatMap(VerticalSlabBlock::tryGetVertical);
+        var slabWaxedVertical = slabWaxed.flatMap(VerticalSlabBlock::tryGetVertical);
+        var moreWaxedVertical = moreWaxed.flatMap(VerticalSlabBlock::tryGetVertical);
+        lessVertical.ifPresent(_less -> {
+            registerOxidizableBlockPair(_less, vertical);
+            lessWaxedVertical.ifPresent(_waxed -> {
+                registerWaxableBlockPair(_less, _waxed);
+                MixedHandlers.register(_waxed, OxidizableMixedHandler.INSTANCE);
+            });
+        });
+        moreVertical.ifPresent(_more -> {
+            registerOxidizableBlockPair(vertical, _more);
+            moreWaxedVertical.ifPresent(_waxed -> {
+                registerWaxableBlockPair(_more, _waxed);
+                MixedHandlers.register(_waxed, OxidizableMixedHandler.INSTANCE);
+            });
+        });
+        slabWaxedVertical.ifPresent(_waxed -> {
+            registerWaxableBlockPair(vertical, _waxed);
+            MixedHandlers.register(_waxed, OxidizableMixedHandler.INSTANCE);
+        });
+    }
+
     public static <S extends SlabBlock, V extends VerticalSlabBlock> void registerVertical(Class<S> slabClass, VerticalFactory<S, V> factory) {
         registerVertical(slabClass, factory, null);
     }
@@ -133,6 +162,7 @@ public class SlabRegistry {
         for (var block : slabs) tryRegisterVertical(Registries.BLOCK.getId(block), block);
     }
 
+    @ApiStatus.Internal
     public static void tryRegisterVertical(Identifier id, Block block) {
         if (!(block instanceof SlabBlock slab)) return;
         var factory = MAPPING.get(slab.getClass());
@@ -147,10 +177,6 @@ public class SlabRegistry {
             //noinspection unchecked
             return factory.create(slab, settings);
         });
-        var listener = POST_INIT.get(slab.getClass());
-        if (listener != null)
-            //noinspection unchecked
-            b.listen(v -> listener.consume(slab, v));
     }
 
     public interface VerticalFactory<S extends SlabBlock, V extends VerticalSlabBlock> {

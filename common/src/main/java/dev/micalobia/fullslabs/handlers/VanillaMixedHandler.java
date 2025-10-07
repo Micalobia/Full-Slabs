@@ -1,10 +1,7 @@
 package dev.micalobia.fullslabs.handlers;
 
 public class VanillaMixedHandler implements MixedHandler {
-    private static final Requirements REQUIREMENTS = Requirements.EMPTY;
+    public static final VanillaMixedHandler INSTANCE = new VanillaMixedHandler();
 
-    @Override
-    public Requirements requirements() {
-        return REQUIREMENTS;
-    }
+    private VanillaMixedHandler() {}
 }

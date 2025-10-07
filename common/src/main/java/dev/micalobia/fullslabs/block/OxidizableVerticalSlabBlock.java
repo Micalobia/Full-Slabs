@@ -1,6 +1,5 @@
 package dev.micalobia.fullslabs.block;
 
-import dev.micalobia.fullslabs.SlabRegistry;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Oxidizable;
 import net.minecraft.block.OxidizableSlabBlock;

@@ -49,7 +49,8 @@ public class SlabBlockMixin {
     private void editReplacementRules(BlockState state, ItemPlacementContext context, CallbackInfoReturnable<Boolean> cir) {
         var self = fullslabs$self();
         if (!VerticalSlabBlock.hasVertical(self)) return;
-        validate: // This keeps the code a bit tidier imo
+        // This keeps the code a bit tidier imo
+        validate:
         {
             var stack = context.getStack();
             var type = state.get(Properties.SLAB_TYPE);

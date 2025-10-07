@@ -1,6 +1,5 @@
 package dev.micalobia.fullslabs.mixin;
 
-import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import dev.micalobia.fullslabs.SlabRegistry;
 import net.minecraft.block.BlockState;
@@ -10,7 +9,6 @@ import net.minecraft.world.explosion.Explosion;
 import net.minecraft.world.explosion.ExplosionBehavior;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(ExplosionBehavior.class)
 public class ExplosionBehaviorMixin {

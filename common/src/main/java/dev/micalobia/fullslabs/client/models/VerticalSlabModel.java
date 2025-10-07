@@ -9,7 +9,6 @@ import dev.micalobia.fullslabs.mixin.client.BakerImplOuterAccessor;
 import dev.micalobia.fullslabs.mixin.client.ModelBakerAccessor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.client.render.model.*;
 import net.minecraft.client.texture.Sprite;

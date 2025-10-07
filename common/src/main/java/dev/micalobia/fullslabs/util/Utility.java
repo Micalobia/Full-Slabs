@@ -12,6 +12,7 @@ import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.HoneycombItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.property.Properties;
@@ -23,6 +24,7 @@ import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public class Utility {
     private static double edgeWidth() {
@@ -221,6 +223,10 @@ public class Utility {
                 state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.AWAY : VerticalType.TOWARDS)
         );
         throw new AssertionError();
+    }
+
+    public static Optional<Block> getWaxed(Block unwaxed) {
+        return Optional.ofNullable(HoneycombItem.UNWAXED_TO_WAXED_BLOCKS.get().get(unwaxed));
     }
 
     public record StatePair(BlockState towards, BlockState away) {}
