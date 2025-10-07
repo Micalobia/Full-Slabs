@@ -1,5 +1,8 @@
 package dev.micalobia.fullslabs.util;
 
+import dev.micalobia.fullslabs.SlabRegistry;
+import dev.micalobia.fullslabs.block.MixedSlabBlock;
+import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.config.Config;
@@ -15,8 +18,8 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.BlockView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -109,8 +112,8 @@ public class Utility {
     public static BlockState getTargetedState(SlabBlock slab, Direction blockFace, Direction target, double cameraYaw) {
         var vertical = VerticalSlabBlock.getVertical(slab);
         return switch (target) {
-            case UP -> slab.getDefaultState().with(SlabBlock.TYPE, SlabType.TOP);
-            case DOWN -> slab.getDefaultState().with(SlabBlock.TYPE, SlabType.BOTTOM);
+            case UP -> slab.getDefaultState().with(Properties.SLAB_TYPE, SlabType.TOP);
+            case DOWN -> slab.getDefaultState().with(Properties.SLAB_TYPE, SlabType.BOTTOM);
             default -> {
                 var faceAxis = blockFace.getAxis();
                 if (faceAxis == target.getAxis())
@@ -169,7 +172,7 @@ public class Utility {
         var block = state.getBlock();
         if (!isSlab(block)) return false;
         if (block instanceof SlabBlock) {
-            var type = state.get(SlabBlock.TYPE);
+            var type = state.get(Properties.SLAB_TYPE);
             if (type == SlabType.DOUBLE) return false;
             var diff = hitPos.y - blockPos.getY();
             return type == SlabType.BOTTOM ? diff >= 0.5d : diff <= 0.5d;
@@ -187,45 +190,39 @@ public class Utility {
         };
     }
 
-    public static Direction getAxisTargetDirection(Vec3d hit, BlockPos pos, Axis axis) {
-        return switch (axis) {
-            case X -> hit.x - pos.getX() > 0.5d ? Direction.EAST : Direction.WEST;
-            case Y -> hit.y - pos.getY() > 0.5d ? Direction.UP : Direction.DOWN;
-            case Z -> hit.z - pos.getZ() > 0.5d ? Direction.SOUTH : Direction.NORTH;
-        };
-    }
-
     public static HitResult crosshair(PlayerEntity player) {
         return player.raycast(player.getBlockInteractionRange(), 1f, false);
     }
 
-    public static @Nullable StatePair breakHalf(BlockState state, BlockPos pos, HitResult crosshair) {
+    public static @Nullable StatePair breakHalf(BlockView view, BlockState state, BlockPos pos, HitResult crosshair) {
+        Objects.requireNonNull(view);
         Objects.requireNonNull(state);
         Objects.requireNonNull(pos);
         Objects.requireNonNull(crosshair);
         var hit = crosshair.getPos();
         var block = state.getBlock();
+        var mixed = SlabRegistry.MIXED_SLAB.get();
+        if (state.isOf(mixed)) {
+            var type = state.get(MixedSlabBlock.TYPE);
+            var towards = type.isAxisTargetTowards(hit, pos);
+            return mixed.act(view, pos, entity -> {
+                return new StatePair(entity.getState(towards), entity.getState(!towards));
+            });
+        }
         if (!isDoubleSlab(state)) return null;
-        if (block instanceof SlabBlock) {
-            var target = getAxisTargetDirection(hit, pos, Axis.Y);
-            var top = target == Direction.UP;
-            return new StatePair(
-                    state.with(Properties.SLAB_TYPE, top ? SlabType.TOP : SlabType.BOTTOM),
-                    state.with(Properties.SLAB_TYPE, top ? SlabType.BOTTOM : SlabType.TOP)
-            );
-        }
-        if (block instanceof VerticalSlabBlock) {
-            var facing = state.get(Properties.HORIZONTAL_FACING);
-            var target = Utility.getAxisTargetDirection(hit, pos, facing.getAxis());
-            var towards = facing == target;
-            return new StatePair(
-                    state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY),
-                    state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.AWAY : VerticalType.TOWARDS)
-            );
-        }
+        var type = MixedType.fromState(state);
+        var towards = type.isAxisTargetTowards(hit, pos);
+        if (block instanceof SlabBlock) return new StatePair(
+                state.with(Properties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM),
+                state.with(Properties.SLAB_TYPE, towards ? SlabType.BOTTOM : SlabType.TOP)
+        );
+        if (block instanceof VerticalSlabBlock) return new StatePair(
+                state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY),
+                state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.AWAY : VerticalType.TOWARDS)
+        );
         throw new AssertionError();
     }
 
-    public record StatePair(BlockState left, BlockState right) {}
+    public record StatePair(BlockState towards, BlockState away) {}
 }
 

@@ -16,6 +16,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.registry.Registries;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
@@ -55,9 +56,9 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedGrouped {
         var type = state.get(VerticalSlabBlock.TYPE);
         var parentState = slab.parent.getDefaultState();
         return switch (type) {
-            case AWAY -> parentState.with(SlabBlock.TYPE, SlabType.BOTTOM);
-            case TOWARDS -> parentState.with(SlabBlock.TYPE, SlabType.TOP);
-            case FULL -> parentState.with(SlabBlock.TYPE, SlabType.DOUBLE);
+            case AWAY -> parentState.with(Properties.SLAB_TYPE, SlabType.BOTTOM);
+            case TOWARDS -> parentState.with(Properties.SLAB_TYPE, SlabType.TOP);
+            case FULL -> parentState.with(Properties.SLAB_TYPE, SlabType.DOUBLE);
         };
     }
 

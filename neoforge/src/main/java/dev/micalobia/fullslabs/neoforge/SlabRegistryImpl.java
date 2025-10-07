@@ -1,7 +1,7 @@
 package dev.micalobia.fullslabs.neoforge;
 
-public class SlabRegistryBridgeImpl {
-    private SlabRegistryBridgeImpl() {
+public class SlabRegistryImpl {
+    private SlabRegistryImpl() {
     }
 
     public static void initSlabListener() {

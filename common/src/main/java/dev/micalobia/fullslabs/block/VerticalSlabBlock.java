@@ -1,34 +1,28 @@
 package dev.micalobia.fullslabs.block;
 
-import dev.micalobia.fullslabs.SlabTraits;
-import dev.micalobia.fullslabs.traits.SlabTrait;
-import dev.micalobia.fullslabs.util.Result;
+import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.*;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.pathing.NavigationType;
-import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
 import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.tick.ScheduledTickView;
@@ -36,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class VerticalSlabBlock extends Block implements Waterloggable {
@@ -50,7 +43,6 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     public static final VoxelShape WEST_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 8f, 16f, 16f);
     public static final Map<SlabBlock, VerticalSlabBlock> MAP_VIEW = Collections.unmodifiableMap(MAP);
 
-
     public final SlabBlock parent;
 
     public VerticalSlabBlock(SlabBlock block, Settings settings) {
@@ -59,57 +51,6 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         MAP.put(block, this);
         this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.WEST).with(TYPE, VerticalType.TOWARDS).with(WATERLOGGED, false));
     }
-
-    // Trait stuff
-
-    public void initializeTraits() {
-        this.traits().forEach(trait -> trait.init(this));
-    }
-
-    private List<SlabTrait> traits() {
-        return SlabTraits.traits(this.parent);
-    }
-
-    @Override
-    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        this.traits().stream().filter(SlabTrait::requiresRandomTicks).forEach(trait -> trait.randomTick(state, world, pos, random));
-    }
-
-    @Override
-    protected boolean hasRandomTicks(BlockState state) {
-        return SlabTraits.requirements(this.parent).randomTicks();
-    }
-
-    @Override
-    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getStrongRedstonePower(state, world, pos, direction)).max().orElse(0);
-    }
-
-    @Override
-    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return this.traits().stream().filter(SlabTrait::requiresRedstonePower).mapToInt(trait -> trait.getWeakRedstonePower(state, world, pos, direction)).max().orElse(0);
-    }
-
-    @Override
-    protected boolean emitsRedstonePower(BlockState state) {
-        return SlabTraits.requirements(this.parent).redstonePower();
-    }
-
-    // The following methods don't use Traits because as far as I can tell they don't have to, but that can change
-    // There might be more methods I need to do this to, we'll squash stuff like that if it comes up
-
-    @Override
-    protected void onProjectileHit(World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {
-        var parentState = this.parent.getDefaultState();
-        parentState.onProjectileHit(world, parentState, hit, projectile);
-    }
-
-    @Override
-    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
-        this.parent.onSteppedOn(world, pos, this.parent.getDefaultState(), entity);
-    }
-
-    // Standard slab stuff
 
     @Override
     protected boolean hasSidedTransparency(BlockState state) {
@@ -139,8 +80,10 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     protected boolean canReplace(BlockState state, ItemPlacementContext context) {
         var stack = context.getStack();
         var type = state.get(TYPE);
-        if (type == VerticalType.FULL || !stack.isOf(this.parent.asItem()))
-            return false;
+        if (type == VerticalType.FULL) return false;
+        var block = ((BlockItem) stack.getItem()).getBlock();
+        if (!(block instanceof SlabBlock)) return false;
+        if (block != this.parent && !(MixedHandlers.hasHandler(block) && MixedHandlers.hasHandler(this))) return false;
         if (context.canReplaceExisting())
             return Utility.isInsideSlab(state, context.getBlockPos(), context.getHitPos());
         return true;
@@ -185,8 +128,8 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     }
 
     @Override
-    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
-        return new ItemStack(this.parent.asItem());
+    public Item asItem() {
+        return parent.asItem();
     }
 
     // Static helpers and such
@@ -195,34 +138,14 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return MAP.get(block);
     }
 
-    public static boolean hasVertical(SlabBlock block) {
-        return MAP.containsKey(block);
+    public static SlabBlock getRoot(Block block) {
+        if (block instanceof SlabBlock slab && hasVertical(slab)) return slab;
+        if (block instanceof VerticalSlabBlock slab) return slab.parent;
+        throw new IllegalArgumentException("Not a slab or missing vertical!");
     }
 
-    public static Result isValid(SlabBlock block) {
-        if (block instanceof BlockEntityProvider) return Result.fail("Block has a block entity");
-        var stateManager = block.getStateManager();
-        var properties = stateManager.getProperties();
-        if (properties.size() != 2) return Result.fail("Unexpected property count");
-        if (!properties.contains(SlabBlock.TYPE)) return Result.fail("Missing `type` property");
-        if (!properties.contains(Properties.WATERLOGGED)) return Result.fail("Missing `waterlogged` property");
-        var states = stateManager.getStates();
-        if (states.size() != 6) return Result.fail("Unexpected number of states");
-        int luminance = -1;
-        var requirements = SlabTraits.requirements(block);
-        var requiresRandomTicks = requirements.randomTicks();
-        var requiresRedstonePower = requirements.redstonePower();
-        for (var state : states) {
-            if (state.getRenderType() != BlockRenderType.MODEL) return Result.fail("Non-model render type");
-            if (state.hasRandomTicks() && !requiresRandomTicks)
-                return Result.fail("Has random ticks");
-            if (state.emitsRedstonePower() && !requiresRedstonePower) return Result.fail("Emits redstone power");
-            if (state.hasComparatorOutput()) return Result.fail("Has comparator output");
-            int l = state.getLuminance();
-            if (luminance < 0) luminance = l;
-            else if (l != luminance) return Result.fail("Inconsistent luminance across states");
-        }
-        return Result.success();
+    public static boolean hasVertical(SlabBlock block) {
+        return MAP.containsKey(block);
     }
 
     public enum VerticalType implements StringIdentifiable {

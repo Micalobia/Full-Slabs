@@ -14,7 +14,7 @@ public final class FullSlabs {
 
     public static void init() {
         MidnightConfig.init(MODID, Config.class);
-        SlabRegistryBridge.init();
+        SlabRegistry.init();
         LootEvent.MODIFY_LOOT_TABLE.register(new VerticalLootTable());
     }
 

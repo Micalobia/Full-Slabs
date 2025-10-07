@@ -11,13 +11,20 @@
         "client.WorldRendererMixin"
     ],
     "mixins": [
+        "BlockEntityTypeAccessor",
+        "BlockItemMixin",
+        "ExplosionBehaviorMixin",
         "HoneycombItemMixin",
         "OxidizableMixin",
         "ServerPlayerInteractionManagerMixin",
         "SlabBlockMixin",
-        "TagGroupLoaderMixin"
+        "TagGroupLoaderMixin",
+        "WorldChunkMixin"
     ],
     "injectors": {
         "defaultRequire": 1
+    },
+    "mixinextras": {
+        "minVersion": "0.5.0"
     }
 }
