@@ -8,6 +8,7 @@
         "client.BlockRenderManagerMixin",
         "client.ClientPlayerInteractionManagerMixin",
         "client.ModelBakerAccessor",
+        "client.ParticleManagerMixin",
         "client.WorldRendererMixin"
     ],
     "mixins": [
@@ -16,11 +17,13 @@
         "BlockItemMixin",
         "ExplosionBehaviorMixin",
         "HoneycombItemMixin",
+        "LivingEntityMixin",
         "OxidizableMixin",
         "ServerPlayerInteractionManagerMixin",
         "SlabBlockMixin",
         "TagGroupLoaderMixin",
-        "WorldChunkMixin"
+        "WorldChunkMixin",
+        "EntityMixin"
     ],
     "injectors": {
         "defaultRequire": 1

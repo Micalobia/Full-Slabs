@@ -1,6 +1,9 @@
 package dev.micalobia.fullslabs.mixin.client;
 
+import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.micalobia.fullslabs.SlabRegistry;
+import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.util.Utility;
 import dev.micalobia.fullslabs.util.Utility.StatePair;
 import net.minecraft.block.BlockState;
@@ -31,6 +34,17 @@ public class ClientPlayerInteractionManagerMixin {
         if (pair == null) return;
         var ret = fullslabs$breakSlab(pair, pos, world);
         cir.setReturnValue(ret);
+    }
+
+    @ModifyReceiver(method = "updateBlockBreakingProgress", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getSoundGroup()Lnet/minecraft/sound/BlockSoundGroup;"))
+    private BlockState mixedSlabBreakingSound(BlockState state, @Local(argsOnly = true) BlockPos pos) {
+        var mixed = SlabRegistry.MIXED_SLAB.get();
+        if (!state.isOf(mixed)) return state;
+        var world = Objects.requireNonNull(this.client.world);
+        var entity = world.getBlockEntity(pos);
+        if (!(entity instanceof MixedSlabBlockEntity mixedEntity)) return state;
+        var crosshair = Objects.requireNonNull(this.client.crosshairTarget);
+        return mixedEntity.getState(mixed.towards(state, crosshair.getPos(), pos));
     }
 
     @Unique
