@@ -12,10 +12,8 @@
         "client.WorldRendererMixin"
     ],
     "mixins": [
-        "AxeItemAccessor",
         "BlockEntityTypeAccessor",
         "BlockItemMixin",
-        "ExplosionBehaviorMixin",
         "HoneycombItemMixin",
         "LivingEntityMixin",
         "OxidizableMixin",

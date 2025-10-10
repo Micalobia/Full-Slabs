@@ -6,6 +6,8 @@
     "client": [
     ],
     "mixins": [
+        "AxeItemMixin", "BlockItemMixin", "EntityMixin", "LivingEntityMixin", "MixedSlabBlockMixin",
+        "ServerPlayerInteractionManagerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

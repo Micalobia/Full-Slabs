@@ -1,11 +1,13 @@
 package dev.micalobia.fullslabs.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.micalobia.fullslabs.ducks.ServerPlayerInteractionManagerDuck;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.BlockState;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Hand;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Final;
@@ -17,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerInteractionManager.class)
-public class ServerPlayerInteractionManagerMixin {
+public abstract class ServerPlayerInteractionManagerMixin implements ServerPlayerInteractionManagerDuck {
 
     @Shadow
     protected ServerWorld world;
@@ -49,6 +51,8 @@ public class ServerPlayerInteractionManagerMixin {
             hand.postMine(this.world, pair.towards(), pos, this.player);
             if (changed && effectiveTool)
                 broken.afterBreak(this.world, this.player, pos, pair.towards(), null, handCopy);
+            if (hand.isEmpty() && !handCopy.isEmpty())
+                fullslabs$onPlayerDestroyItem(this.player, handCopy, Hand.MAIN_HAND);
         }
     }
 }

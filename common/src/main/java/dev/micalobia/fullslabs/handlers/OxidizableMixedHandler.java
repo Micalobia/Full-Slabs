@@ -1,13 +1,13 @@
 package dev.micalobia.fullslabs.handlers;
 
-import dev.micalobia.fullslabs.mixin.AxeItemAccessor;
+import dev.micalobia.fullslabs.ducks.AxeItemDuck;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Oxidizable;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.AxeItem;
 import net.minecraft.item.HoneycombItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
@@ -32,8 +32,8 @@ public class OxidizableMixedHandler implements MixedHandler {
     @Override
     public ActionResult onUseWithItem(Context context, ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         var item = stack.getItem();
-        if (item instanceof AxeItem axe) {
-            var stripped = ((AxeItemAccessor) axe).fullslabs$tryStrip(world, pos, player, state);
+        if (item instanceof AxeItemDuck axe) {
+            var stripped = axe.fullslabs$strippedState(world, pos, player, state, new ItemUsageContext(player, hand, hit));
             if (stripped.isPresent()) {
                 var success = context.replaceBlock(stripped.get().getBlock());
                 return success ? ActionResult.SUCCESS : ActionResult.PASS;

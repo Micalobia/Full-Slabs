@@ -5,6 +5,7 @@ import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
+import dev.micalobia.fullslabs.ducks.BlockItemDuck;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.SlabType;
 import net.minecraft.item.BlockItem;
@@ -18,9 +19,14 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BlockItem.class)
-public class BlockItemMixin {
+public class BlockItemMixin implements BlockItemDuck {
     @Unique
     private BlockState fullslabs$placed;
+
+    @Override
+    public BlockState fullslabs$getPlaced() {
+        return fullslabs$placed;
+    }
 
     @Inject(method = "place(Lnet/minecraft/item/ItemPlacementContext;Lnet/minecraft/block/BlockState;)Z", at = @At("HEAD"))
     private void skimMixedSlabs(ItemPlacementContext context, BlockState state, CallbackInfoReturnable<Boolean> cir) {
@@ -42,12 +48,5 @@ public class BlockItemMixin {
                 towardsCurrent ? currentBlock : placedBlock,
                 towardsCurrent ? placedBlock : currentBlock
         );
-    }
-
-    @ModifyArg(method = "place(Lnet/minecraft/item/ItemPlacementContext;)Lnet/minecraft/util/ActionResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/BlockItem;getPlaceSound(Lnet/minecraft/block/BlockState;)Lnet/minecraft/sound/SoundEvent;"))
-    private BlockState mixedSlabPlacementSounds(BlockState state, @Local(argsOnly = true) ItemPlacementContext context) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!(state.isOf(mixed))) return state;
-        return this.fullslabs$placed == null ? state : this.fullslabs$placed;
     }
 }

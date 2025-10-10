@@ -1,4 +1,4 @@
-package dev.micalobia.fullslabs.mixin;
+package dev.micalobia.fullslabs.fabric.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import dev.micalobia.fullslabs.SlabRegistry;
@@ -19,8 +19,9 @@ public class ExplosionBehaviorMixin {
         return mixedBlock.act(world, pos, mixed -> {
             var towards = mixed.getTowardsState();
             var away = mixed.getAwayState();
-            var towardsStronger = towards.getBlock().getBlastResistance() > away.getBlock().getBlastResistance();
-            return towardsStronger ? towards : away;
+            var towardsResistance = towards.getBlock().getBlastResistance();
+            var awayResistance = away.getBlock().getBlastResistance();
+            return towardsResistance > awayResistance ? towards : away;
         });
     }
 }
