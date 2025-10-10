@@ -28,7 +28,8 @@
         ]
     },
     "mixins": [
-        "fullslabs.mixins.json"
+        "fullslabs.mixins.json",
+        "fullslabs.fabric.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=0.17.2",

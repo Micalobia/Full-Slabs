@@ -36,3 +36,6 @@ side = "BOTH"
 
 [[mixins]]
 config = "fullslabs.mixins.json"
+
+[[mixins]]
+config = "fullslabs.neoforge.mixins.json"

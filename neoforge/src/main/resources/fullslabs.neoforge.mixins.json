@@ -1,0 +1,16 @@
+{
+    "required": true,
+    "package": "dev.micalobia.fullslabs.neoforge.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "minVersion": "0.8",
+    "client": [
+    ],
+    "mixins": [
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "mixinextras": {
+        "minVersion": "0.5.0"
+    }
+}
