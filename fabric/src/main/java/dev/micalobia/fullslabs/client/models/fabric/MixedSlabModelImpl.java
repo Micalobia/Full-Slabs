@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs.client.models.fabric;
 
-import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
+import dev.micalobia.fullslabs.FullSlabs;
+import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity.ModelContext;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBlockStateModel;
 import net.minecraft.block.BlockState;
@@ -28,10 +29,13 @@ public class MixedSlabModelImpl {
 
         @Override
         public void emitQuads(QuadEmitter emitter, BlockRenderView view, BlockPos pos, BlockState state, Random random, Predicate<@Nullable Direction> cullTest) {
-            var entity = view.getBlockEntity(pos);
-            if (!(entity instanceof MixedSlabBlockEntity mixed)) return;
-            var towards = mixed.getTowardsState();
-            var away = mixed.getAwayState();
+            var data = view.getBlockEntityRenderData(pos);
+            if (!(data instanceof ModelContext ctx)) {
+                FullSlabs.LOGGER.warn("Mixed slab didn't send model data!");
+                return;
+            }
+            var towards = ctx.towardsState();
+            var away = ctx.awayState();
             var client = MinecraftClient.getInstance();
             var manager = client.getBlockRenderManager();
             var towardsModel = manager.getModel(towards);

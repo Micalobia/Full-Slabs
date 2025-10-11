@@ -8,7 +8,7 @@
     ],
     "mixins": [
         "AxeItemMixin", "BlockItemMixin", "EntityMixin", "ExplosionBehaviorMixin", "LivingEntityMixin",
-        "ServerPlayerInteractionManagerMixin"
+        "MixedSlabBlockEntityMixin", "ServerPlayerInteractionManagerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

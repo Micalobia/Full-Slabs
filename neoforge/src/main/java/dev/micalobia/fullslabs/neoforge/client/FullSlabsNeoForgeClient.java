@@ -1,9 +1,12 @@
 package dev.micalobia.fullslabs.neoforge.client;
 
 import dev.micalobia.fullslabs.FullSlabs;
+import dev.micalobia.fullslabs.SlabRegistry;
+import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import dev.micalobia.fullslabs.client.FullSlabsClient;
+import dev.micalobia.fullslabs.client.models.MixedSlabModel;
 import dev.micalobia.fullslabs.client.models.VerticalSlabModel;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -30,20 +33,27 @@ public final class FullSlabsNeoForgeClient {
     }
 
     @SubscribeEvent
-    public static void registerVerticalStandalones(ModelEvent.RegisterStandalone event) {
+    public static void registerStandalones(ModelEvent.RegisterStandalone event) {
         keys.clear();
         for (var vertical : VerticalSlabBlock.MAP_VIEW.values()) {
             for (var state : vertical.getStateManager().getStates()) {
                 var id = VerticalSlabModel.makeModelId(state);
                 var key = new StandaloneModelKey<BlockStateModel>(id::toString);
-                event.register(key, new VerticalWrapper(state));
+                event.register(key, new UnbakedGroupedWrapper(VerticalSlabModel.INSTANCE, state));
                 keys.put(state, key);
             }
+        }
+        var mixed = SlabRegistry.MIXED_SLAB.get();
+        for (var state : mixed.getStateManager().getStates()) {
+            var id = FullSlabs.id("block/mixed_slab/%s".formatted(state.get(MixedSlabBlock.TYPE).asString()));
+            var key = new StandaloneModelKey<BlockStateModel>(id::toString);
+            event.register(key, new UnbakedGroupedWrapper(MixedSlabModel.INSTANCE, state));
+            keys.put(state, key);
         }
     }
 
     @SubscribeEvent
-    public static void mapVerticalStandalones(ModelEvent.ModifyBakingResult event) {
+    public static void mapStandalones(ModelEvent.ModifyBakingResult event) {
         var result = event.getBakingResult();
         var standaloneModels = result.standaloneModels();
         var blockStateModels = event.getBakingResult().blockStateModels();
@@ -54,6 +64,12 @@ public final class FullSlabsNeoForgeClient {
                 blockStateModels.put(state, model);
             }
         }
+        var mixed = SlabRegistry.MIXED_SLAB.get();
+        for (var state : mixed.getStateManager().getStates()) {
+            var key = keys.get(state);
+            var model = standaloneModels.get(key);
+            blockStateModels.put(state, model);
+        }
     }
 
     @SubscribeEvent
@@ -63,22 +79,24 @@ public final class FullSlabsNeoForgeClient {
         BlockFaceOverlay.renderFaceOverlay(event.getCamera());
     }
 
-    public static class VerticalWrapper implements UnbakedStandaloneModel<BlockStateModel> {
+    public static class UnbakedGroupedWrapper implements UnbakedStandaloneModel<BlockStateModel> {
+        private final BlockStateModel.UnbakedGrouped model;
         private final BlockState state;
 
-        public VerticalWrapper(BlockState state) {
+        public UnbakedGroupedWrapper(BlockStateModel.UnbakedGrouped model, BlockState state) {
+            this.model = model;
             this.state = state;
         }
 
         @Override
         @NotNull
         public BlockStateModel bake(@NotNull Baker baker) {
-            return VerticalSlabModel.INSTANCE.bake(state, baker);
+            return this.model.bake(state, baker);
         }
 
         @Override
         public void resolve(Resolver resolver) {
-            VerticalSlabModel.INSTANCE.resolve(resolver);
+            this.model.resolve(resolver);
         }
     }
 }

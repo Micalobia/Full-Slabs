@@ -4,6 +4,7 @@ import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
+import dev.micalobia.fullslabs.ducks.MixedSlabBlockEntityDuck;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -72,11 +73,11 @@ public class MixedSlabBlockEntity extends BlockEntity {
         return towards ? this.towards : this.away;
     }
 
-    public boolean setTowards(SlabBlock slab) {
+    public boolean setTowards(Block slab) {
         return setBlock(slab, true);
     }
 
-    public boolean setAway(SlabBlock slab) {
+    public boolean setAway(Block slab) {
         return setBlock(slab, false);
     }
 
@@ -86,6 +87,7 @@ public class MixedSlabBlockEntity extends BlockEntity {
         if (towards) this.towards = slab;
         else this.away = slab;
         markDirty();
+        syncModel();
         return true;
     }
 
@@ -109,7 +111,6 @@ public class MixedSlabBlockEntity extends BlockEntity {
     protected void writeData(WriteView view) {
         view.putString("towards_id", Registries.BLOCK.getId(towards).toString());
         view.putString("away_id", Registries.BLOCK.getId(away).toString());
-        sync();
     }
 
     @Override
@@ -138,14 +139,21 @@ public class MixedSlabBlockEntity extends BlockEntity {
         return createNbt(registries);
     }
 
-    @Override
-    public boolean onSyncedBlockEvent(int type, int data) {
-        markDirty();
-        return true;
+    public void syncModel() {
+        ((MixedSlabBlockEntityDuck) this).syncPlatformModel();
     }
 
-    private void sync() {
-        if (this.world != null)
-            this.world.addSyncedBlockEvent(this.pos, getCachedState().getBlock(), 0, 0);
+    public record ModelContext(int towards, int away) {
+        public static ModelContext fromStates(BlockState towards, BlockState away) {
+            return new ModelContext(Block.getRawIdFromState(towards), Block.getRawIdFromState(away));
+        }
+
+        public BlockState towardsState() {
+            return Block.getStateFromRawId(this.towards);
+        }
+
+        public BlockState awayState() {
+            return Block.getStateFromRawId(this.away);
+        }
     }
 }

@@ -185,12 +185,6 @@ public class MixedSlabBlock extends Block implements BlockEntityProvider {
         });
     }
 
-    @Override
-    protected boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
-        world.updateListeners(pos, state, state, Block.REDRAW_ON_MAIN_THREAD);
-        return true;
-    }
-
     private void forward(BlockView world, BlockPos pos, ForwardConsumer consumer) {
         this.<Void>forwardValue(world, pos, (context, block, state) -> {
             consumer.apply(context, block, state);
