@@ -8,6 +8,7 @@ import net.neoforged.neoforge.model.data.ModelProperty;
 @Mod(FullSlabs.MODID)
 public final class FullSlabsNeoForge {
     public static final ModelProperty<MixedSlabBlockEntity.ModelContext> MIXED_CONTEXT_MODEL_PROPERTY = new ModelProperty<>();
+
     public FullSlabsNeoForge() {
         FullSlabs.init();
     }

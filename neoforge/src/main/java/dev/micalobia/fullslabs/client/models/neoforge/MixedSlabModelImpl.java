@@ -1,7 +1,6 @@
 package dev.micalobia.fullslabs.client.models.neoforge;
 
 import dev.micalobia.fullslabs.FullSlabs;
-import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity.ModelContext;
 import dev.micalobia.fullslabs.neoforge.FullSlabsNeoForge;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -13,7 +12,6 @@ import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockRenderView;
-import net.neoforged.neoforge.model.data.ModelProperty;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;

@@ -1,6 +1,5 @@
 package dev.micalobia.fullslabs.mixin;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
@@ -15,7 +14,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(BlockItem.class)

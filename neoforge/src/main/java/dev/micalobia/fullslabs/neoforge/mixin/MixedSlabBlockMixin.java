@@ -3,7 +3,6 @@ package dev.micalobia.fullslabs.neoforge.mixin;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.BlockSoundGroup;

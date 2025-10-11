@@ -8,15 +8,13 @@ import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.ducks.EntityDuck;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(Entity.class)
-public class EntityMixin  implements EntityDuck {
+public class EntityMixin implements EntityDuck {
     @Definition(id = "playStepSounds", method = "Lnet/minecraft/entity/Entity;playStepSounds(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)V")
     @Expression("?.playStepSounds(?, ?)")
     @ModifyArg(method = "stepOnBlock", at = @At("MIXINEXTRAS:EXPRESSION"))

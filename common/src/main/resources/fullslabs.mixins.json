@@ -14,14 +14,14 @@
     "mixins": [
         "BlockEntityTypeAccessor",
         "BlockItemMixin",
+        "EntityMixin",
         "HoneycombItemMixin",
         "LivingEntityMixin",
         "OxidizableMixin",
         "ServerPlayerInteractionManagerMixin",
         "SlabBlockMixin",
         "TagGroupLoaderMixin",
-        "WorldChunkMixin",
-        "EntityMixin"
+        "WorldChunkMixin"
     ],
     "injectors": {
         "defaultRequire": 1
