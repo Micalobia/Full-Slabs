@@ -27,10 +27,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class Utility {
-    private static double edgeWidth() {
-        return Config.edgeWidth;
-    }
-
     public static Vec3d getLookingAtPosition(Direction blockFace, Direction playerFacing, BlockPos pos, Vec3d hit) {
         var x = hit.x - pos.getX();
         var y = hit.y - pos.getY();
@@ -83,7 +79,7 @@ public class Utility {
         var offH = Math.abs(posH - 0.5d);
         var offV = Math.abs(posV - 0.5d);
 
-        if (offH > edgeWidth() || offV > edgeWidth()) {
+        if (offH > Constants.EDGE_WIDTH || offV > Constants.EDGE_WIDTH) {
             if (blockFace.getAxis().isVertical()) {
                 if (offH > offV) {
                     return posH < 0.5d ? playerFacing.rotateYCounterclockwise() : playerFacing.rotateYClockwise();

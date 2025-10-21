@@ -13,8 +13,6 @@ public class Config extends MidnightConfig {
     public static final String GENERAL = "general";
     @Entry(category = GENERAL, idMode = 1, width = 1000)
     public static List<Identifier> tiltedSlabs = Lists.newArrayList(Identifier.ofVanilla("smooth_stone_slab"));
-    @Entry(category = GENERAL, min = 0d, max = 0.5d)
-    public static double edgeWidth = 0.25d;
 
     public static boolean isTilted(Block block) {
         var id = Registries.BLOCK.getId(block);

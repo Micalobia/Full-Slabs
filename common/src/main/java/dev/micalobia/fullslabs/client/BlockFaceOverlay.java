@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs.client;
 
 import dev.micalobia.fullslabs.config.Config;
+import dev.micalobia.fullslabs.util.Constants;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -162,7 +163,7 @@ public final class BlockFaceOverlay {
     }
 
     private static List<Vec2f> clipPolygonByAt(List<Vec2f> poly, @Nullable BlockFaceOverlay.FaceRegion at) {
-        final var inner = (float) Config.edgeWidth;
+        final var inner = (float) Constants.EDGE_WIDTH;
 
         return switch (at) {
             case CENTER -> {
@@ -267,7 +268,7 @@ public final class BlockFaceOverlay {
         var v = half + c.dotProduct(frame.v());
         var du = Math.abs(u - half);
         var dv = Math.abs(v - half);
-        var inner = Config.edgeWidth;
+        var inner = Constants.EDGE_WIDTH;
 
         if (du <= inner && dv <= inner) return FaceRegion.CENTER;
         if (du > dv) return u < half ? FaceRegion.LEFT : FaceRegion.RIGHT;
