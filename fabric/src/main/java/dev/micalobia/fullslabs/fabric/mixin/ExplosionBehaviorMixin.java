@@ -2,6 +2,7 @@ package dev.micalobia.fullslabs.fabric.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import dev.micalobia.fullslabs.SlabRegistry;
+import dev.micalobia.fullslabs.handlers.MixedContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
@@ -16,12 +17,10 @@ public class ExplosionBehaviorMixin {
     private BlockState mixedSlabBlastResistence(BlockState state, Explosion explosion, BlockView world, BlockPos pos) {
         var mixedBlock = SlabRegistry.MIXED_SLAB.get();
         if (!state.isOf(mixedBlock)) return state;
-        return mixedBlock.act(world, pos, mixed -> {
-            var towards = mixed.getTowardsState();
-            var away = mixed.getAwayState();
-            var towardsResistance = towards.getBlock().getBlastResistance();
-            var awayResistance = away.getBlock().getBlastResistance();
-            return towardsResistance > awayResistance ? towards : away;
+        return mixedBlock.forwardSidesValue(world, pos, MixedContext.Sided::state, (t, a) -> {
+            var towards = t.getBlock().getBlastResistance();
+            var away = a.getBlock().getBlastResistance();
+            return towards > away ? t : a;
         });
     }
 }

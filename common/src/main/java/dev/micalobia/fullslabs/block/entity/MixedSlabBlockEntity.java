@@ -23,6 +23,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,8 +57,12 @@ public class MixedSlabBlockEntity extends BlockEntity {
     }
 
     public BlockState getTargetedState(BlockHitResult crosshair) {
+        return getTargetedState(crosshair.getBlockPos(), crosshair.getPos());
+    }
+
+    public BlockState getTargetedState(BlockPos pos, Vec3d hit) {
         var type = getCachedState().get(MixedSlabBlock.TYPE);
-        var towards = type.isAxisTargetTowards(crosshair.getPos(), crosshair.getBlockPos());
+        var towards = type.isAxisTargetTowards(hit, pos);
         return type.state(towards ? this.towards : this.away, towards);
     }
 

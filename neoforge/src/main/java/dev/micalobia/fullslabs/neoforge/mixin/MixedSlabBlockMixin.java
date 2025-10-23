@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs.neoforge.mixin;
 
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
+import dev.micalobia.fullslabs.ducks.MixedSlabBlockDuck;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -15,7 +16,6 @@ import net.minecraft.world.explosion.Explosion;
 import net.neoforged.neoforge.common.extensions.IBlockExtension;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -23,25 +23,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Mixin(MixedSlabBlock.class)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class MixedSlabBlockMixin implements IBlockExtension {
-    @Shadow
-    public abstract <T> T act(BlockView world, BlockPos pos, MixedSlabBlock.MixedFunction<T> function);
-
+public abstract class MixedSlabBlockMixin implements IBlockExtension, MixedSlabBlockDuck {
     @Override
     public float getExplosionResistance(BlockState state, BlockView world, BlockPos pos, Explosion explosion) {
-        return this.act(world, pos, mixed -> {
-            var towards = mixed.getTowardsState();
-            var away = mixed.getAwayState();
-            var towardsResistance = towards.getExplosionResistance(world, pos, explosion);
-            var awayResistance = away.getExplosionResistance(world, pos, explosion);
-            return Math.max(towardsResistance, awayResistance);
-        });
+        return this.forwardSidesValue(world, pos, ctx -> ctx.state().getExplosionResistance(world, pos, explosion), Math::max);
     }
 
     @Override
     public BlockSoundGroup getSoundType(BlockState state, WorldView world, BlockPos pos, @Nullable Entity entity) {
         if (!(entity instanceof PlayerEntity && MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult crosshair))
             return IBlockExtension.super.getSoundType(state, world, pos, entity);
-        return this.act(world, pos, mixed -> mixed.getTargetedState(crosshair).getSoundType(world, pos, entity));
+        return this.forwardSideValue(world, pos, crosshair.getPos(), ctx -> ctx.state().getSoundType(world, pos, entity));
     }
 }

@@ -1,13 +1,11 @@
 package dev.micalobia.fullslabs.fabric.client;
 
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import dev.micalobia.fullslabs.client.FullSlabsClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.registry.Registries;
@@ -23,10 +21,6 @@ public final class FullSlabsFabricClient implements ClientModInitializer {
             if (!(block instanceof VerticalSlabBlock slab)) return;
             renderLayer(slab);
         }));
-        WorldRenderEvents.BLOCK_OUTLINE.register((ctx, boc) -> {
-            BlockFaceOverlay.renderFaceOverlay(ctx.camera());
-            return true;
-        });
     }
 
     private static void renderLayer(VerticalSlabBlock slab) {

@@ -73,10 +73,10 @@ public final class FullSlabsNeoForgeClient {
     }
 
     @SubscribeEvent
-    public static void renderOverlay(RenderLevelStageEvent.AfterBlockEntities event) {
+    public static void renderOverlay(RenderLevelStageEvent.AfterEntities event) {
         var client = MinecraftClient.getInstance();
         if (client.options.hudHidden) return;
-        BlockFaceOverlay.renderFaceOverlay(event.getCamera());
+        BlockFaceOverlay.renderFaceOverlay(event.getLevelRenderState());
     }
 
     public static class UnbakedGroupedWrapper implements UnbakedStandaloneModel<BlockStateModel> {

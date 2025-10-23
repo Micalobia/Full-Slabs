@@ -15,8 +15,8 @@ public class LivingEntityMixin implements LivingEntityDuck {
         var mixed = SlabRegistry.MIXED_SLAB.get();
         if (!(state.isOf(mixed))) return state;
         var self = (LivingEntity) (Object) this;
-        var blockEntity = self.getWorld().getBlockEntity(landedPosition);
+        var blockEntity = self.getEntityWorld().getBlockEntity(landedPosition);
         if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity)) return state;
-        return mixedEntity.getState(mixed.towards(state, self.getPos(), landedPosition));
+        return mixedEntity.getState(mixed.towards(state, self.getEntityPos(), landedPosition));
     }
 }

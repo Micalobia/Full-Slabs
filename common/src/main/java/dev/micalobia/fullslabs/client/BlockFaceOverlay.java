@@ -1,15 +1,14 @@
 package dev.micalobia.fullslabs.client;
 
-import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.util.Constants;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.state.WorldRenderState;
 import net.minecraft.client.util.BufferAllocator;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,28 +33,26 @@ public final class BlockFaceOverlay {
     private BlockFaceOverlay() {
     }
 
-    public static void renderFaceOverlay(Camera camera) {
+    public static void renderFaceOverlay(WorldRenderState renderState) {
         var mc = MinecraftClient.getInstance();
         if (!(mc.crosshairTarget instanceof BlockHitResult bhr)) return;
         var player = mc.player;
         if (player == null) return;
         if (!player.isHolding(Utility::isSlabWithVertical)) return;
-
         var world = mc.world;
         if (world == null) return;
         var pos = bhr.getBlockPos();
         var face = bhr.getSide();
         var hit = bhr.getPos();
         var state = world.getBlockState(pos);
-        renderFaceOverlay(player, camera, world, pos, state, face, hit);
+        renderFaceOverlay(player, renderState.cameraRenderState.pos, world, pos, state, face, hit);
     }
 
-    private static void renderFaceOverlay(PlayerEntity player, Camera camera, BlockRenderView world, BlockPos pos, BlockState state, Direction face, Vec3d hit) {
+    private static void renderFaceOverlay(PlayerEntity player, Vec3d camera, BlockRenderView world, BlockPos pos, BlockState state, Direction face, Vec3d hit) {
         final var frame = FaceFrame.create(face);
         final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(frame, pos, hit);
         final var outline = state.getOutlineShape(world, pos, ShapeContext.of(player));
         if (outline.isEmpty()) return;
-        final var cam = camera.getPos();
         var nHit = hit.subtract(pos.getX(), pos.getY(), pos.getZ());
         var map = new LinkedHashMap<RenderLayer, BufferAllocator>();
         map.put(QUAD_LAYER, new BufferAllocator(1024));
@@ -63,7 +60,7 @@ public final class BlockFaceOverlay {
         var immediate = VertexConsumerProvider.immediate(map, new BufferAllocator(1024));
         var stack = new MatrixStack();
         stack.push();
-        stack.translate(pos.getX() + 0.5d - cam.x, pos.getY() + 0.5d - cam.y, pos.getZ() + 0.5d - cam.z);
+        stack.translate(pos.getX() + 0.5d - camera.x, pos.getY() + 0.5d - camera.y, pos.getZ() + 0.5d - camera.z);
         switch (face) {
             case DOWN -> stack.translate(0, nHit.y, 0);
             case UP -> stack.translate(0, nHit.y - 1, 0);

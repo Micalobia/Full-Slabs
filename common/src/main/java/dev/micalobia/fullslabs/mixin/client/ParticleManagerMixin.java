@@ -21,15 +21,15 @@ public class ParticleManagerMixin {
     @Shadow
     protected ClientWorld world;
 
-    @Definition(id = "getBlockState", method = "Lnet/minecraft/client/world/ClientWorld;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;")
-    @Expression("? = ?.getBlockState(?)")
-    @ModifyVariable(method = "addBlockBreakingParticles", at = @At(value = "MIXINEXTRAS:EXPRESSION", shift = At.Shift.AFTER))
-    private BlockState mixedSlabBreakingParticles(BlockState state, @Local(argsOnly = true) BlockPos pos) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!state.isOf(mixed)) return state;
-        if (!(this.world.getBlockEntity(pos) instanceof MixedSlabBlockEntity entity)) return state;
-        var client = MinecraftClient.getInstance();
-        if (!(client.crosshairTarget instanceof BlockHitResult crosshair)) return state;
-        return entity.getTargetedState(crosshair);
-    }
+//    @Definition(id = "getBlockState", method = "Lnet/minecraft/client/world/ClientWorld;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;")
+//    @Expression("? = ?.getBlockState(?)")
+//    @ModifyVariable(method = "addBlockBreakingParticles", at = @At(value = "MIXINEXTRAS:EXPRESSION", shift = At.Shift.AFTER))
+//    private BlockState mixedSlabBreakingParticles(BlockState state, @Local(argsOnly = true) BlockPos pos) {
+//        var mixed = SlabRegistry.MIXED_SLAB.get();
+//        if (!state.isOf(mixed)) return state;
+//        if (!(this.world.getBlockEntity(pos) instanceof MixedSlabBlockEntity entity)) return state;
+//        var client = MinecraftClient.getInstance();
+//        if (!(client.crosshairTarget instanceof BlockHitResult crosshair)) return state;
+//        return entity.getTargetedState(crosshair);
+//    }
 }

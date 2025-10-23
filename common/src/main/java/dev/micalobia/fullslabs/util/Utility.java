@@ -5,7 +5,7 @@ import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
-import dev.micalobia.fullslabs.config.Config;
+import dev.micalobia.fullslabs.handlers.MixedContext;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
@@ -203,7 +203,8 @@ public class Utility {
         if (state.isOf(mixed)) {
             var type = state.get(MixedSlabBlock.TYPE);
             var towards = type.isAxisTargetTowards(hit, pos);
-            return mixed.act(view, pos, entity -> {
+            return mixed.forward(view, pos, ctx -> {
+                var entity = ctx.blockEntityOrThrow();
                 return new StatePair(entity.getState(towards), entity.getState(!towards));
             });
         }
@@ -219,6 +220,17 @@ public class Utility {
                 state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.AWAY : VerticalType.TOWARDS)
         );
         throw new AssertionError();
+    }
+
+    public static BlockState targetedHalf(BlockView world, BlockState state, BlockPos pos, Vec3d hit) {
+        var mixed = SlabRegistry.MIXED_SLAB.get();
+        if (!(Utility.isDoubleSlab(state) || state.isOf(mixed))) return state;
+        var block = state.getBlock();
+        if (block == mixed) return mixed.forwardSideValue(world, pos, hit, MixedContext.Sided::state);
+        var towards = MixedType.fromState(state).isAxisTargetTowards(hit, pos);
+        if (block instanceof SlabBlock)
+            return state.with(Properties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
+        return state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY);
     }
 
     public static Optional<Block> getWaxed(Block unwaxed) {

@@ -24,14 +24,16 @@ public class OxidizableMixedHandler implements MixedHandler {
     private OxidizableMixedHandler() {}
 
     @Override
-    public void randomTick(Context context, BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    public void randomTick(MixedContext.Sided context, ServerWorld world, BlockPos pos, Random random) {
+        var state = context.state();
         if (!(state.getBlock() instanceof Oxidizable oxidizable)) return;
         oxidizable.tryDegrade(state, world, pos, random).ifPresent(s -> context.replaceBlock(s.getBlock()));
     }
 
     @Override
-    public ActionResult onUseWithItem(Context context, ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public ActionResult onUseWithItem(MixedContext.Sided context, ItemStack stack, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         var item = stack.getItem();
+        var state = context.state();
         if (item instanceof AxeItemDuck axe) {
             var stripped = axe.fullslabs$strippedState(world, pos, player, state, new ItemUsageContext(player, hand, hit));
             if (stripped.isPresent()) {
@@ -45,7 +47,7 @@ public class OxidizableMixedHandler implements MixedHandler {
     }
 
     // See HoneycombItem.useOnBlock
-    private ActionResult useWaxOnBlock(Context context, ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player) {
+    private ActionResult useWaxOnBlock(MixedContext context, ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player) {
         return HoneycombItem.getWaxedState(state).<ActionResult>map(s -> {
             var success = context.replaceBlock(s.getBlock()); // This is the main difference
             if (!success) return ActionResult.PASS;

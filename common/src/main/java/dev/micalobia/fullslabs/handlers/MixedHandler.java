@@ -2,9 +2,6 @@ package dev.micalobia.fullslabs.handlers;
 
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
-import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -27,69 +24,63 @@ public interface MixedHandler {
         return SlabRegistry.MIXED_SLAB.get();
     }
 
-    default void randomTick(Context context, BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    default void randomTick(MixedContext.Sided context, ServerWorld world, BlockPos pos, Random random) {
     }
 
-    default boolean emitsRedstonePower(Context context, BlockState state) {
+    default boolean emitsRedstonePower(MixedContext.Sided context) {
         return false;
     }
 
-    default int getStrongRedstonePower(Context context, BlockState state, BlockView world, BlockPos pos, Direction direction) {
+    default int getStrongRedstonePower(MixedContext.Sided context, BlockView world, BlockPos pos, Direction direction) {
         return 0;
     }
 
-    default int getWeakRedstonePower(Context context, BlockState state, BlockView world, BlockPos pos, Direction direction) {
+    default int getWeakRedstonePower(MixedContext.Sided context, BlockView world, BlockPos pos, Direction direction) {
         return 0;
     }
 
-    default boolean hasComparatorOutput(Context context, BlockState state) {
+    default boolean hasComparatorOutput(MixedContext.Sided context) {
         return false;
     }
 
-    default int getComparatorOutput(Context context, BlockState state, World world, BlockPos pos) {
+    default int getComparatorOutput(MixedContext.Sided context, World world, BlockPos pos, Direction direction) {
         return 0;
     }
 
-    default void onProjectileHit(Context context, World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {
+    default void onProjectileHit(MixedContext.Sided context, World world, BlockHitResult hit, ProjectileEntity projectile) {
     }
 
-    default void onSteppedOn(Context context, World world, BlockPos pos, BlockState state, Entity entity) {
+    default void onSteppedOn(MixedContext.Sided context, World world, BlockPos pos, Entity entity) {
     }
 
-    default void onLandedUpon(Context context, World world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
+    default void onLandedUpon(MixedContext.Sided context, World world, BlockPos pos, Entity entity, double fallDistance) {
         entity.handleFallDamage(fallDistance, 1.0F, entity.getDamageSources().fall());
     }
 
-    default void onEntityLand(Context context, BlockView world, Entity entity) {
+    default void onEntityLand(MixedContext.Sided context, BlockView world, Entity entity) {
         entity.setVelocity(entity.getVelocity().multiply(1d, 0d, 1d));
     }
 
-    default void precipitationTick(Context context, BlockState state, World world, BlockPos pos, Biome.Precipitation precipitation) {
+    default void precipitationTick(MixedContext.Sided context, World world, BlockPos pos, Biome.Precipitation precipitation) {
     }
 
-    default void onBlockBreakStart(Context context, BlockState state, World world, BlockPos pos, PlayerEntity player) {
+    default void onBlockBreakStart(MixedContext.Sided context, World world, BlockPos pos, PlayerEntity player) {
     }
 
-    default void afterBreak(Context context, World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+    default void afterBreak(MixedContext.Sided context, World world, PlayerEntity player, BlockPos pos, @Nullable BlockEntity blockEntity, ItemStack tool) {
     }
 
-    default void scheduledTick(Context context, BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    default void scheduledTick(MixedContext.Sided context, ServerWorld world, BlockPos pos, Random random) {
     }
 
-    default void onStacksDropped(Context context, BlockState state, ServerWorld world, BlockPos pos, ItemStack tool, boolean dropExperience) {
+    default void onStacksDropped(MixedContext.Sided context, ServerWorld world, BlockPos pos, ItemStack tool, boolean dropExperience) {
     }
 
-    default ActionResult onUse(Context context, BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+    default ActionResult onUse(MixedContext.Sided context, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         return ActionResult.PASS;
     }
 
-    default ActionResult onUseWithItem(Context context, ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    default ActionResult onUseWithItem(MixedContext.Sided context, ItemStack stack, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         return ActionResult.PASS;
-    }
-
-    record Context(MixedSlabBlockEntity blockEntity, boolean towards) {
-        public boolean replaceBlock(Block block) {
-            return blockEntity.setBlock(block, towards);
-        }
     }
 }
