@@ -4,8 +4,11 @@
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [
-        "client.BakerImplOuterAccessor", "client.BlockRenderManagerMixin", "client.ClientPlayerInteractionManagerMixin",
-        "client.ClientWorldMixin", "client.ModelBakerAccessor", "client.ParticleManagerMixin",
+        "client.BakerImplOuterAccessor",
+        "client.BlockRenderManagerMixin",
+        "client.ClientPlayerInteractionManagerMixin",
+        "client.ModelBakerAccessor",
+        "client.ParticleManagerMixin",
         "client.WorldRendererMixin"
     ],
     "mixins": [

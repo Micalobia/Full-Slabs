@@ -3,9 +3,7 @@
     "package": "dev.micalobia.fullslabs.fabric.mixin",
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
-    "client": [
-        "client.ClientPlayerInteractionManagerMixin", "client.WorldRendererMixin"
-    ],
+    "client": ["client.ClientPlayerInteractionManagerMixin", "client.ClientWorldMixin", "client.WorldRendererMixin"],
     "mixins": [
         "AxeItemMixin",
         "BlockItemMixin",
@@ -13,7 +11,7 @@
         "ExplosionBehaviorMixin",
         "LivingEntityMixin",
         "MixedSlabBlockEntityMixin",
-        "ServerPlayerInteractionManagerMixin"
+        "ServerPlayerInteractionManagerMixin", "ServerPlayNetworkHandlerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

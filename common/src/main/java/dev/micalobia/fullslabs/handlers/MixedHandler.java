@@ -39,14 +39,6 @@ public interface MixedHandler {
         return 0;
     }
 
-    default boolean hasComparatorOutput(MixedContext.Sided context) {
-        return false;
-    }
-
-    default int getComparatorOutput(MixedContext.Sided context, World world, BlockPos pos, Direction direction) {
-        return 0;
-    }
-
     default void onProjectileHit(MixedContext.Sided context, World world, BlockHitResult hit, ProjectileEntity projectile) {
     }
 

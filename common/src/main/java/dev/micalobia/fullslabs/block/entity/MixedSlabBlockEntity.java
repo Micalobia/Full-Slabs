@@ -4,7 +4,6 @@ import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import dev.micalobia.fullslabs.ducks.MixedSlabBlockEntityDuck;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -26,6 +25,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class MixedSlabBlockEntity extends BlockEntity {
     // I'd like to find a better way to do what this does
@@ -145,7 +146,7 @@ public class MixedSlabBlockEntity extends BlockEntity {
     }
 
     public void syncModel() {
-        ((MixedSlabBlockEntityDuck) this).syncPlatformModel();
+        Objects.requireNonNull(this.world).addSyncedBlockEvent(this.pos, this.getCachedState().getBlock(), 0, 0);
     }
 
     public record ModelContext(int towards, int away) {

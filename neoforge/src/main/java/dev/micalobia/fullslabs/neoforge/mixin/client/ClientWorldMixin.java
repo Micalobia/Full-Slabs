@@ -1,4 +1,4 @@
-package dev.micalobia.fullslabs.mixin.client;
+package dev.micalobia.fullslabs.neoforge.mixin.client;
 
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
@@ -26,7 +26,7 @@ public abstract class ClientWorldMixin implements BlockView {
 
     @Definition(id = "getBlockState", method = "Lnet/minecraft/client/world/ClientWorld;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;")
     @Expression("? = ?.getBlockState(?)")
-    @ModifyVariable(method = "spawnBlockBreakingParticle", at = @At(value = "MIXINEXTRAS:EXPRESSION", shift = At.Shift.AFTER))
+    @ModifyVariable(method = "addBreakingBlockEffect", at = @At(value = "MIXINEXTRAS:EXPRESSION", shift = At.Shift.AFTER))
     private BlockState mixedSlabBreakingParticles(BlockState state, @Local(argsOnly = true) BlockPos pos) {
         var mixed = SlabRegistry.MIXED_SLAB.get();
         if (!state.isOf(mixed)) return state;

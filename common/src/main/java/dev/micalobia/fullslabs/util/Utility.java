@@ -10,6 +10,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.enums.SlabType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.HoneycombItem;
@@ -190,6 +191,12 @@ public class Utility {
 
     public static HitResult crosshair(PlayerEntity player) {
         return player.raycast(player.getBlockInteractionRange(), 1f, false);
+    }
+
+    public static HitResult crosshair(@Nullable PlayerEntity player, boolean isClient) {
+        if (isClient) return MinecraftClient.getInstance().crosshairTarget;
+        if (player == null) throw new IllegalArgumentException("Player is null on serverside!");
+        return crosshair(player);
     }
 
     public static @Nullable StatePair breakHalf(BlockView view, BlockState state, BlockPos pos, HitResult crosshair) {

@@ -15,8 +15,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.enums.SlabType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
@@ -29,7 +27,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -38,14 +35,18 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.biome.Biome;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiFunction;
 
 public final class MixedSlabBlock extends Block implements BlockEntityProvider, MixedSlabBlockDuck {
     public static final EnumProperty<MixedType> TYPE = EnumProperty.of("type", MixedType.class);
+
+    @ApiStatus.Internal
+    @Nullable
+    public static PlayerEntity cachedPlayer = null;
 
     public MixedSlabBlock(Settings settings) {
         super(settings);
@@ -84,21 +85,6 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
     @Override
     protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
         return forwardSidesValue(world, pos, ctx -> ctx.handler().getStrongRedstonePower(ctx, world, pos, direction), Math::max);
-    }
-
-    @Override
-    protected boolean hasComparatorOutput(BlockState state) {
-        return true; // Not ideal, mixed into comparator block to prevent signal blocking
-    }
-
-    // This reflects the truth
-    public boolean hasComparatorOutput(BlockView world, BlockPos pos) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().hasComparatorOutput(ctx), Boolean::logicalOr);
-    }
-
-    @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().getComparatorOutput(ctx, world, pos, direction), Math::max);
     }
 
     @Override
@@ -165,34 +151,27 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
 
     @Override
     protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
-        return forward(world, pos, ctx -> {
-            var client = MinecraftClient.getInstance();
-            var crosshair = Objects.requireNonNull((BlockHitResult) client.crosshairTarget);
-            var mixed = ctx.blockEntityOrThrow();
-            var picked = mixed.getTargetedSlab(crosshair);
-            return new ItemStack(picked.asItem());
-        });
+        var crosshair = Utility.crosshair(cachedPlayer, world.isClient());
+        return forwardSideValue(world, pos, crosshair.getPos(), ctx -> new ItemStack(ctx.block()));
     }
 
     @Override
     protected float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        HitResult hit;
-        if (world instanceof ClientWorld) hit = Objects.requireNonNull(MinecraftClient.getInstance().crosshairTarget);
-        else hit = Utility.crosshair(player);
-        if (!(hit instanceof BlockHitResult bhr)) return 0f;
-        return forward(world, pos, ctx -> {
-            var mixed = ctx.blockEntityOrThrow();
-            var targeted = mixed.getTargetedState(bhr);
-            return targeted.calcBlockBreakingDelta(player, world, pos);
-        });
+        var hit = Utility.crosshair(player, ((World) world).isClient());
+        return forwardSideValue(world, pos, hit.getPos(), ctx -> ctx.state().calcBlockBreakingDelta(player, world, pos));
+    }
+
+    @Override
+    protected boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
+        if (type != 0) return false;
+        world.updateListeners(pos, state, state, Block.NOTIFY_ALL_AND_REDRAW | Block.FORCE_STATE);
+        return true;
     }
 
     public <T> T forward(BlockView world, BlockPos pos, MixedFunction<T, MixedContext.Sideless> function) {
         return function.apply(MixedContext.create(world, pos));
     }
 
-
-    @SuppressWarnings("UnusedReturnValue") // This is an API function just as much as it is internal
     public <T> T forwardSideValue(BlockView world, BlockPos pos, boolean towards, MixedFunction<T, MixedContext.Sided> function) {
         return forward(world, pos, ctx -> function.apply(ctx.sided(towards)));
     }
