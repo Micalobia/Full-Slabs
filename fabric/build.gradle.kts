@@ -45,6 +45,9 @@ dependencies {
     add("modImplementation", "com.terraformersmc:modmenu:${rootProject.findProperty("modmenu_version")}")
     add("modImplementation", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-fabric")
 
+    // Compat
+    add("modCompileOnly", "maven.modrinth:blockus:${rootProject.findProperty("blockus_version")}")
+
     // common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     (add("common", project(mapOf("path" to ":common", "configuration" to "namedElements"))) as ProjectDependency)
         .isTransitive = false
