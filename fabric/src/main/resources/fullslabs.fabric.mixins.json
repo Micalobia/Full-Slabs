@@ -11,7 +11,9 @@
         "ExplosionBehaviorMixin",
         "LivingEntityMixin",
         "MixedSlabBlockEntityMixin",
-        "ServerPlayerInteractionManagerMixin", "ServerPlayNetworkHandlerMixin"
+        "RedstoneWireBlockMixin",
+        "ServerPlayerInteractionManagerMixin",
+        "ServerPlayNetworkHandlerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

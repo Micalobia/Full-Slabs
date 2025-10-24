@@ -8,7 +8,6 @@
         "client.BlockRenderManagerMixin",
         "client.ClientPlayerInteractionManagerMixin",
         "client.ModelBakerAccessor",
-        "client.ParticleManagerMixin",
         "client.WorldRendererMixin"
     ],
     "mixins": [

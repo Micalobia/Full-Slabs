@@ -2,7 +2,6 @@ package dev.micalobia.fullslabs.neoforge.mixin;
 
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity.ModelContext;
-import dev.micalobia.fullslabs.ducks.MixedSlabBlockEntityDuck;
 import dev.micalobia.fullslabs.neoforge.FullSlabsNeoForge;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -22,8 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Debug(export = true)
 @Mixin(MixedSlabBlockEntity.class)
 @MethodsReturnNonnullByDefault
-@SuppressWarnings("AddedMixinMembersNamePattern") // This is our class
-public abstract class MixedSlabBlockEntityMixin extends BlockEntity implements MixedSlabBlockEntityDuck {
+public abstract class MixedSlabBlockEntityMixin extends BlockEntity {
     @Shadow
     public abstract BlockState getTowardsState();
 
@@ -42,17 +40,12 @@ public abstract class MixedSlabBlockEntityMixin extends BlockEntity implements M
         return ModelData.of(FullSlabsNeoForge.MIXED_CONTEXT_MODEL_PROPERTY, context);
     }
 
-    @Override
-    public void syncPlatformModel() {
+    @Inject(method = "readData", at = @At("TAIL"))
+    private void updateModelAfterRead(ReadView view, CallbackInfo ci) {
         this.requestModelDataUpdate();
         if (this.world == null) return;
         var state = getCachedState();
         this.world.updateListeners(this.pos, state, state, Block.NOTIFY_ALL | Block.FORCE_STATE);
-    }
-
-    @Inject(method = "readData", at = @At("TAIL"))
-    private void updateModelAfterRead(ReadView view, CallbackInfo ci) {
-        this.syncPlatformModel();
     }
 }
 
