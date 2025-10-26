@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs.client;
 
+import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.util.Constants;
 import dev.micalobia.fullslabs.util.SlabPlacement;
 import dev.micalobia.fullslabs.util.Utility;
@@ -35,6 +36,7 @@ public final class BlockFaceOverlay {
     }
 
     public static void renderFaceOverlay(WorldRenderState renderState) {
+        if (!Controls.isOverlayActive()) return;
         var mc = MinecraftClient.getInstance();
         if (!(mc.crosshairTarget instanceof BlockHitResult bhr)) return;
         var player = mc.player;
@@ -52,7 +54,8 @@ public final class BlockFaceOverlay {
     private static void renderFaceOverlay(PlayerEntity player, Vec3d camera, BlockRenderView world, BlockPos pos, BlockState state, Direction face, Vec3d hit) {
         final var frame = FaceFrame.create(face);
         final var playerFacing = player.getHorizontalFacing();
-        final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(face, playerFacing, pos, hit);
+        final var mode = Controls.getPlacementMode(player.getUuid());
+        final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(mode, face, playerFacing, pos, hit);
         final var outline = state.getOutlineShape(world, pos, ShapeContext.of(player));
         if (outline.isEmpty()) return;
         var nHit = hit.subtract(pos.getX(), pos.getY(), pos.getZ());
@@ -77,7 +80,7 @@ public final class BlockFaceOverlay {
             var rect = faceRectOnBox(face, minX, minY, minZ, maxX, maxY, maxZ, nHit.x, nHit.y, nHit.z);
             if (rect == null || rect.isDegenerate()) return;
             var poly = rectToCenteredPolygon(rect);
-            poly = clipPolygonByAt(poly, at);
+            poly = clipPolygonByAt(mode, poly, at);
             var size = poly.size();
             for (var i = 0; i < size; ++i) {
                 var a = poly.get(i);
@@ -161,43 +164,60 @@ public final class BlockFaceOverlay {
         return out;
     }
 
-    private static List<Vec2f> clipPolygonByAt(List<Vec2f> poly, @Nullable BlockFaceOverlay.FaceRegion at) {
+    private static List<Vec2f> clipPolygonByAt(SlabPlacement.Mode mode, List<Vec2f> poly, @Nullable BlockFaceOverlay.FaceRegion at) {
         final var inner = (float) Constants.EDGE_WIDTH;
 
-        return switch (at) {
-            case CENTER -> {
-                poly = clipHalfPlane(poly, 1, 0, -inner);
-                poly = clipHalfPlane(poly, -1, 0, -inner);
-                poly = clipHalfPlane(poly, 0, 1, -inner);
-                poly = clipHalfPlane(poly, 0, -1, -inner);
-                yield poly;
-            }
-            case LEFT -> {
-                poly = clipHalfPlane(poly, 1, 0, inner);
-                poly = clipHalfPlane(poly, 1, -1, 0);
-                poly = clipHalfPlane(poly, 1, 1, 0);
-                yield poly;
-            }
-            case RIGHT -> {
-                poly = clipHalfPlane(poly, -1, 0, inner);
-                poly = clipHalfPlane(poly, -1, 1, 0);
-                poly = clipHalfPlane(poly, -1, -1, 0);
-                yield poly;
-            }
-            case TOP -> {
-                poly = clipHalfPlane(poly, 0, -1, inner);
-                poly = clipHalfPlane(poly, 1, -1, 0);
-                poly = clipHalfPlane(poly, -1, -1, 0);
-                yield poly;
-            }
-            case BOTTOM -> {
-                poly = clipHalfPlane(poly, 0, 1, inner);
-                poly = clipHalfPlane(poly, -1, 1, 0);
-                poly = clipHalfPlane(poly, 1, 1, 0);
-                yield poly;
-            }
-            case null -> poly;
+        return switch (mode) {
+            case HYBRID -> switch (at) {
+                case CENTER -> {
+                    poly = clipHalfPlane(poly, 1, 0, -inner);
+                    poly = clipHalfPlane(poly, -1, 0, -inner);
+                    poly = clipHalfPlane(poly, 0, 1, -inner);
+                    poly = clipHalfPlane(poly, 0, -1, -inner);
+                    yield poly;
+                }
+                case LEFT -> {
+                    poly = clipHalfPlane(poly, 1, 0, inner);
+                    poly = clipHalfPlane(poly, 1, -1, 0);
+                    poly = clipHalfPlane(poly, 1, 1, 0);
+                    yield poly;
+                }
+                case RIGHT -> {
+                    poly = clipHalfPlane(poly, -1, 0, inner);
+                    poly = clipHalfPlane(poly, -1, 1, 0);
+                    poly = clipHalfPlane(poly, -1, -1, 0);
+                    yield poly;
+                }
+                case TOP -> {
+                    poly = clipHalfPlane(poly, 0, -1, inner);
+                    poly = clipHalfPlane(poly, 1, -1, 0);
+                    poly = clipHalfPlane(poly, -1, -1, 0);
+                    yield poly;
+                }
+                case BOTTOM -> {
+                    poly = clipHalfPlane(poly, 0, 1, inner);
+                    poly = clipHalfPlane(poly, -1, 1, 0);
+                    poly = clipHalfPlane(poly, 1, 1, 0);
+                    yield poly;
+                }
+                case null -> poly;
+            };
+            case VANILLA -> switch (at) {
+                case TOP -> clipHalfPlane(poly, 0, -1, 0);
+                case BOTTOM -> clipHalfPlane(poly, 0, 1, 0);
+                case null -> poly;
+                default -> poly;
+            };
+            case VERTICAL -> switch (at) {
+                case TOP -> clipHalfPlane(poly, 0, -1, 0);
+                case BOTTOM -> clipHalfPlane(poly, 0, 1, 0);
+                case LEFT -> clipHalfPlane(poly, 1, 0, 0);
+                case RIGHT -> clipHalfPlane(poly, -1, 0, 0);
+                case null -> poly;
+                default -> poly;
+            };
         };
+
     }
 
     private static void emitFill(MatrixStack.Entry entry, VertexConsumerProvider provider, FaceFrame frame, List<Vec2f> centeredPoly) {
@@ -260,8 +280,8 @@ public final class BlockFaceOverlay {
         return out;
     }
 
-    private static FaceRegion getRegion(Direction face, Direction playerFacing, BlockPos pos, Vec3d hit) {
-        var targeted = SlabPlacement.getTargetedDirection(face, playerFacing, pos, hit);
+    private static FaceRegion getRegion(SlabPlacement.Mode mode, Direction face, Direction playerFacing, BlockPos pos, Vec3d hit) {
+        var targeted = SlabPlacement.getTargetedDirection(mode, face, playerFacing, pos, hit);
         if (targeted == face.getOpposite()) return FaceRegion.CENTER;
         if (targeted == Direction.UP) return FaceRegion.TOP;
         if (targeted == Direction.DOWN) return FaceRegion.BOTTOM;
@@ -470,7 +490,7 @@ public final class BlockFaceOverlay {
         }
     }
 
-    // The names of these values isn't as meaningful as you might think
+    // The names of these values aren't as meaningful as you might think
     private enum FaceRegion {
         CENTER,
         LEFT,

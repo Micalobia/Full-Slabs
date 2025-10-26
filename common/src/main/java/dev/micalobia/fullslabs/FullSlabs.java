@@ -3,6 +3,7 @@ package dev.micalobia.fullslabs;
 import dev.architectury.event.events.common.LootEvent;
 import dev.micalobia.fullslabs.compat.FullSlabsCompat;
 import dev.micalobia.fullslabs.config.Config;
+import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.loot.VerticalLootTable;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.util.Identifier;
@@ -18,6 +19,7 @@ public final class FullSlabs {
         FullSlabsCompat.init();
         SlabRegistry.init();
         LootEvent.MODIFY_LOOT_TABLE.register(new VerticalLootTable());
+        Controls.serverInit();
     }
 
     public static Identifier id(String path) {

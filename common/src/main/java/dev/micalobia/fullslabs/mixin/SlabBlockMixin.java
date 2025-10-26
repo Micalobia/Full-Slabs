@@ -5,6 +5,7 @@ import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
+import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.util.SlabPlacement;
 import dev.micalobia.fullslabs.util.Utility;
@@ -15,6 +16,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,7 +43,13 @@ public class SlabBlockMixin {
         } else {
             var face = ctx.getSide();
             var fluidState = world.getFluidState(pos);
-            var target = SlabPlacement.getTargetedDirection(face, ctx.getHorizontalPlayerFacing(), pos, ctx.getHitPos());
+            var player = ctx.getPlayer();
+            final Direction target;
+            if (player == null) target = Direction.DOWN;
+            else {
+                var mode = Controls.getPlacementMode(ctx.getPlayer().getUuid());
+                target = SlabPlacement.getTargetedDirection(mode, face, ctx.getHorizontalPlayerFacing(), pos, ctx.getHitPos());
+            }
             cir.setReturnValue(Utility.getTargetedState(fullslabs$self(), face, target, ctx.getPlayerYaw()).with(Properties.WATERLOGGED, fluidState.isOf(Fluids.WATER)));
         }
     }
