@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs.client;
 
 import dev.micalobia.fullslabs.util.Constants;
+import dev.micalobia.fullslabs.util.SlabPlacement;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -50,7 +51,8 @@ public final class BlockFaceOverlay {
 
     private static void renderFaceOverlay(PlayerEntity player, Vec3d camera, BlockRenderView world, BlockPos pos, BlockState state, Direction face, Vec3d hit) {
         final var frame = FaceFrame.create(face);
-        final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(frame, pos, hit);
+        final var playerFacing = player.getHorizontalFacing();
+        final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(face, playerFacing, pos, hit);
         final var outline = state.getOutlineShape(world, pos, ShapeContext.of(player));
         if (outline.isEmpty()) return;
         var nHit = hit.subtract(pos.getX(), pos.getY(), pos.getZ());
@@ -258,18 +260,30 @@ public final class BlockFaceOverlay {
         return out;
     }
 
-    private static FaceRegion getRegion(FaceFrame frame, BlockPos pos, Vec3d hit) {
-        final var half = 0.5d;
-        var c = hit.subtract(pos.getX(), pos.getY(), pos.getZ()).subtract(half);
-        var u = half + c.dotProduct(frame.u());
-        var v = half + c.dotProduct(frame.v());
-        var du = Math.abs(u - half);
-        var dv = Math.abs(v - half);
-        var inner = Constants.EDGE_WIDTH;
-
-        if (du <= inner && dv <= inner) return FaceRegion.CENTER;
-        if (du > dv) return u < half ? FaceRegion.LEFT : FaceRegion.RIGHT;
-        return v < half ? FaceRegion.BOTTOM : FaceRegion.TOP;
+    private static FaceRegion getRegion(Direction face, Direction playerFacing, BlockPos pos, Vec3d hit) {
+        var targeted = SlabPlacement.getTargetedDirection(face, playerFacing, pos, hit);
+        if (targeted == face.getOpposite()) return FaceRegion.CENTER;
+        if (targeted == Direction.UP) return FaceRegion.TOP;
+        if (targeted == Direction.DOWN) return FaceRegion.BOTTOM;
+        return switch (face) {
+            case NORTH, SOUTH -> switch (targeted) {
+                case EAST -> FaceRegion.RIGHT;
+                case WEST -> FaceRegion.LEFT;
+                default -> FaceRegion.CENTER;
+            };
+            case EAST, WEST -> switch (targeted) {
+                case NORTH -> FaceRegion.LEFT;
+                case SOUTH -> FaceRegion.RIGHT;
+                default -> FaceRegion.CENTER;
+            };
+            case UP, DOWN -> switch (targeted) {
+                case EAST -> FaceRegion.RIGHT;
+                case WEST -> FaceRegion.LEFT;
+                case NORTH -> FaceRegion.BOTTOM;
+                case SOUTH -> FaceRegion.TOP;
+                default -> FaceRegion.CENTER;
+            };
+        };
     }
 
     private static void addEdgeQuantized(Map<EdgeKey, UVSeg> map, Vec2f a, Vec2f b) {

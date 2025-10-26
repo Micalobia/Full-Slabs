@@ -6,6 +6,7 @@ import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
+import dev.micalobia.fullslabs.util.SlabPlacement;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SlabBlock;
@@ -40,7 +41,7 @@ public class SlabBlockMixin {
         } else {
             var face = ctx.getSide();
             var fluidState = world.getFluidState(pos);
-            var target = Utility.getTargetedDirection(face, ctx.getHorizontalPlayerFacing(), pos, ctx.getHitPos());
+            var target = SlabPlacement.getTargetedDirection(face, ctx.getHorizontalPlayerFacing(), pos, ctx.getHitPos());
             cir.setReturnValue(Utility.getTargetedState(fullslabs$self(), face, target, ctx.getPlayerYaw()).with(Properties.WATERLOGGED, fluidState.isOf(Fluids.WATER)));
         }
     }
