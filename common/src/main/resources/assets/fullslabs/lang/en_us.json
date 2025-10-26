@@ -1,5 +1,8 @@
 {
     "fullslabs.midnightconfig.title": "Full Slabs",
     "fullslabs.midnightconfig.tiltedSlabs": "Tilted Slabs",
-    "fullslabs.midnightconfig.category.general": "General"
+    "fullslabs.midnightconfig.category.general": "General",
+    "key.category.fullslabs.main": "Full Slabs",
+    "key.fullslabs.cycle_mode": "Cycle Placement Mode",
+    "key.fullslabs.toggle_overlay": "Toggle Overlay"
 }
