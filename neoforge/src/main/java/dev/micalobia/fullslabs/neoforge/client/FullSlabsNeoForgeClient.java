@@ -15,6 +15,7 @@ import net.minecraft.client.render.model.BlockStateModel;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
@@ -28,7 +29,8 @@ import java.util.Map;
 public final class FullSlabsNeoForgeClient {
     public static final Map<BlockState, StandaloneModelKey<BlockStateModel>> keys = new HashMap<>();
 
-    public static void init() {
+    @SubscribeEvent
+    public static void onClientSetup(FMLClientSetupEvent event) {
         FullSlabsClient.init();
     }
 
