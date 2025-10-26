@@ -1,6 +1,7 @@
 {
     "required": true,
     "package": "dev.micalobia.fullslabs.mixin",
+    "plugin": "dev.micalobia.fullslabs.FullSlabsMixinPlugin",
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [

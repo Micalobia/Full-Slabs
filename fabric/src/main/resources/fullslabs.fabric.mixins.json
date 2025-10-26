@@ -1,9 +1,14 @@
 {
     "required": true,
     "package": "dev.micalobia.fullslabs.fabric.mixin",
+    "plugin": "dev.micalobia.fullslabs.FullSlabsMixinPlugin",
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
-    "client": ["client.ClientPlayerInteractionManagerMixin", "client.ClientWorldMixin", "client.WorldRendererMixin"],
+    "client": [
+        "client.ClientPlayerInteractionManagerMixin",
+        "client.ClientWorldMixin",
+        "client.WorldRendererMixin"
+    ],
     "mixins": [
         "AxeItemMixin",
         "BlockItemMixin",
@@ -13,7 +18,15 @@
         "MixedSlabBlockEntityMixin",
         "RedstoneWireBlockMixin",
         "ServerPlayerInteractionManagerMixin",
-        "ServerPlayNetworkHandlerMixin"
+        "ServerPlayNetworkHandlerMixin",
+        "compat.mo_glass.GlassSlabBlockMixin",
+        "compat.mo_glass.GlassStairsBlockMixin",
+        "compat.mo_glass.StainedGlassBlockMixin",
+        "compat.mo_glass.StainedGlassSlabBlockMixin",
+        "compat.mo_glass.StainedGlassStairsBlockMixin",
+        "compat.mo_glass.TintedGlassSlabBlockMixin",
+        "compat.mo_glass.TintedGlassStairsBlockMixin",
+        "compat.mo_glass.TransparentBlockMixin"
     ],
     "injectors": {
         "defaultRequire": 1

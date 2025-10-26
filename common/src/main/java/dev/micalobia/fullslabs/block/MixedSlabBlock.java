@@ -264,7 +264,8 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
         }
 
         public BlockState state(SlabBlock slab, boolean towards) {
-            if (!VerticalSlabBlock.hasVertical(slab)) throw new IllegalArgumentException("slab");
+            if (!VerticalSlabBlock.hasVertical(slab))
+                throw new IllegalArgumentException("%s is missing a vertical".formatted(slab));
             if (this == VERTICAL)
                 return slab.getDefaultState().with(Properties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
             return VerticalSlabBlock.getVertical(slab).getDefaultState().with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY).with(Properties.HORIZONTAL_FACING, this.direction);

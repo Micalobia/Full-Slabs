@@ -240,6 +240,23 @@ public class Utility {
         return state.with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY);
     }
 
+    public static Direction slabDirection(BlockState state) {
+        switch (state.getBlock()) {
+            case SlabBlock ignored -> {
+                var type = state.get(Properties.SLAB_TYPE);
+                if (type == SlabType.DOUBLE) throw new IllegalArgumentException("Not a half-slab!");
+                return type == SlabType.TOP ? Direction.UP : Direction.DOWN;
+            }
+            case VerticalSlabBlock ignored -> {
+                var type = state.get(VerticalSlabBlock.TYPE);
+                if (type == VerticalType.FULL) throw new IllegalArgumentException("Not a half-slab!");
+                var direction = state.get(Properties.HORIZONTAL_FACING);
+                return type == VerticalType.TOWARDS ? direction : direction.getOpposite();
+            }
+            default -> throw new IllegalArgumentException("Not a half-slab!");
+        }
+    }
+
     public static Optional<Block> getWaxed(Block unwaxed) {
         return Optional.ofNullable(HoneycombItem.UNWAXED_TO_WAXED_BLOCKS.get().get(unwaxed));
     }

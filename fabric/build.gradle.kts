@@ -47,6 +47,7 @@ dependencies {
 
     // Compat
     add("modCompileOnly", "maven.modrinth:blockus:${rootProject.findProperty("blockus_version")}")
+    add("modCompileOnly", "maven.modrinth:mo-glass:${rootProject.findProperty("mo_glass_version")}")
 
     // common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     (add("common", project(mapOf("path" to ":common", "configuration" to "namedElements"))) as ProjectDependency)
