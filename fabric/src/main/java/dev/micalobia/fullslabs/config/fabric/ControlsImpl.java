@@ -9,11 +9,8 @@ import net.minecraft.client.option.KeyBinding.Category;
 import net.minecraft.client.util.InputUtil;
 
 public class ControlsImpl {
-    public static Category createMain() {
-        return Category.create(FullSlabs.id("main"));
-    }
-
     public static void clientInit() {
+        Controls.MAIN = Category.create(FullSlabs.id("main"));
         Controls.toggleOverlay = register("toggle_overlay", InputUtil.UNKNOWN_KEY.getCode());
         Controls.cycleMode = register("cycle_mode", InputUtil.GLFW_KEY_V);
         ClientTickEvent.CLIENT_POST.register(Controls::onClientTick);

@@ -14,14 +14,9 @@ import java.util.UUID;
 public final class Controls {
     private static final Map<UUID, Mode> modeMap = new HashMap<>();
     private static boolean overlayActive = true;
-    public static final Category MAIN = createMain();
+    public static Category MAIN;
     public static KeyBinding cycleMode;
     public static KeyBinding toggleOverlay;
-
-    @ExpectPlatform
-    public static Category createMain() {
-        throw new AssertionError();
-    }
 
     public static Mode getPlacementMode(UUID player) {
         return modeMap.computeIfAbsent(player, uuid -> Mode.HYBRID);

@@ -13,16 +13,13 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = FullSlabs.MODID)
 public class ControlsImpl {
-    public static Category createMain() {
-        return new Category(FullSlabs.id("main"));
-    }
-
     public static void clientInit() {
         // no-op because of the event
     }
 
     @SubscribeEvent
     public static void onRegisterKeys(RegisterKeyMappingsEvent event) {
+        Controls.MAIN = new Category(FullSlabs.id("main"));
         Controls.toggleOverlay = new KeyBinding("key.fullslabs.%s".formatted("toggle_overlay"), InputUtil.UNKNOWN_KEY.getCode(), Controls.MAIN);
         Controls.cycleMode = new KeyBinding("key.fullslabs.%s".formatted("cycle_mode"), InputUtil.GLFW_KEY_V, Controls.MAIN);
         event.registerCategory(Controls.MAIN);
