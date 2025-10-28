@@ -28,5 +28,6 @@
     },
     "mixinextras": {
         "minVersion": "0.5.0"
-    }
+    },
+    "refmap": "fullslabs-common-common-refmap.json"
 }

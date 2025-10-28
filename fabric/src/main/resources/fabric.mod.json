@@ -33,11 +33,14 @@
     ],
     "depends": {
         "fabricloader": ">=0.17.2",
-        "minecraft": "~1.21.8",
+        "minecraft": "~1.21.10",
         "java": ">=21",
-        "architectury": ">=17.0.8",
+        "architectury": ">=18.0.5",
         "fabric-api": "*"
     },
     "suggests": {
+        "modmenu": "*",
+        "blockus": "*",
+        "mo_glass": "*"
     }
 }

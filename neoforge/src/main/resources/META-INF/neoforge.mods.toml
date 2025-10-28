@@ -23,14 +23,14 @@ side = "BOTH"
 [[dependencies.fullslabs]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.8,)"
+versionRange = "[1.21.10,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.fullslabs]]
 modId = "architectury"
 type = "required"
-versionRange = "[17.0.8,)"
+versionRange = "[18.0.5,)"
 ordering = "AFTER"
 side = "BOTH"
 

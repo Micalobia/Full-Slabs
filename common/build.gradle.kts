@@ -7,7 +7,7 @@ architectury {
 }
 
 dependencies {
-    add("modImplementation", "net.fabricmc:fabric-loader:${rootProject.findProperty("fabric_loader_version")}")
-    add("modImplementation", "dev.architectury:architectury:${rootProject.findProperty("architectury_api_version")}")
-    add("modCompileOnly", "maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-fabric")
+    modImplementation("net.fabricmc:fabric-loader:${rootProject.findProperty("fabric_loader_version")}")
+    modImplementation("dev.architectury:architectury:${rootProject.findProperty("architectury_api_version")}")
+    modCompileOnly("maven.modrinth:midnightlib:${rootProject.findProperty("midnightlib_version")}-fabric")
 }

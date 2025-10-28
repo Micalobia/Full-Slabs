@@ -41,6 +41,7 @@ subprojects {
     dependencies {
         add("minecraft", "net.minecraft:minecraft:${rootProject.findProperty("minecraft_version")}")
 
+        @Suppress("UnstableApiUsage")
         add("mappings", loom.layered {
             mappings("net.fabricmc:yarn:${rootProject.findProperty("yarn_mappings")}:v2")
             mappings("dev.architectury:yarn-mappings-patch-neoforge:${rootProject.findProperty("yarn_mappings_patch_neoforge_version")}")
