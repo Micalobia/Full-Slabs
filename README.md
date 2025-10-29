@@ -24,10 +24,7 @@ Vertical slabs and mixed slabs for modern Minecraft.
 ---
 
 ## Gallery
-Add clips and screenshots here (and in your Modrinth/CurseForge gallery):
-- `media/showcase-vertical.gif`
-- `media/showcase-mixed.gif`
-
+![Placement](/media/placement.gif)
 ---
 
 ## How it plays
