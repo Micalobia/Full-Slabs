@@ -33,6 +33,7 @@ subprojects {
 
     repositories {
         maven(url = "https://maven.terraformersmc.com/releases")
+        maven(url = "https://maven.parchmentmc.org")
         maven(url = "https://api.modrinth.com/maven")
     }
 
@@ -43,8 +44,8 @@ subprojects {
 
         @Suppress("UnstableApiUsage")
         add("mappings", loom.layered {
-            mappings("net.fabricmc:yarn:${rootProject.findProperty("yarn_mappings")}:v2")
-            mappings("dev.architectury:yarn-mappings-patch-neoforge:${rootProject.findProperty("yarn_mappings_patch_neoforge_version")}")
+            officialMojangMappings()
+            parchment("org.parchmentmc.data:parchment-${rootProject.findProperty("minecraft_version")}:${rootProject.findProperty("parchment_version")}@zip")
         })
     }
 

@@ -3,9 +3,9 @@ package dev.micalobia.fullslabs.config;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.networking.NetworkManager;
 import dev.micalobia.fullslabs.util.SlabPlacement.Mode;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.option.KeyBinding.Category;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.KeyMapping.Category;
+import net.minecraft.client.Minecraft;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +15,8 @@ public final class Controls {
     private static final Map<UUID, Mode> modeMap = new HashMap<>();
     private static boolean overlayActive = true;
     public static Category MAIN;
-    public static KeyBinding cycleMode;
-    public static KeyBinding toggleOverlay;
+    public static KeyMapping cycleMode;
+    public static KeyMapping toggleOverlay;
 
     public static Mode getPlacementMode(UUID player) {
         return modeMap.computeIfAbsent(player, uuid -> Mode.HYBRID);
@@ -31,7 +31,7 @@ public final class Controls {
     }
 
     private static void receivePlacementMode(Mode mode, NetworkManager.PacketContext context) {
-        setPlacementMode(context.getPlayer().getUuid(), mode);
+        setPlacementMode(context.getPlayer().getUUID(), mode);
     }
 
     public static boolean isOverlayActive() {
@@ -51,13 +51,13 @@ public final class Controls {
         throw new AssertionError();
     }
 
-    public static void onClientTick(MinecraftClient client) {
+    public static void onClientTick(Minecraft client) {
         if (client.player == null) return;
-        var uuid = client.player.getUuid();
+        var uuid = client.player.getUUID();
 
         var sendVerticalPacket = false;
-        while (toggleOverlay.wasPressed()) toggleOverlayActive();
-        while (cycleMode.wasPressed()) {
+        while (toggleOverlay.consumeClick()) toggleOverlayActive();
+        while (cycleMode.consumeClick()) {
             cyclePlacementMode(uuid);
             sendVerticalPacket = true;
         }

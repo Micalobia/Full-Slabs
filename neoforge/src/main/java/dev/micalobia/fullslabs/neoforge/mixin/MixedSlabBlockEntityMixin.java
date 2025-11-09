@@ -3,13 +3,13 @@ package dev.micalobia.fullslabs.neoforge.mixin;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity.ModelContext;
 import dev.micalobia.fullslabs.neoforge.FullSlabsNeoForge;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.storage.ReadView;
-import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
 import net.neoforged.neoforge.model.data.ModelData;
 import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,12 +40,12 @@ public abstract class MixedSlabBlockEntityMixin extends BlockEntity {
         return ModelData.of(FullSlabsNeoForge.MIXED_CONTEXT_MODEL_PROPERTY, context);
     }
 
-    @Inject(method = "readData", at = @At("TAIL"))
-    private void updateModelAfterRead(ReadView view, CallbackInfo ci) {
+    @Inject(method = "loadAdditional", at = @At("TAIL"))
+    private void updateModelAfterRead(ValueInput view, CallbackInfo ci) {
         this.requestModelDataUpdate();
-        if (this.world == null) return;
-        var state = getCachedState();
-        this.world.updateListeners(this.pos, state, state, Block.NOTIFY_ALL | Block.FORCE_STATE);
+        if (this.level == null) return;
+        var state = getBlockState();
+        this.level.sendBlockUpdated(this.worldPosition, state, state, Block.UPDATE_ALL | Block.UPDATE_KNOWN_SHAPE);
     }
 }
 

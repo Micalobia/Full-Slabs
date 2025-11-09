@@ -13,17 +13,17 @@ import dev.micalobia.fullslabs.handlers.OxidizableMixedHandler;
 import dev.micalobia.fullslabs.handlers.VanillaMixedHandler;
 import dev.micalobia.fullslabs.mixin.BlockEntityTypeAccessor;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.block.AbstractBlock.Settings;
-import net.minecraft.block.Block;
-import net.minecraft.block.Oxidizable;
-import net.minecraft.block.OxidizableSlabBlock;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.HoneycombItem;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.HoneycombItem;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.WeatheringCopper;
+import net.minecraft.world.level.block.WeatheringCopperSlabBlock;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,9 +43,9 @@ public class SlabRegistry {
     @SuppressWarnings("rawtypes")
     private static final Map<Class<? extends SlabBlock>, PairConsumer> POST_INIT = new HashMap<>();
 
-    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(FullSlabs.MODID, RegistryKeys.BLOCK);
-    private static final DeferredRegister<Block> GENERATED = DeferredRegister.create(FullSlabs.MODID, RegistryKeys.BLOCK);
-    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(FullSlabs.MODID, RegistryKeys.BLOCK_ENTITY_TYPE);
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK);
+    private static final DeferredRegister<Block> GENERATED = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK_ENTITY_TYPE);
 
     public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB = registerBlock("mixed_slab", MixedSlabBlock::new);
     public static final RegistrySupplier<BlockEntityType<MixedSlabBlockEntity>> MIXED_SLAB_ENTITY = BLOCK_ENTITIES.register(
@@ -53,12 +53,12 @@ public class SlabRegistry {
             () -> BlockEntityTypeAccessor.constructor(MixedSlabBlockEntity::new, Set.of(MIXED_SLAB.get()))
     );
 
-    private static <T extends Block> RegistrySupplier<T> registerBlock(String id, Function<Settings, T> func) {
-        return registerBlock(id, func, Settings::create);
+    private static <T extends Block> RegistrySupplier<T> registerBlock(String id, Function<Properties, T> func) {
+        return registerBlock(id, func, Properties::of);
     }
 
-    private static <T extends Block> RegistrySupplier<T> registerBlock(String id, Function<Settings, T> func, Supplier<Settings> settings) {
-        return BLOCKS.register(id, () -> func.apply(settings.get().registryKey(generateKey(id))));
+    private static <T extends Block> RegistrySupplier<T> registerBlock(String id, Function<Properties, T> func, Supplier<Properties> settings) {
+        return BLOCKS.register(id, () -> func.apply(settings.get().setId(generateKey(id))));
     }
 
     public static void init() {
@@ -69,32 +69,31 @@ public class SlabRegistry {
         BLOCKS.register();
         BLOCK_ENTITIES.register();
         GENERATED.register();
-        LifecycleEvent.SETUP.register(() -> {
-            VerticalSlabBlock.MAP_VIEW.keySet().stream().filter(slab -> POST_INIT.containsKey(slab.getClass())).forEach(slab -> {
-                //noinspection unchecked
-                POST_INIT.get(slab.getClass()).consume(slab, VerticalSlabBlock.getVertical(slab));
-            });
-        });
+        LifecycleEvent.SETUP.register(() -> VerticalSlabBlock.MAP_VIEW.keySet().stream().filter(slab -> POST_INIT.containsKey(slab.getClass())).forEach(slab -> {
+            //noinspection unchecked
+            POST_INIT.get(slab.getClass()).consume(slab, VerticalSlabBlock.getVertical(slab));
+        }));
     }
 
     private static void registerVanilla() {
         registerVertical(SlabBlock.class, VerticalSlabBlock::new);
         MixedHandlers.register(SlabBlock.class, VanillaMixedHandler.INSTANCE);
-        registerVertical(OxidizableSlabBlock.class, OxidizableVerticalSlabBlock::new, SlabRegistry::registerOxidizableSlabs);
-        MixedHandlers.register(OxidizableSlabBlock.class, OxidizableMixedHandler.INSTANCE);
+        registerVertical(WeatheringCopperSlabBlock.class, OxidizableVerticalSlabBlock::new, SlabRegistry::registerOxidizableSlabs);
+        MixedHandlers.register(WeatheringCopperSlabBlock.class, OxidizableMixedHandler.INSTANCE);
     }
 
+    @SuppressWarnings("unused")
     private static void registerDebug() {
         SlabRegistry.registerBlock("debug", Block::new);
         SlabRegistry.registerBlock("debug_slab", SlabBlock::new);
     }
 
-    private static RegistryKey<Block> generateKey(String path) {
+    private static ResourceKey<Block> generateKey(String path) {
         return generateKey(FullSlabs.id(path));
     }
 
-    private static RegistryKey<Block> generateKey(Identifier id) {
-        return RegistryKey.of(RegistryKeys.BLOCK, id);
+    private static ResourceKey<Block> generateKey(ResourceLocation id) {
+        return ResourceKey.create(Registries.BLOCK, id);
     }
 
     @ExpectPlatform
@@ -105,19 +104,19 @@ public class SlabRegistry {
     public static void registerOxidizableBlockPair(Block less, Block more) {
         Objects.requireNonNull(less, "Oxidizable block cannot be null!");
         Objects.requireNonNull(more, "Oxidizable block cannot be null!");
-        Oxidizable.OXIDATION_LEVEL_INCREASES.get().forcePut(less, more);
+        WeatheringCopper.NEXT_BY_BLOCK.get().forcePut(less, more);
     }
 
     public static void registerWaxableBlockPair(Block unwaxed, Block waxed) {
         Objects.requireNonNull(unwaxed, "Unwaxed block cannot be null!");
         Objects.requireNonNull(waxed, "Waxed block cannot be null!");
-        HoneycombItem.UNWAXED_TO_WAXED_BLOCKS.get().forcePut(unwaxed, waxed);
+        HoneycombItem.WAXABLES.get().forcePut(unwaxed, waxed);
     }
 
     // This is probably more aggresive than is required, but this is what finally ended up working
     private static void registerOxidizableSlabs(SlabBlock slab, VerticalSlabBlock vertical) {
-        var less = Oxidizable.getDecreasedOxidationBlock(slab);
-        var more = Oxidizable.getIncreasedOxidationBlock(slab);
+        var less = WeatheringCopper.getPrevious(slab);
+        var more = WeatheringCopper.getNext(slab);
         var lessWaxed = less.flatMap(Utility::getWaxed);
         var slabWaxed = Utility.getWaxed(slab);
         var moreWaxed = more.flatMap(Utility::getWaxed);
@@ -158,12 +157,12 @@ public class SlabRegistry {
     }
 
     private static void seedExistingSlabs() {
-        var slabs = Registries.BLOCK.stream().filter(SlabBlock.class::isInstance).toList();
-        for (var block : slabs) tryRegisterVertical(Registries.BLOCK.getId(block), block);
+        var slabs = BuiltInRegistries.BLOCK.stream().filter(SlabBlock.class::isInstance).toList();
+        for (var block : slabs) tryRegisterVertical(BuiltInRegistries.BLOCK.getKey(block), block);
     }
 
     @ApiStatus.Internal
-    public static void tryRegisterVertical(Identifier id, Block block) {
+    public static void tryRegisterVertical(ResourceLocation id, Block block) {
         if (!(block instanceof SlabBlock slab)) return;
         var factory = MAPPING.get(slab.getClass());
         if (factory == null) {
@@ -172,15 +171,15 @@ public class SlabRegistry {
         }
         var verticalId = FullSlabs.id(FullSlabs.verticalPath(id));
 
-        var b = GENERATED.register(verticalId, () -> {
-            var settings = Settings.copy(slab).registryKey(generateKey(verticalId)).lootTable(slab.getLootTableKey());
+        GENERATED.register(verticalId, () -> {
+            var settings = Properties.ofFullCopy(slab).setId(generateKey(verticalId)).overrideLootTable(slab.getLootTable());
             //noinspection unchecked
             return factory.create(slab, settings);
         });
     }
 
     public interface VerticalFactory<S extends SlabBlock, V extends VerticalSlabBlock> {
-        V create(S slab, Settings settings);
+        V create(S slab, Properties settings);
     }
 
     public interface PairConsumer<S extends SlabBlock, V extends VerticalSlabBlock> {

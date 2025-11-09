@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs.neoforge;
 
+@SuppressWarnings("unused")
 public class SlabRegistryImpl {
     private SlabRegistryImpl() {
     }

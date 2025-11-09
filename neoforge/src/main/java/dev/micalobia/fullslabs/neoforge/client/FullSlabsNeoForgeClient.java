@@ -8,10 +8,10 @@ import dev.micalobia.fullslabs.client.BlockFaceOverlay;
 import dev.micalobia.fullslabs.client.FullSlabsClient;
 import dev.micalobia.fullslabs.client.models.MixedSlabModel;
 import dev.micalobia.fullslabs.client.models.VerticalSlabModel;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.Baker;
-import net.minecraft.client.render.model.BlockStateModel;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,6 +22,7 @@ import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import net.neoforged.neoforge.client.model.standalone.UnbakedStandaloneModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public final class FullSlabsNeoForgeClient {
     public static void registerStandalones(ModelEvent.RegisterStandalone event) {
         keys.clear();
         for (var vertical : VerticalSlabBlock.MAP_VIEW.values()) {
-            for (var state : vertical.getStateManager().getStates()) {
+            for (var state : vertical.getStateDefinition().getPossibleStates()) {
                 var id = VerticalSlabModel.makeModelId(state);
                 var key = new StandaloneModelKey<BlockStateModel>(id::toString);
                 event.register(key, new UnbakedGroupedWrapper(VerticalSlabModel.INSTANCE, state));
@@ -46,8 +47,8 @@ public final class FullSlabsNeoForgeClient {
             }
         }
         var mixed = SlabRegistry.MIXED_SLAB.get();
-        for (var state : mixed.getStateManager().getStates()) {
-            var id = FullSlabs.id("block/mixed_slab/%s".formatted(state.get(MixedSlabBlock.TYPE).asString()));
+        for (var state : mixed.getStateDefinition().getPossibleStates()) {
+            var id = FullSlabs.id("block/mixed_slab/%s".formatted(state.getValue(MixedSlabBlock.TYPE).getSerializedName()));
             var key = new StandaloneModelKey<BlockStateModel>(id::toString);
             event.register(key, new UnbakedGroupedWrapper(MixedSlabModel.INSTANCE, state));
             keys.put(state, key);
@@ -60,14 +61,14 @@ public final class FullSlabsNeoForgeClient {
         var standaloneModels = result.standaloneModels();
         var blockStateModels = event.getBakingResult().blockStateModels();
         for (var vertical : VerticalSlabBlock.MAP_VIEW.values()) {
-            for (var state : vertical.getStateManager().getStates()) {
+            for (var state : vertical.getStateDefinition().getPossibleStates()) {
                 var key = keys.get(state);
                 var model = standaloneModels.get(key);
                 blockStateModels.put(state, model);
             }
         }
         var mixed = SlabRegistry.MIXED_SLAB.get();
-        for (var state : mixed.getStateManager().getStates()) {
+        for (var state : mixed.getStateDefinition().getPossibleStates()) {
             var key = keys.get(state);
             var model = standaloneModels.get(key);
             blockStateModels.put(state, model);
@@ -76,29 +77,30 @@ public final class FullSlabsNeoForgeClient {
 
     @SubscribeEvent
     public static void renderOverlay(RenderLevelStageEvent.AfterEntities event) {
-        var client = MinecraftClient.getInstance();
-        if (client.options.hudHidden) return;
+        var client = Minecraft.getInstance();
+        if (client.options.hideGui) return;
         BlockFaceOverlay.renderFaceOverlay(event.getLevelRenderState());
     }
 
+    @ParametersAreNonnullByDefault
     public static class UnbakedGroupedWrapper implements UnbakedStandaloneModel<BlockStateModel> {
-        private final BlockStateModel.UnbakedGrouped model;
+        private final BlockStateModel.UnbakedRoot model;
         private final BlockState state;
 
-        public UnbakedGroupedWrapper(BlockStateModel.UnbakedGrouped model, BlockState state) {
+        public UnbakedGroupedWrapper(BlockStateModel.UnbakedRoot model, BlockState state) {
             this.model = model;
             this.state = state;
         }
 
         @Override
         @NotNull
-        public BlockStateModel bake(@NotNull Baker baker) {
+        public BlockStateModel bake(@NotNull ModelBaker baker) {
             return this.model.bake(state, baker);
         }
 
         @Override
-        public void resolve(Resolver resolver) {
-            this.model.resolve(resolver);
+        public void resolveDependencies(Resolver resolver) {
+            this.model.resolveDependencies(resolver);
         }
     }
 }

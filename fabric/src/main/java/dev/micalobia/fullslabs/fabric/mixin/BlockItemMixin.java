@@ -3,19 +3,19 @@ package dev.micalobia.fullslabs.fabric.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.ducks.BlockItemDuck;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(BlockItem.class)
 public class BlockItemMixin {
-    @ModifyArg(method = "place(Lnet/minecraft/item/ItemPlacementContext;)Lnet/minecraft/util/ActionResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/BlockItem;getPlaceSound(Lnet/minecraft/block/BlockState;)Lnet/minecraft/sound/SoundEvent;"))
-    private BlockState mixedSlabPlacementSounds(BlockState state, @Local(argsOnly = true) ItemPlacementContext context) {
+    @ModifyArg(method = "place", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/BlockItem;getPlaceSound(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/sounds/SoundEvent;"))
+    private BlockState mixedSlabPlacementSounds(BlockState state, @Local(argsOnly = true) BlockPlaceContext context) {
         var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!(state.isOf(mixed))) return state;
+        if (!(state.is(mixed))) return state;
         if (this instanceof BlockItemDuck self)
             return self.fullslabs$getPlaced() == null ? state : self.fullslabs$getPlaced();
         throw new AssertionError();

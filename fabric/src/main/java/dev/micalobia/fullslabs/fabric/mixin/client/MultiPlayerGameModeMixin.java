@@ -4,10 +4,10 @@ import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,20 +15,20 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Objects;
 
-@Mixin(ClientPlayerInteractionManager.class)
-public class ClientPlayerInteractionManagerMixin {
+@Mixin(MultiPlayerGameMode.class)
+public class MultiPlayerGameModeMixin {
     @Shadow
     @Final
-    private MinecraftClient client;
+    private Minecraft minecraft;
 
-    @ModifyReceiver(method = "updateBlockBreakingProgress", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getSoundGroup()Lnet/minecraft/sound/BlockSoundGroup;"))
+    @ModifyReceiver(method = "continueDestroyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()Lnet/minecraft/world/level/block/SoundType;"))
     private BlockState mixedSlabBreakingSound(BlockState state, @Local(argsOnly = true) BlockPos pos) {
         var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!state.isOf(mixed)) return state;
-        var world = Objects.requireNonNull(this.client.world);
+        if (!state.is(mixed)) return state;
+        var world = Objects.requireNonNull(this.minecraft.level);
         var entity = world.getBlockEntity(pos);
         if (!(entity instanceof MixedSlabBlockEntity mixedEntity)) return state;
-        var crosshair = Objects.requireNonNull(this.client.crosshairTarget);
-        return mixedEntity.getState(mixed.towards(state, crosshair.getPos(), pos));
+        var crosshair = Objects.requireNonNull(this.minecraft.hitResult);
+        return mixedEntity.getState(mixed.towards(state, crosshair.getLocation(), pos));
     }
 }

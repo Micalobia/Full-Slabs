@@ -8,8 +8,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.registry.Registries;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public final class FullSlabsFabricClient implements ClientModInitializer {
     @Override
@@ -17,8 +17,8 @@ public final class FullSlabsFabricClient implements ClientModInitializer {
         FullSlabsClient.init();
         ModelLoadingPlugin.register(new VerticalModelLoadingPlugin());
         ClientLifecycleEvents.CLIENT_STARTED.register(client -> VerticalSlabBlock.MAP_VIEW.values().forEach(FullSlabsFabricClient::renderLayer));
-        // I'm not sure this is necessary, but just in case
-        RegistryEntryAddedCallback.event(Registries.BLOCK).register(((i, identifier, block) -> {
+        // I'm not sure if this is necessary, but just in case
+        RegistryEntryAddedCallback.event(BuiltInRegistries.BLOCK).register(((i, identifier, block) -> {
             if (!(block instanceof VerticalSlabBlock slab)) return;
             renderLayer(slab);
         }));
@@ -26,6 +26,6 @@ public final class FullSlabsFabricClient implements ClientModInitializer {
     }
 
     private static void renderLayer(VerticalSlabBlock slab) {
-        BlockRenderLayerMap.putBlock(slab, RenderLayers.getBlockLayer(slab.parent.getDefaultState()));
+        BlockRenderLayerMap.putBlock(slab, ItemBlockRenderTypes.getChunkRenderType(slab.parent.defaultBlockState()));
     }
 }

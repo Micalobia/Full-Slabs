@@ -4,9 +4,9 @@ import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.fabric.compat.mo_glass.StainedGlassVerticalSlabBlock;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.glass.StainedGlassStairsBlock;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,16 +20,17 @@ public abstract class StainedGlassStairsBlockMixin {
     @Shadow
     public abstract DyeColor getColor();
 
-    @Inject(method = "isSideInvisible", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "skipRendering", at = @At(value = "HEAD"), cancellable = true, require = 0)
     private void addVerticalSlabCheck(BlockState state, BlockState stateFrom, Direction direction, CallbackInfoReturnable<Boolean> cir) {
         var blockFrom = stateFrom.getBlock();
         if (blockFrom instanceof StainedGlassVerticalSlabBlock stained && this.getColor() == stained.getColor())
             cir.setReturnValue(fullslabs$isInvisibleToVerticalSlab(state, stateFrom, direction));
     }
 
+    @SuppressWarnings("unused")
     @Unique
     private boolean fullslabs$isInvisibleToVerticalSlab(BlockState state, BlockState stateFrom, Direction direction) {
-        var typeFrom = stateFrom.get(VerticalSlabBlock.TYPE);
+        var typeFrom = stateFrom.getValue(VerticalSlabBlock.TYPE);
         if (typeFrom == VerticalType.FULL) return true;
         var directionFrom = Utility.slabDirection(stateFrom);
         return direction.getOpposite() == directionFrom;

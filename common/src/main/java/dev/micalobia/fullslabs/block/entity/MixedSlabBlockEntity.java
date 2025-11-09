@@ -5,32 +5,35 @@ import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
+@MethodsReturnNonnullByDefault
 public class MixedSlabBlockEntity extends BlockEntity {
     // I'd like to find a better way to do what this does
-    private static Pair<SlabBlock, SlabBlock> CACHE = new Pair<>((SlabBlock) Blocks.STONE_SLAB, (SlabBlock) Blocks.STONE_SLAB);
+    private static Tuple<SlabBlock, SlabBlock> CACHE = new Tuple<>((SlabBlock) Blocks.STONE_SLAB, (SlabBlock) Blocks.STONE_SLAB);
 
     private SlabBlock towards;
     private SlabBlock away;
@@ -46,24 +49,24 @@ public class MixedSlabBlockEntity extends BlockEntity {
     }
 
     public BlockState getTowardsState() {
-        return getCachedState().get(MixedSlabBlock.TYPE).state(this.towards, true);
+        return getBlockState().getValue(MixedSlabBlock.TYPE).state(this.towards, true);
     }
 
     public BlockState getAwayState() {
-        return getCachedState().get(MixedSlabBlock.TYPE).state(this.away, false);
+        return getBlockState().getValue(MixedSlabBlock.TYPE).state(this.away, false);
     }
 
     public BlockState getState(boolean towards) {
-        return getCachedState().get(MixedSlabBlock.TYPE).state(towards ? this.towards : this.away, towards);
+        return getBlockState().getValue(MixedSlabBlock.TYPE).state(towards ? this.towards : this.away, towards);
     }
 
     public BlockState getTargetedState(BlockHitResult crosshair) {
-        return getTargetedState(crosshair.getBlockPos(), crosshair.getPos());
+        return getTargetedState(crosshair.getBlockPos(), crosshair.getLocation());
     }
 
-    public BlockState getTargetedState(BlockPos pos, Vec3d hit) {
-        var type = getCachedState().get(MixedSlabBlock.TYPE);
-        var towards = type.isAxisTargetTowards(hit, pos);
+    public BlockState getTargetedState(BlockPos location, Vec3 pos) {
+        var type = getBlockState().getValue(MixedSlabBlock.TYPE);
+        var towards = type.isAxisTargetTowards(pos, location);
         return type.state(towards ? this.towards : this.away, towards);
     }
 
@@ -92,43 +95,45 @@ public class MixedSlabBlockEntity extends BlockEntity {
         if (!MixedHandlers.hasHandler(slab)) return false;
         if (towards) this.towards = slab;
         else this.away = slab;
-        markDirty();
+        setChanged();
         syncModel();
         return true;
     }
 
     public SlabBlock getTargetedSlab(BlockHitResult crosshair) {
-        var type = getCachedState().get(MixedSlabBlock.TYPE);
-        return getBlock(type.isAxisTargetTowards(crosshair.getPos(), crosshair.getBlockPos()));
+        var type = getBlockState().getValue(MixedSlabBlock.TYPE);
+        return getBlock(type.isAxisTargetTowards(crosshair.getLocation(), crosshair.getBlockPos()));
     }
 
     @ApiStatus.Internal
     public static void writeCache(SlabBlock towards, SlabBlock away) {
-        CACHE = new Pair<>(towards, away);
+        CACHE = new Tuple<>(towards, away);
     }
 
     @ApiStatus.Internal
     public void readCache() {
-        towards = CACHE.getLeft();
-        away = CACHE.getRight();
+        towards = CACHE.getA();
+        away = CACHE.getB();
     }
 
     @Override
-    protected void writeData(WriteView view) {
-        view.putString("towards_id", Registries.BLOCK.getId(towards).toString());
-        view.putString("away_id", Registries.BLOCK.getId(away).toString());
+    protected void saveAdditional(ValueOutput output) {
+        output.putString("towards_id", BuiltInRegistries.BLOCK.getKey(towards).toString());
+        output.putString("away_id", BuiltInRegistries.BLOCK.getKey(away).toString());
     }
 
     @Override
-    protected void readData(ReadView view) {
-        var towardsStr = view.getString("towards_id", "minecraft:stone_slab");
-        var awayStr = view.getString("away_id", "minecraft:stone_slab");
-        if (Registries.BLOCK.get(Identifier.of(towardsStr)) instanceof SlabBlock slab) this.towards = slab;
+    protected void loadAdditional(ValueInput input) {
+        var towardsStr = input.getStringOr("towards_id", "minecraft:stone_slab");
+        var awayStr = input.getStringOr("away_id", "minecraft:stone_slab");
+        if (BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(towardsStr)) instanceof SlabBlock slab)
+            this.towards = slab;
         else {
             FullSlabs.LOGGER.warn("missing \"{}\": replacing with \"minecraft:stone_slab\"", towardsStr);
             this.towards = (SlabBlock) Blocks.STONE_SLAB;
         }
-        if (Registries.BLOCK.get(Identifier.of(awayStr)) instanceof SlabBlock slab) this.away = slab;
+        if (BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(awayStr)) instanceof SlabBlock slab)
+            this.away = slab;
         else {
             FullSlabs.LOGGER.warn("missing \"{}\": replacing with \"minecraft:stone_slab\"", awayStr);
             this.away = (SlabBlock) Blocks.STONE_SLAB;
@@ -136,30 +141,30 @@ public class MixedSlabBlockEntity extends BlockEntity {
     }
 
     @Override
-    public @Nullable Packet<ClientPlayPacketListener> toUpdatePacket() {
-        return BlockEntityUpdateS2CPacket.create(this);
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-        return createNbt(registries);
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     public void syncModel() {
-        Objects.requireNonNull(this.world).addSyncedBlockEvent(this.pos, this.getCachedState().getBlock(), 0, 0);
+        Objects.requireNonNull(this.level).blockEvent(this.worldPosition, this.getBlockState().getBlock(), 0, 0);
     }
 
     public record ModelContext(int towards, int away) {
         public static ModelContext fromStates(BlockState towards, BlockState away) {
-            return new ModelContext(Block.getRawIdFromState(towards), Block.getRawIdFromState(away));
+            return new ModelContext(Block.getId(towards), Block.getId(away));
         }
 
         public BlockState towardsState() {
-            return Block.getStateFromRawId(this.towards);
+            return Block.stateById(this.towards);
         }
 
         public BlockState awayState() {
-            return Block.getStateFromRawId(this.away);
+            return Block.stateById(this.away);
         }
     }
 }

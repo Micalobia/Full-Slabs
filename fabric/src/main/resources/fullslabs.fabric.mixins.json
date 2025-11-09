@@ -5,20 +5,20 @@
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [
-        "client.ClientPlayerInteractionManagerMixin",
-        "client.ClientWorldMixin",
-        "client.WorldRendererMixin"
+        "client.MultiPlayerGameModeMixin",
+        "client.ClientLevelMixin",
+        "client.LevelRendererMixin"
     ],
     "mixins": [
         "AxeItemMixin",
         "BlockItemMixin",
         "EntityMixin",
-        "ExplosionBehaviorMixin",
+        "ExplosionDamageCalculatorMixin",
         "LivingEntityMixin",
         "MixedSlabBlockEntityMixin",
-        "RedstoneWireBlockMixin",
-        "ServerPlayerInteractionManagerMixin",
-        "ServerPlayNetworkHandlerMixin",
+        "RedStoneWireBlockMixin",
+        "ServerPlayerGameModeMixin",
+        "ServerGamePacketListenerImplMixin",
         "compat.mo_glass.GlassSlabBlockMixin",
         "compat.mo_glass.GlassStairsBlockMixin",
         "compat.mo_glass.StainedGlassBlockMixin",

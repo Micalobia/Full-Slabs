@@ -1,16 +1,17 @@
 package dev.micalobia.fullslabs.util;
 
 import dev.micalobia.fullslabs.FullSlabs;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Direction.AxisDirection;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 public class SlabPlacement {
-    public static Vec2f getLookingAtPosition(Direction blockFace, Direction playerFacing, BlockPos pos, Vec3d hit) {
+    public static Vec2 getLookingAtPosition(Direction blockFace, Direction playerFacing, BlockPos pos, Vec3 hit) {
         var x = (float) (hit.x - pos.getX());
         var y = (float) (hit.y - pos.getY());
         var z = (float) (hit.z - pos.getZ());
@@ -43,20 +44,20 @@ public class SlabPlacement {
                 }
             }
             case NORTH, SOUTH -> {
-                posH = blockFace.getDirection() == AxisDirection.POSITIVE ? x : 1f - x;
+                posH = blockFace.getAxisDirection() == AxisDirection.POSITIVE ? x : 1f - x;
                 posV = y;
             }
             case WEST, EAST -> {
-                posH = blockFace.getDirection() == AxisDirection.NEGATIVE ? z : 1f - z;
+                posH = blockFace.getAxisDirection() == AxisDirection.NEGATIVE ? z : 1f - z;
                 posV = y;
             }
         }
 
-        return new Vec2f(posH, posV);
+        return new Vec2(posH, posV);
     }
 
-    public static Direction getTargetedDirection(Mode mode, Direction face, Direction facing, BlockPos pos, Vec3d hit) {
-        Vec2f position = getLookingAtPosition(face, facing, pos, hit);
+    public static Direction getTargetedDirection(Mode mode, Direction face, Direction facing, BlockPos pos, Vec3 hit) {
+        Vec2 position = getLookingAtPosition(face, facing, pos, hit);
         return switch (mode) {
             case HYBRID -> getTargetedDirectionHybrid(face, facing, position);
             case VANILLA -> getTargetedDirectionVanilla(face, position.y);
@@ -64,7 +65,7 @@ public class SlabPlacement {
         };
     }
 
-    private static Direction getTargetedDirectionHybrid(Direction face, Direction facing, Vec2f position) {
+    private static Direction getTargetedDirectionHybrid(Direction face, Direction facing, Vec2 position) {
         var posH = position.x;
         var posV = position.y;
         var offH = Math.abs(posH - 0.5f);
@@ -72,7 +73,7 @@ public class SlabPlacement {
         if (offH > Constants.EDGE_WIDTH || offV > Constants.EDGE_WIDTH) {
             if (face.getAxis().isVertical()) {
                 if (offH > offV) {
-                    return posH < 0.5f ? facing.rotateYCounterclockwise() : facing.rotateYClockwise();
+                    return posH < 0.5f ? facing.getCounterClockWise() : facing.getClockWise();
                 } else {
                     if (face == Direction.DOWN) {
                         return posV > 0.5f ? facing.getOpposite() : facing;
@@ -82,7 +83,7 @@ public class SlabPlacement {
                 }
             } else {
                 if (offH > offV) {
-                    return posH < 0.5f ? face.rotateYClockwise() : face.rotateYCounterclockwise();
+                    return posH < 0.5f ? face.getClockWise() : face.getCounterClockWise();
                 } else {
                     return posV < 0.5f ? Direction.DOWN : Direction.UP;
                 }
@@ -99,11 +100,11 @@ public class SlabPlacement {
         return y > 0.5d ? Direction.UP : Direction.DOWN;
     }
 
-    private static Direction getTargetedDirectionVertical(Direction face, Direction facing, Vec2f position) {
+    private static Direction getTargetedDirectionVertical(Direction face, Direction facing, Vec2 position) {
         if (face.getAxis().isVertical()) {
-            var direction = position.x < 0.5f ? face.rotateClockwise(facing.getAxis()) : face.rotateCounterclockwise(facing.getAxis());
-            return facing.getDirection() == AxisDirection.POSITIVE ? direction : direction.getOpposite();
-        } else return position.x < 0.5f ? face.rotateYClockwise() : face.rotateYCounterclockwise();
+            var direction = position.x < 0.5f ? face.getClockWise(facing.getAxis()) : face.getCounterClockWise(facing.getAxis());
+            return facing.getAxisDirection() == AxisDirection.POSITIVE ? direction : direction.getOpposite();
+        } else return position.x < 0.5f ? face.getClockWise() : face.getCounterClockWise();
     }
 
     public enum Mode implements EnumPayload<Mode> {
@@ -111,8 +112,8 @@ public class SlabPlacement {
         VANILLA,
         VERTICAL;
 
-        public static final Id<Mode> PACKET_TYPE = new Id<>(FullSlabs.id("mode"));
-        public static final PacketCodec<RegistryByteBuf, Mode> PACKET_CODEC = EnumPayload.codecOf(Mode.class);
+        public static final Type<Mode> PACKET_TYPE = new Type<>(FullSlabs.id("mode"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, Mode> PACKET_CODEC = EnumPayload.codecOf(Mode.class);
 
         public Mode next() {
             return switch (this) {
@@ -123,7 +124,8 @@ public class SlabPlacement {
         }
 
         @Override
-        public Id<Mode> getId() {
+        @NotNull
+        public Type<Mode> type() {
             return PACKET_TYPE;
         }
     }

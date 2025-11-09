@@ -2,22 +2,23 @@ package dev.micalobia.fullslabs.client.models.neoforge;
 
 import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.neoforge.FullSlabsNeoForge;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.Baker;
-import net.minecraft.client.render.model.BlockModelPart;
-import net.minecraft.client.render.model.BlockStateModel;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockRenderView;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.ModelBaker;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class MixedSlabModelImpl {
-    public static BlockStateModel create(BlockState state, Baker baker) {
+    public static BlockStateModel create(BlockState state, ModelBaker baker) {
         return Model.INSTANCE;
     }
 
@@ -27,12 +28,12 @@ public class MixedSlabModelImpl {
         public static Model INSTANCE = new Model();
 
         @Override
-        public void addParts(Random random, List<BlockModelPart> parts) {
+        public void collectParts(RandomSource random, List<BlockModelPart> parts) {
             // no-op
         }
 
         @Override
-        public void collectParts(BlockRenderView world, BlockPos pos, BlockState state, Random random, List<BlockModelPart> parts) {
+        public void collectParts(BlockAndTintGetter world, BlockPos pos, BlockState state, RandomSource random, List<BlockModelPart> parts) {
             var data = world.getModelData(pos);
             var ctx = data.get(FullSlabsNeoForge.MIXED_CONTEXT_MODEL_PROPERTY);
             if (ctx == null) {
@@ -41,23 +42,23 @@ public class MixedSlabModelImpl {
             }
             var towards = ctx.towardsState();
             var away = ctx.awayState();
-            var client = MinecraftClient.getInstance();
-            var manager = client.getBlockRenderManager();
-            var towardsModel = manager.getModel(towards);
-            var awayModel = manager.getModel(away);
+            var client = Minecraft.getInstance();
+            var manager = client.getBlockRenderer();
+            var towardsModel = manager.getBlockModel(towards);
+            var awayModel = manager.getBlockModel(away);
             towardsModel.collectParts(world, pos, state, random, parts);
             awayModel.collectParts(world, pos, state, random, parts);
         }
 
         @SuppressWarnings("deprecation")
         @Override
-        public Sprite particleSprite() {
-            return MinecraftClient.getInstance().getBakedModelManager().getMissingModel().particleSprite();
+        public TextureAtlasSprite particleIcon() {
+            return Minecraft.getInstance().getModelManager().getMissingBlockStateModel().particleIcon();
         }
 
         @Override
-        public Sprite particleIcon(BlockRenderView level, BlockPos pos, BlockState state) {
-            return MinecraftClient.getInstance().getBakedModelManager().getMissingModel().particleIcon(level, pos, state);
+        public TextureAtlasSprite particleIcon(BlockAndTintGetter level, BlockPos pos, BlockState state) {
+            return Minecraft.getInstance().getModelManager().getMissingBlockStateModel().particleIcon(level, pos, state);
         }
     }
 }

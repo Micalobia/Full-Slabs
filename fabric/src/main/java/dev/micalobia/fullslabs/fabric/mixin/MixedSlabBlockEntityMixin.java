@@ -3,10 +3,10 @@ package dev.micalobia.fullslabs.fabric.mixin;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity.ModelContext;
 import net.fabricmc.fabric.api.blockview.v2.RenderDataBlockEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 

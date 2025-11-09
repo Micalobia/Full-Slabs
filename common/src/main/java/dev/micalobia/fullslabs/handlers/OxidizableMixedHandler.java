@@ -1,22 +1,22 @@
 package dev.micalobia.fullslabs.handlers;
 
 import dev.micalobia.fullslabs.ducks.AxeItemDuck;
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Oxidizable;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.HoneycombItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.HoneycombItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.WeatheringCopper;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.BlockHitResult;
 
 public class OxidizableMixedHandler implements MixedHandler {
     public static final OxidizableMixedHandler INSTANCE = new OxidizableMixedHandler();
@@ -24,40 +24,40 @@ public class OxidizableMixedHandler implements MixedHandler {
     private OxidizableMixedHandler() {}
 
     @Override
-    public void randomTick(MixedContext.Sided context, ServerWorld world, BlockPos pos, Random random) {
+    public void randomTick(MixedContext.Sided context, ServerLevel world, BlockPos pos, RandomSource random) {
         var state = context.state();
-        if (!(state.getBlock() instanceof Oxidizable oxidizable)) return;
-        oxidizable.tryDegrade(state, world, pos, random).ifPresent(s -> context.replaceBlock(s.getBlock()));
+        if (!(state.getBlock() instanceof WeatheringCopper oxidizable)) return;
+        oxidizable.getNextState(state, world, pos, random).ifPresent(s -> context.replaceBlock(s.getBlock()));
     }
 
     @Override
-    public ActionResult onUseWithItem(MixedContext.Sided context, ItemStack stack, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public InteractionResult useItemOn(MixedContext.Sided context, ItemStack stack, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var item = stack.getItem();
         var state = context.state();
         if (item instanceof AxeItemDuck axe) {
-            var stripped = axe.fullslabs$strippedState(world, pos, player, state, new ItemUsageContext(player, hand, hit));
+            var stripped = axe.fullslabs$strippedState(world, pos, player, state, new UseOnContext(player, hand, hit));
             if (stripped.isPresent()) {
                 var success = context.replaceBlock(stripped.get().getBlock());
-                return success ? ActionResult.SUCCESS : ActionResult.PASS;
+                return success ? InteractionResult.SUCCESS : InteractionResult.PASS;
             }
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         }
         if (item instanceof HoneycombItem) return useWaxOnBlock(context, stack, state, world, pos, player);
-        return ActionResult.PASS;
+        return InteractionResult.PASS;
     }
 
     // See HoneycombItem.useOnBlock
-    private ActionResult useWaxOnBlock(MixedContext context, ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player) {
-        return HoneycombItem.getWaxedState(state).<ActionResult>map(s -> {
+    private InteractionResult useWaxOnBlock(MixedContext context, ItemStack stack, BlockState state, Level world, BlockPos pos, Player player) {
+        return HoneycombItem.getWaxed(state).<InteractionResult>map(s -> {
             var success = context.replaceBlock(s.getBlock()); // This is the main difference
-            if (!success) return ActionResult.PASS;
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                Criteria.ITEM_USED_ON_BLOCK.trigger(serverPlayer, pos, stack);
+            if (!success) return InteractionResult.PASS;
+            if (player instanceof ServerPlayer serverPlayer) {
+                CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger(serverPlayer, pos, stack);
             }
-            stack.decrementUnlessCreative(1, player); // Confused on how HoneycombItem.useOnBlock can get away with just decrement
-            world.emitGameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Emitter.of(player, state));
-            world.syncWorldEvent(player, 3003, pos, 0); // Wax event, spawns particles
-            return ActionResult.SUCCESS;
-        }).orElse(ActionResult.PASS);
+            stack.consume(1, player); // Confused on how HoneycombItem.useOnBlock can get away with just decrement
+            world.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            world.levelEvent(player, 3003, pos, 0); // Wax event, spawns particles
+            return InteractionResult.SUCCESS;
+        }).orElse(InteractionResult.PASS);
     }
 }

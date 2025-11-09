@@ -3,16 +3,17 @@ package dev.micalobia.fullslabs.handlers;
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
+@SuppressWarnings("unused")
 public sealed interface MixedContext permits MixedContext.Sideless, MixedContext.Sided {
     Supplier<RuntimeException> MISSING_BE = () -> new RuntimeException("Missing mixed slab block entity!");
 
@@ -68,20 +69,20 @@ public sealed interface MixedContext permits MixedContext.Sideless, MixedContext
         }
 
         public Sided sided(boolean towards) {
-            var type = mixedState.get(MixedSlabBlock.TYPE);
+            var type = mixedState.getValue(MixedSlabBlock.TYPE);
             var slab = blockEntity.map(entity -> entity.getBlock(towards)).orElse((SlabBlock) Blocks.STONE_SLAB);
             return new Sided(mixedState, blockEntity, towards, type.state(slab, towards));
         }
     }
 
-    static Sided create(BlockView world, BlockPos pos, boolean towards) {
+    static Sided create(BlockGetter world, BlockPos pos, boolean towards) {
         return create(world, pos).sided(towards);
     }
 
-    static Sideless create(BlockView world, BlockPos pos) {
+    static Sideless create(BlockGetter world, BlockPos pos) {
         var block = SlabRegistry.MIXED_SLAB.get();
         var state = world.getBlockState(pos);
-        if (!state.isOf(block)) throw new IllegalArgumentException("This block isn't a mixed slab!");
+        if (!state.is(block)) throw new IllegalArgumentException("This block isn't a mixed slab!");
         var entity = world.getBlockEntity(pos);
         Optional<MixedSlabBlockEntity> optionalEntity;
         if (!(entity instanceof MixedSlabBlockEntity mixed)) {

@@ -9,10 +9,10 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 public final class VerticalModelLoadingPlugin implements ModelLoadingPlugin {
     @Override
     public void initialize(Context context) {
-        VerticalSlabBlock.MAP_VIEW.values().forEach(block -> context.registerBlockStateResolver(block, ctx -> block.getStateManager().getStates().forEach(state ->
+        VerticalSlabBlock.MAP_VIEW.values().forEach(block -> context.registerBlockStateResolver(block, ctx -> block.getStateDefinition().getPossibleStates().forEach(state ->
                 ctx.setModel(state, VerticalSlabModel.INSTANCE)
         )));
-        context.registerBlockStateResolver(SlabRegistry.MIXED_SLAB.get(), ctx -> ctx.block().getStateManager().getStates().forEach(state ->
+        context.registerBlockStateResolver(SlabRegistry.MIXED_SLAB.get(), ctx -> ctx.block().getStateDefinition().getPossibleStates().forEach(state ->
                 ctx.setModel(state, MixedSlabModel.INSTANCE)
         ));
     }

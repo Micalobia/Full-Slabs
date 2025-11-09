@@ -5,7 +5,7 @@
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [
-        "client.ClientWorldMixin"
+        "client.ClientLevelMixin"
     ],
     "mixins": [
         "AxeItemMixin",
@@ -14,7 +14,7 @@
         "LivingEntityMixin",
         "MixedSlabBlockEntityMixin",
         "MixedSlabBlockMixin",
-        "ServerPlayerInteractionManagerMixin"
+        "ServerPlayerGameModeMixin"
     ],
     "injectors": {
         "defaultRequire": 1

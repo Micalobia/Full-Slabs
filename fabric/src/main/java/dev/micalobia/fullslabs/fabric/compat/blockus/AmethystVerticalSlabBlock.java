@@ -1,24 +1,24 @@
 package dev.micalobia.fullslabs.fabric.compat.blockus;
 
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.world.World;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 
 public class AmethystVerticalSlabBlock extends VerticalSlabBlock {
-    public AmethystVerticalSlabBlock(SlabBlock block, Settings settings) {
+    public AmethystVerticalSlabBlock(SlabBlock block, Properties settings) {
         super(block, settings);
     }
 
     @Override
-    protected void onProjectileHit(World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {
-        if (!world.isClient()) {
+    protected void onProjectileHit(Level world, BlockState state, BlockHitResult hit, Projectile projectile) {
+        if (!world.isClientSide()) {
             var pos = hit.getBlockPos();
-            world.playSound(null, pos, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.BLOCKS, 1.0F, 0.5F + world.random.nextFloat() * 1.2F);
+            world.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 1.0F, 0.5F + world.random.nextFloat() * 1.2F);
         }
     }
 }

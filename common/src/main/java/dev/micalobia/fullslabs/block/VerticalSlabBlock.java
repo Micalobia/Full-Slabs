@@ -2,30 +2,35 @@ package dev.micalobia.fullslabs.block;
 
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.block.*;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.pathing.NavigationType;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -33,42 +38,43 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class VerticalSlabBlock extends Block implements Waterloggable {
+@MethodsReturnNonnullByDefault
+public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock {
     private static final Map<SlabBlock, VerticalSlabBlock> MAP = new HashMap<>();
-    public static final EnumProperty<Direction> DIRECTION = Properties.HORIZONTAL_FACING;
-    public static final EnumProperty<VerticalType> TYPE = EnumProperty.of("type", VerticalType.class);
-    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-    public static final VoxelShape NORTH_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 16f, 16f, 8f);
-    public static final VoxelShape EAST_SHAPE = Block.createCuboidShape(8f, 0f, 0f, 16f, 16f, 16f);
-    public static final VoxelShape SOUTH_SHAPE = Block.createCuboidShape(0f, 0f, 8f, 16f, 16f, 16f);
-    public static final VoxelShape WEST_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 8f, 16f, 16f);
+    public static final EnumProperty<Direction> DIRECTION = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<VerticalType> TYPE = EnumProperty.create("type", VerticalType.class);
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    public static final VoxelShape NORTH_SHAPE = Block.box(0f, 0f, 0f, 16f, 16f, 8f);
+    public static final VoxelShape EAST_SHAPE = Block.box(8f, 0f, 0f, 16f, 16f, 16f);
+    public static final VoxelShape SOUTH_SHAPE = Block.box(0f, 0f, 8f, 16f, 16f, 16f);
+    public static final VoxelShape WEST_SHAPE = Block.box(0f, 0f, 0f, 8f, 16f, 16f);
     public static final Map<SlabBlock, VerticalSlabBlock> MAP_VIEW = Collections.unmodifiableMap(MAP);
 
     public final SlabBlock parent;
 
-    public VerticalSlabBlock(SlabBlock block, Settings settings) {
-        super(settings);
+    public VerticalSlabBlock(SlabBlock block, Properties properties) {
+        super(properties);
         this.parent = block;
         MAP.put(block, this);
-        this.setDefaultState(this.getDefaultState().with(DIRECTION, Direction.WEST).with(TYPE, VerticalType.TOWARDS).with(WATERLOGGED, false));
+        this.registerDefaultState(this.defaultBlockState().setValue(DIRECTION, Direction.WEST).setValue(TYPE, VerticalType.TOWARDS).setValue(WATERLOGGED, false));
     }
 
     @Override
-    protected boolean hasSidedTransparency(BlockState state) {
-        return state.get(TYPE) != VerticalType.FULL;
+    protected boolean useShapeForLightOcclusion(BlockState state) {
+        return state.getValue(TYPE) != VerticalType.FULL;
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(DIRECTION, TYPE, WATERLOGGED);
     }
 
     @Override
-    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        var type = state.get(TYPE);
-        if (type == VerticalType.FULL) return VoxelShapes.fullCube();
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        var type = state.getValue(TYPE);
+        if (type == VerticalType.FULL) return Shapes.block();
         var towards = type == VerticalType.TOWARDS;
-        return switch (state.get(DIRECTION)) {
+        return switch (state.getValue(DIRECTION)) {
             case NORTH -> towards ? NORTH_SHAPE : SOUTH_SHAPE;
             case EAST -> towards ? EAST_SHAPE : WEST_SHAPE;
             case SOUTH -> towards ? SOUTH_SHAPE : NORTH_SHAPE;
@@ -78,54 +84,54 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
     }
 
     @Override
-    protected boolean canReplace(BlockState state, ItemPlacementContext context) {
-        var stack = context.getStack();
-        var type = state.get(TYPE);
+    protected boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+        var stack = context.getItemInHand();
+        var type = state.getValue(TYPE);
         if (type == VerticalType.FULL) return false;
         var block = ((BlockItem) stack.getItem()).getBlock();
         if (!(block instanceof SlabBlock)) return false;
         if (block != this.parent && !(MixedHandlers.hasHandler(block) && MixedHandlers.hasHandler(this))) return false;
-        if (context.canReplaceExisting())
-            return Utility.isInsideSlab(state, context.getBlockPos(), context.getHitPos());
+        if (context.replacingClickedOnBlock())
+            return Utility.isInsideSlab(state, context.getClickedPos(), context.getClickLocation());
         return true;
     }
 
     @Override
     protected FluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
     @Override
-    public boolean tryFillWithFluid(WorldAccess world, BlockPos pos, BlockState state, FluidState fluidState) {
-        return state.get(TYPE) != VerticalType.FULL && Waterloggable.super.tryFillWithFluid(world, pos, state, fluidState);
+    public boolean placeLiquid(LevelAccessor world, BlockPos pos, BlockState state, FluidState fluidState) {
+        return state.getValue(TYPE) != VerticalType.FULL && SimpleWaterloggedBlock.super.placeLiquid(world, pos, state, fluidState);
     }
 
     @Override
-    public boolean canFillWithFluid(@Nullable LivingEntity filler, BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
-        return state.get(TYPE) != VerticalType.FULL && Waterloggable.super.canFillWithFluid(filler, world, pos, state, fluid);
+    public boolean canPlaceLiquid(@Nullable LivingEntity filler, BlockGetter world, BlockPos pos, BlockState state, Fluid fluid) {
+        return state.getValue(TYPE) != VerticalType.FULL && SimpleWaterloggedBlock.super.canPlaceLiquid(filler, world, pos, state, fluid);
     }
 
     @Override
-    protected BlockState getStateForNeighborUpdate(
+    protected BlockState updateShape(
             BlockState state,
-            WorldView world,
-            ScheduledTickView tickView,
+            LevelReader world,
+            ScheduledTickAccess tickView,
             BlockPos pos,
             Direction direction,
             BlockPos neighborPos,
             BlockState neighborState,
-            Random random
+            RandomSource random
     ) {
-        if (state.get(WATERLOGGED)) {
-            tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+        if (state.getValue(WATERLOGGED)) {
+            tickView.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
         }
 
-        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+        return super.updateShape(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
-    protected boolean canPathfindThrough(BlockState state, NavigationType type) {
-        return type == NavigationType.WATER && state.getFluidState().isIn(FluidTags.WATER);
+    protected boolean isPathfindable(BlockState state, PathComputationType type) {
+        return type == PathComputationType.WATER && state.getFluidState().is(FluidTags.WATER);
     }
 
     @Override
@@ -160,7 +166,7 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         return MAP.containsKey(block);
     }
 
-    public enum VerticalType implements StringIdentifiable {
+    public enum VerticalType implements StringRepresentable {
         TOWARDS("towards"),
         AWAY("away"),
         FULL("full");
@@ -172,7 +178,7 @@ public class VerticalSlabBlock extends Block implements Waterloggable {
         }
 
         @Override
-        public String asString() {
+        public String getSerializedName() {
             return name;
         }
     }

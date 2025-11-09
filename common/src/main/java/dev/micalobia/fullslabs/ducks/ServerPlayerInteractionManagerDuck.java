@@ -1,10 +1,10 @@
 package dev.micalobia.fullslabs.ducks;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Hand;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public interface ServerPlayerInteractionManagerDuck {
-    void fullslabs$onPlayerDestroyItem(PlayerEntity player, ItemStack stack, @Nullable Hand hand);
+    void fullslabs$onPlayerDestroyItem(Player player, ItemStack stack, @Nullable InteractionHand hand);
 }

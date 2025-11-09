@@ -5,29 +5,28 @@
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [
-        "client.BakerImplOuterAccessor",
-        "client.BlockRenderManagerMixin",
-        "client.ClientPlayerInteractionManagerMixin",
-        "client.ModelBakerAccessor",
-        "client.WorldRendererMixin"
+        "client.BlockRenderDispatcherMixin",
+        "client.LevelRendererMixin",
+        "client.ModelBakerImplAccessor",
+        "client.ModelBakeryAccessor",
+        "client.MultiPlayerGameModeMixin"
     ],
     "mixins": [
         "BlockEntityTypeAccessor",
         "BlockItemMixin",
         "EntityMixin",
         "HoneycombItemMixin",
+        "LevelChunkMixin",
         "LivingEntityMixin",
-        "OxidizableMixin",
-        "ServerPlayerInteractionManagerMixin",
+        "ServerPlayerGameModeMixin",
         "SlabBlockMixin",
-        "TagGroupLoaderMixin",
-        "WorldChunkMixin"
+        "TagLoaderMixin",
+        "WeatheringCopperMixin"
     ],
     "injectors": {
         "defaultRequire": 1
     },
     "mixinextras": {
         "minVersion": "0.5.0"
-    },
-    "refmap": "fullslabs-common-common-refmap.json"
+    }
 }

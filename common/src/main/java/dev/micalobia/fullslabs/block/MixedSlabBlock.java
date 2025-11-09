@@ -9,197 +9,198 @@ import dev.micalobia.fullslabs.handlers.MixedConsumer;
 import dev.micalobia.fullslabs.handlers.MixedContext;
 import dev.micalobia.fullslabs.handlers.MixedFunction;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.enums.SlabType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BiFunction;
 
-public final class MixedSlabBlock extends Block implements BlockEntityProvider, MixedSlabBlockDuck {
-    public static final EnumProperty<MixedType> TYPE = EnumProperty.of("type", MixedType.class);
+@MethodsReturnNonnullByDefault
+public final class MixedSlabBlock extends Block implements EntityBlock, MixedSlabBlockDuck {
+    public static final EnumProperty<MixedType> TYPE = EnumProperty.create("type", MixedType.class);
 
     @ApiStatus.Internal
     @Nullable
-    public static PlayerEntity cachedPlayer = null;
+    public static Player cachedPlayer = null;
 
-    public MixedSlabBlock(Settings settings) {
-        super(settings);
+    public MixedSlabBlock(Properties properties) {
+        super(properties);
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(TYPE);
     }
 
     @Override
-    protected boolean hasRandomTicks(BlockState state) {
+    protected boolean isRandomlyTicking(BlockState state) {
         return true; // Not ideal, disables the check that skips random ticks in chunk sections even when it isn't needed
     }
 
     @Override
-    protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+    protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
         forwardSides(world, pos, ctx -> ctx.handler().randomTick(ctx, world, pos, random));
     }
 
     @Override
-    protected boolean emitsRedstonePower(BlockState state) {
+    protected boolean isSignalSource(BlockState state) {
         return true; // Not ideal, mixed into redstone dust to accurately connect
     }
 
     // This reflects the truth
-    public boolean emitsRedstonePower(BlockView world, BlockPos pos) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().emitsRedstonePower(ctx), Boolean::logicalOr);
+    public boolean isSignalSource(BlockGetter world, BlockPos pos) {
+        return forwardSidesValue(world, pos, ctx -> ctx.handler().isSignalSource(ctx), Boolean::logicalOr);
     }
 
     @Override
-    protected int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().getWeakRedstonePower(ctx, world, pos, direction), Math::max);
+    protected int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
+        return forwardSidesValue(world, pos, ctx -> ctx.handler().getSignal(ctx, world, pos, direction), Math::max);
     }
 
     @Override
-    protected int getStrongRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().getStrongRedstonePower(ctx, world, pos, direction), Math::max);
+    protected int getDirectSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
+        return forwardSidesValue(world, pos, ctx -> ctx.handler().getDirectSignal(ctx, world, pos, direction), Math::max);
     }
 
     @Override
-    protected void onProjectileHit(World world, BlockState state, BlockHitResult hit, ProjectileEntity projectile) {
-        forwardSide(world, hit.getBlockPos(), hit.getPos(), ctx -> ctx.handler().onProjectileHit(ctx, world, hit, projectile));
+    protected void onProjectileHit(Level world, BlockState state, BlockHitResult hit, Projectile projectile) {
+        forwardSide(world, hit.getBlockPos(), hit.getLocation(), ctx -> ctx.handler().onProjectileHit(ctx, world, hit, projectile));
     }
 
     @Override
-    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
-        forwardSide(world, pos, entity.getEntityPos(), ctx -> ctx.handler().onSteppedOn(ctx, world, pos, entity));
+    public void stepOn(Level world, BlockPos pos, BlockState state, Entity entity) {
+        forwardSide(world, pos, entity.position(), ctx -> ctx.handler().stepOn(ctx, world, pos, entity));
     }
 
     @Override
-    public void onLandedUpon(World world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
-        forwardSide(world, pos, entity.getEntityPos(), ctx -> ctx.handler().onLandedUpon(ctx, world, pos, entity, fallDistance));
+    public void fallOn(Level world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
+        forwardSide(world, pos, entity.position(), ctx -> ctx.handler().fallOn(ctx, world, pos, entity, fallDistance));
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void onEntityLand(BlockView world, Entity entity) {
-        // using getLandingPos instead of getStandingPos since that's where this method is called from in Entity
-        forwardSide(world, entity.getLandingPos(), entity.getEntityPos(), ctx -> ctx.handler().onEntityLand(ctx, world, entity));
+    public void updateEntityMovementAfterFallOn(BlockGetter world, Entity entity) {
+        // using getOnPosLegacy instead of getOnPos since that's where this method is called from in Entity
+        forwardSide(world, entity.getOnPosLegacy(), entity.position(), ctx -> ctx.handler().updateEntityMovementAfterFallOn(ctx, world, entity));
     }
 
     @Override
-    public void precipitationTick(BlockState state, World world, BlockPos pos, Biome.Precipitation precipitation) {
-        forwardSides(world, pos, ctx -> ctx.handler().precipitationTick(ctx, world, pos, precipitation));
+    public void handlePrecipitation(BlockState state, Level world, BlockPos pos, Biome.Precipitation precipitation) {
+        forwardSides(world, pos, ctx -> ctx.handler().handlePrecipitation(ctx, world, pos, precipitation));
     }
 
     @Override
-    protected void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {
-        forwardSides(world, pos, ctx -> ctx.handler().onBlockBreakStart(ctx, world, pos, player));
+    protected void attack(BlockState state, Level world, BlockPos pos, Player player) {
+        forwardSides(world, pos, ctx -> ctx.handler().attack(ctx, world, pos, player));
     }
 
     @Override
-    public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
-        forwardSides(world, pos, ctx -> ctx.handler().afterBreak(ctx, world, player, pos, blockEntity, tool));
+    public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
+        forwardSides(world, pos, ctx -> ctx.handler().playerDestroy(ctx, world, player, pos, blockEntity, tool));
     }
 
     @Override
-    protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        forwardSides(world, pos, ctx -> ctx.handler().scheduledTick(ctx, world, pos, random));
+    protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+        forwardSides(world, pos, ctx -> ctx.handler().tick(ctx, world, pos, random));
     }
 
     @Override
-    protected void onStacksDropped(BlockState state, ServerWorld world, BlockPos pos, ItemStack tool, boolean dropExperience) {
-        forwardSides(world, pos, ctx -> ctx.handler().onStacksDropped(ctx, world, pos, tool, dropExperience));
+    protected void spawnAfterBreak(BlockState state, ServerLevel world, BlockPos pos, ItemStack tool, boolean dropExperience) {
+        forwardSides(world, pos, ctx -> ctx.handler().spawnAfterBreak(ctx, world, pos, tool, dropExperience));
     }
 
     @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        return forwardSideValue(world, pos, hit.getPos(), ctx -> ctx.handler().onUse(ctx, world, pos, player, hit));
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.handler().useWithoutItem(ctx, world, pos, player, hit));
     }
 
     @Override
-    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        return forwardSideValue(world, pos, hit.getPos(), ctx -> ctx.handler().onUseWithItem(ctx, stack, world, pos, player, hand, hit));
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.handler().useItemOn(ctx, stack, world, pos, player, hand, hit));
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new MixedSlabBlockEntity(pos, state);
     }
 
     @Override
-    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
-        var crosshair = Utility.crosshair(cachedPlayer, world.isClient());
-        return forwardSideValue(world, pos, crosshair.getPos(), ctx -> new ItemStack(ctx.block()));
+    protected ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData) {
+        var crosshair = Utility.crosshair(cachedPlayer, world.isClientSide());
+        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.block()));
     }
 
     @Override
-    protected float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
-        var hit = Utility.crosshair(player, ((World) world).isClient());
-        return forwardSideValue(world, pos, hit.getPos(), ctx -> ctx.state().calcBlockBreakingDelta(player, world, pos));
+    protected float getDestroyProgress(BlockState state, Player player, BlockGetter world, BlockPos pos) {
+        var hit = Utility.crosshair(player, ((Level) world).isClientSide());
+        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.state().getDestroyProgress(player, world, pos));
     }
 
     @Override
-    protected boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
+    protected boolean triggerEvent(BlockState state, Level world, BlockPos pos, int type, int data) {
         if (type != 0) return false;
-        world.updateListeners(pos, state, state, Block.NOTIFY_ALL_AND_REDRAW | Block.FORCE_STATE);
+        world.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL_IMMEDIATE | Block.UPDATE_KNOWN_SHAPE);
         return true;
     }
 
-    public <T> T forward(BlockView world, BlockPos pos, MixedFunction<T, MixedContext.Sideless> function) {
+    public <T> T forward(BlockGetter world, BlockPos pos, MixedFunction<T, MixedContext.Sideless> function) {
         return function.apply(MixedContext.create(world, pos));
     }
 
-    public <T> T forwardSideValue(BlockView world, BlockPos pos, boolean towards, MixedFunction<T, MixedContext.Sided> function) {
+    public <T> T forwardSideValue(BlockGetter world, BlockPos pos, boolean towards, MixedFunction<T, MixedContext.Sided> function) {
         return forward(world, pos, ctx -> function.apply(ctx.sided(towards)));
     }
 
-    public <T> T forwardSideValue(BlockView world, BlockPos pos, Vec3d hit, MixedFunction<T, MixedContext.Sided> function) {
+    public <T> T forwardSideValue(BlockGetter world, BlockPos pos, Vec3 hit, MixedFunction<T, MixedContext.Sided> function) {
         return forward(world, pos, ctx -> {
-            var type = ctx.mixedState().get(TYPE);
+            var type = ctx.mixedState().getValue(TYPE);
             var towards = type.isAxisTargetTowards(hit, pos);
             return function.apply(ctx.sided(towards));
         });
     }
 
-    public void forwardSide(BlockView world, BlockPos pos, boolean towards, MixedConsumer<MixedContext.Sided> consumer) {
-        // The field is to suppress a warning
-        var ignored = this.<Void>forwardSideValue(world, pos, towards, ctx -> {
+    public void forwardSide(BlockGetter world, BlockPos pos, boolean towards, MixedConsumer<MixedContext.Sided> consumer) {
+        this.<Void>forwardSideValue(world, pos, towards, ctx -> {
             consumer.apply(ctx);
             return null;
         });
     }
 
-    public void forwardSide(BlockView world, BlockPos pos, Vec3d hit, MixedConsumer<MixedContext.Sided> consumer) {
+    public void forwardSide(BlockGetter world, BlockPos pos, Vec3 hit, MixedConsumer<MixedContext.Sided> consumer) {
         this.<Void>forwardSideValue(world, pos, hit, ctx -> {
             consumer.apply(ctx);
             return null;
         });
     }
 
-    public <T, R> R forwardSidesValue(BlockView world, BlockPos pos, MixedFunction<T, MixedContext.Sided> function, BiFunction<T, T, R> selector) {
+    public <T, R> R forwardSidesValue(BlockGetter world, BlockPos pos, MixedFunction<T, MixedContext.Sided> function, BiFunction<T, T, R> selector) {
         return forward(world, pos, ctx -> {
             var towardsValue = function.apply(ctx.sided(true));
             var awayValue = function.apply(ctx.sided(false));
@@ -207,7 +208,7 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
         });
     }
 
-    public void forwardSides(BlockView world, BlockPos pos, MixedConsumer<MixedContext.Sided> consumer) {
+    public void forwardSides(BlockGetter world, BlockPos pos, MixedConsumer<MixedContext.Sided> consumer) {
         this.<Void, Void>forwardSidesValue(world, pos, ctx -> {
             consumer.apply(ctx);
             return null;
@@ -215,14 +216,14 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
     }
 
     public boolean towards(BlockState state, BlockHitResult hit) {
-        return towards(state, hit.getPos(), hit.getBlockPos());
+        return towards(state, hit.getLocation(), hit.getBlockPos());
     }
 
-    public boolean towards(BlockState state, Vec3d hit, BlockPos pos) {
-        return state.get(TYPE).isAxisTargetTowards(hit, pos);
+    public boolean towards(BlockState state, Vec3 hit, BlockPos pos) {
+        return state.getValue(TYPE).isAxisTargetTowards(hit, pos);
     }
 
-    public enum MixedType implements StringIdentifiable {
+    public enum MixedType implements StringRepresentable {
         NORTH("north", Direction.NORTH),
         SOUTH("south", Direction.SOUTH),
         EAST("east", Direction.EAST),
@@ -240,6 +241,7 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
             this.direction = direction;
         }
 
+        @SuppressWarnings("unused")
         public static List<MixedType> cardinal() {
             return CARDINAL;
         }
@@ -247,19 +249,20 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
         public static MixedType fromState(BlockState state) {
             var block = state.getBlock();
             if (block instanceof SlabBlock) return VERTICAL;
-            if (block instanceof VerticalSlabBlock) return switch (state.get(Properties.HORIZONTAL_FACING)) {
-                case UP, DOWN -> throw new AssertionError();
-                case NORTH -> NORTH;
-                case SOUTH -> SOUTH;
-                case WEST -> WEST;
-                case EAST -> EAST;
-            };
-            if (block == SlabRegistry.MIXED_SLAB.get()) return state.get(TYPE);
+            if (block instanceof VerticalSlabBlock)
+                return switch (state.getValue(BlockStateProperties.HORIZONTAL_FACING)) {
+                    case UP, DOWN -> throw new AssertionError();
+                    case NORTH -> NORTH;
+                    case SOUTH -> SOUTH;
+                    case WEST -> WEST;
+                    case EAST -> EAST;
+                };
+            if (block == SlabRegistry.MIXED_SLAB.get()) return state.getValue(TYPE);
             throw new IllegalArgumentException("Not a slab!");
         }
 
         @Override
-        public String asString() {
+        public String getSerializedName() {
             return this.name;
         }
 
@@ -267,15 +270,15 @@ public final class MixedSlabBlock extends Block implements BlockEntityProvider, 
             if (!VerticalSlabBlock.hasVertical(slab))
                 throw new IllegalArgumentException("%s is missing a vertical".formatted(slab));
             if (this == VERTICAL)
-                return slab.getDefaultState().with(Properties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
-            return VerticalSlabBlock.getVertical(slab).getDefaultState().with(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY).with(Properties.HORIZONTAL_FACING, this.direction);
+                return slab.defaultBlockState().setValue(BlockStateProperties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
+            return VerticalSlabBlock.getVertical(slab).defaultBlockState().setValue(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY).setValue(BlockStateProperties.HORIZONTAL_FACING, this.direction);
         }
 
-        public boolean isAxisTargetTowards(Vec3d hit, BlockPos pos) {
+        public boolean isAxisTargetTowards(Vec3 pos, BlockPos location) {
             return switch (direction.getAxis()) {
-                case X -> hit.x - pos.getX() > 0.5d ? Direction.EAST : Direction.WEST;
-                case Y -> hit.y - pos.getY() > 0.5d ? Direction.UP : Direction.DOWN;
-                case Z -> hit.z - pos.getZ() > 0.5d ? Direction.SOUTH : Direction.NORTH;
+                case X -> pos.x - location.getX() > 0.5d ? Direction.EAST : Direction.WEST;
+                case Y -> pos.y - location.getY() > 0.5d ? Direction.UP : Direction.DOWN;
+                case Z -> pos.z - location.getZ() > 0.5d ? Direction.SOUTH : Direction.NORTH;
             } == direction;
         }
 

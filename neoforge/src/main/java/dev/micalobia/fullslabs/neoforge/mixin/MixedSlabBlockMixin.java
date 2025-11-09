@@ -3,17 +3,17 @@ package dev.micalobia.fullslabs.neoforge.mixin;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.ducks.MixedSlabBlockDuck;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.util.annotation.MethodsReturnNonnullByDefault;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.explosion.Explosion;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.extensions.IBlockExtension;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,29 +27,29 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class MixedSlabBlockMixin implements IBlockExtension, MixedSlabBlockDuck {
     @Shadow
-    public abstract boolean emitsRedstonePower(BlockView world, BlockPos pos);
+    public abstract boolean isSignalSource(BlockGetter world, BlockPos pos);
 
     @Override
-    public float getExplosionResistance(BlockState state, BlockView world, BlockPos pos, Explosion explosion) {
+    public float getExplosionResistance(BlockState state, BlockGetter world, BlockPos pos, Explosion explosion) {
         return this.forwardSidesValue(world, pos, ctx -> ctx.state().getExplosionResistance(world, pos, explosion), Math::max);
     }
 
     @Override
-    public BlockSoundGroup getSoundType(BlockState state, WorldView world, BlockPos pos, @Nullable Entity entity) {
-        if (!(entity instanceof PlayerEntity player))
+    public SoundType getSoundType(BlockState state, LevelReader world, BlockPos pos, @Nullable Entity entity) {
+        if (!(entity instanceof Player player))
             return IBlockExtension.super.getSoundType(state, world, pos, entity);
-        var crosshair = Utility.crosshair(player, world.isClient());
-        return this.forwardSideValue(world, pos, crosshair.getPos(), ctx -> ctx.state().getSoundType(world, pos, entity));
+        var crosshair = Utility.crosshair(player, world.isClientSide());
+        return this.forwardSideValue(world, pos, crosshair.getLocation(), ctx -> ctx.state().getSoundType(world, pos, entity));
     }
 
     @Override
-    public ItemStack getCloneItemStack(WorldView world, BlockPos pos, BlockState state, boolean includeData, PlayerEntity player) {
-        var crosshair = Utility.crosshair(player, world.isClient());
-        return forwardSideValue(world, pos, crosshair.getPos(), ctx -> new ItemStack(ctx.block().asItem()));
+    public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData, Player player) {
+        var crosshair = Utility.crosshair(player, world.isClientSide());
+        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.block().asItem()));
     }
 
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockView world, BlockPos pos, @Nullable Direction direction) {
-        return this.emitsRedstonePower(world, pos);
+    public boolean canConnectRedstone(BlockState state, BlockGetter world, BlockPos pos, @Nullable Direction direction) {
+        return this.isSignalSource(world, pos);
     }
 }

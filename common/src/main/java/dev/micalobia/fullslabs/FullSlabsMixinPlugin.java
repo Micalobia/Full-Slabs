@@ -12,9 +12,21 @@ import java.util.regex.Pattern;
 public final class FullSlabsMixinPlugin implements IMixinConfigPlugin {
     // Takes a class name of the form *.compat.modid.* and extracts the mod id. Used to make sure the mixin is only loaded when the mod is
     public static final Pattern COMPAT_REGEX = Pattern.compile(".*compat\\.(?<modid>\\w+)\\..*");
+    // This just extracts the simple name of a class, to verify all my mixins follow the naming convention of <class>Mixin or <class>Accessor
+    public static final Pattern NAME_REGEX = Pattern.compile("^.*[.$](?<name>\\w+)$");
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        var targetMatcher = NAME_REGEX.matcher(targetClassName);
+        var mixinMatcher = NAME_REGEX.matcher(mixinClassName);
+        if (targetMatcher.matches() && mixinMatcher.matches()) {
+            var targetName = targetMatcher.group("name");
+            var mixinName = mixinMatcher.group("name");
+            var targetMixin = "%sMixin".formatted(targetName);
+            if (!mixinName.equals(targetMixin) && !mixinName.equals("%sAccessor".formatted(targetName))) {
+                FullSlabs.LOGGER.warn("Incorrect name: {} should be {}", mixinName, targetMixin);
+            }
+        }
         var match = COMPAT_REGEX.matcher(mixinClassName);
         if (match.matches()) return Platform.isModLoaded(match.group("modid"));
         return true;

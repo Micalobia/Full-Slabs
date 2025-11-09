@@ -2,16 +2,17 @@ package dev.micalobia.fullslabs.handlers;
 
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.block.Block;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public final class MixedHandlers {
-    private static final HashMap<Identifier, MixedHandlerFactory> ID_HANDLERS = new HashMap<>();
+    private static final HashMap<ResourceLocation, MixedHandlerFactory> ID_HANDLERS = new HashMap<>();
     private static final HashMap<SlabBlock, MixedHandlerFactory> BLOCK_HANDLERS = new HashMap<>();
     private static final HashMap<Class<? extends SlabBlock>, MixedHandlerFactory> CLASS_HANDLERS = new HashMap<>();
     private static final HashMap<SlabBlock, MixedHandler> HANDLERS = new HashMap<>();
@@ -23,7 +24,7 @@ public final class MixedHandlers {
         return slab.filter(slabBlock -> HANDLERS.containsKey(slabBlock) ||
                 BLOCK_HANDLERS.containsKey(slabBlock) ||
                 CLASS_HANDLERS.containsKey(slabBlock.getClass()) ||
-                ID_HANDLERS.containsKey(Registries.BLOCK.getId(slabBlock))
+                ID_HANDLERS.containsKey(BuiltInRegistries.BLOCK.getKey(slabBlock))
         ).isPresent();
     }
 
@@ -46,12 +47,12 @@ public final class MixedHandlers {
         return handler;
     }
 
-    public static void register(Identifier identifier, MixedHandler handler) {
+    public static void register(ResourceLocation identifier, MixedHandler handler) {
         register(identifier, slab -> handler);
     }
 
-    public static void register(Identifier identifier, MixedHandlerFactory factory) {
-        Registries.BLOCK.getOptionalValue(identifier).ifPresentOrElse(
+    public static void register(ResourceLocation identifier, MixedHandlerFactory factory) {
+        BuiltInRegistries.BLOCK.getOptional(identifier).ifPresentOrElse(
                 block -> register(block, factory),
                 () -> ID_HANDLERS.put(identifier, factory)
         );
@@ -75,15 +76,15 @@ public final class MixedHandlers {
         CLASS_HANDLERS.put(klass, factory);
     }
 
-    private static void resolve(Identifier id) {
-        Registries.BLOCK.getOptionalValue(id).ifPresent(block -> resolve(block, id));
+    private static void resolve(ResourceLocation id) {
+        BuiltInRegistries.BLOCK.getOptional(id).ifPresent(block -> resolve(block, id));
     }
 
     private static void resolve(Block block) {
-        resolve(block, Registries.BLOCK.getId(block));
+        resolve(block, BuiltInRegistries.BLOCK.getKey(block));
     }
 
-    private static void resolve(Block block, Identifier id) {
+    private static void resolve(Block block, ResourceLocation id) {
         if (ID_HANDLERS.containsKey(id))
             register(block, ID_HANDLERS.remove(id));
     }
