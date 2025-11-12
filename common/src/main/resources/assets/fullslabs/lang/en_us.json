@@ -1,7 +1,12 @@
 {
     "fullslabs.midnightconfig.title": "Full Slabs",
     "fullslabs.midnightconfig.tiltedSlabs": "Tilted Slabs",
+    "fullslabs.midnightconfig.edgeOpacity": "Edge Opacity",
+    "fullslabs.midnightconfig.edgeColor": "Edge Color",
+    "fullslabs.midnightconfig.fillOpacity": "Fill Opacity",
+    "fullslabs.midnightconfig.fillColor": "Fill Color",
     "fullslabs.midnightconfig.category.general": "General",
+    "fullslabs.midnightconfig.category.overlay": "Overlay",
     "key.category.fullslabs.main": "Full Slabs",
     "key.fullslabs.cycle_mode": "Cycle Placement Mode",
     "key.fullslabs.toggle_overlay": "Toggle Overlay"

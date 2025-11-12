@@ -3,6 +3,7 @@ package dev.micalobia.fullslabs.client;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.util.Constants;
 import dev.micalobia.fullslabs.util.SlabPlacement;
@@ -26,8 +27,7 @@ import java.util.*;
 
 public final class BlockFaceOverlay {
     private static final double EPSILON = 1e-4d;
-    private static final int FILL_COLOR = 0x3F007FFF;
-    private static final int LINE_COLOR = 0xFFFFFFFF;
+
 
     private static final RenderType QUAD_LAYER = RenderType.debugQuads();
     private static final RenderType LINE_LAYER = RenderType.debugLineStrip(2f);
@@ -95,7 +95,7 @@ public final class BlockFaceOverlay {
     }
 
     private static void putVertex(VertexConsumer vc, PoseStack.Pose e, Vec3 p, Vec3 n) {
-        vc.addVertex(e.pose(), (float) p.x, (float) p.y, (float) p.z).setColor(FILL_COLOR).setNormal(e, (float) n.x, (float) n.y, (float) n.z);
+        vc.addVertex(e.pose(), (float) p.x, (float) p.y, (float) p.z).setColor(Config.fillColor()).setNormal(e, (float) n.x, (float) n.y, (float) n.z);
     }
 
     private static Vec3 uvToWorld(double u, double v, FaceFrame b) {
@@ -243,7 +243,7 @@ public final class BlockFaceOverlay {
             var vc = provider.getBuffer(LINE_LAYER);
             for (var v : chain) {
                 var p = uvToWorld(v.x + 0.5d, v.y + 0.5d, frame).add(offset);
-                vc.addVertex(entry, (float) p.x, (float) p.y, (float) p.z).setColor(LINE_COLOR).setNormal(entry, (float) n.x, (float) n.y, (float) n.z);
+                vc.addVertex(entry, (float) p.x, (float) p.y, (float) p.z).setColor(Config.edgeColor()).setNormal(entry, (float) n.x, (float) n.y, (float) n.z);
             }
             provider.endBatch();
         }
