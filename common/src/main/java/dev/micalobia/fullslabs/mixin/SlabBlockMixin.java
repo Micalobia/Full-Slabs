@@ -64,7 +64,8 @@ public class SlabBlockMixin {
             var stack = context.getItemInHand();
             var type = state.getValue(BlockStateProperties.SLAB_TYPE);
             if (type == SlabType.DOUBLE) break validate;
-            var block = ((BlockItem) stack.getItem()).getBlock();
+            if (!(stack.getItem() instanceof BlockItem blockItem)) break validate;
+            var block = blockItem.getBlock();
             if (!(block instanceof SlabBlock)) break validate;
             if (block != self && !(MixedHandlers.hasHandler(block) && MixedHandlers.hasHandler(self))) break validate;
             if (context.replacingClickedOnBlock()) {

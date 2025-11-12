@@ -88,7 +88,8 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock {
         var stack = context.getItemInHand();
         var type = state.getValue(TYPE);
         if (type == VerticalType.FULL) return false;
-        var block = ((BlockItem) stack.getItem()).getBlock();
+        if (!(stack.getItem() instanceof BlockItem blockItem)) return false;
+        var block = blockItem.getBlock();
         if (!(block instanceof SlabBlock)) return false;
         if (block != this.parent && !(MixedHandlers.hasHandler(block) && MixedHandlers.hasHandler(this))) return false;
         if (context.replacingClickedOnBlock())
