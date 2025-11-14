@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("unused")
 public interface MixedHandler {
     default MixedSlabBlock mixed() {
-        return SlabRegistry.MIXED_SLAB.get();
+        return SlabRegistry.MIXED_SLAB;
     }
 
     default void randomTick(MixedContext.Sided context, ServerLevel world, BlockPos pos, RandomSource random) {

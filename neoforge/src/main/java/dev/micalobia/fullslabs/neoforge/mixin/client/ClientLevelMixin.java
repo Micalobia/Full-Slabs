@@ -28,9 +28,8 @@ public abstract class ClientLevelMixin implements BlockGetter {
     @Expression("? = ?.getBlockState(?)")
     @ModifyVariable(method = "addBreakingBlockEffect(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/phys/HitResult;)V", at = @At(value = "MIXINEXTRAS:EXPRESSION", shift = At.Shift.AFTER))
     private BlockState mixedSlabBreakingParticles(BlockState state, @Local(argsOnly = true) BlockPos pos) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!state.is(mixed)) return state;
+        if (!state.is(SlabRegistry.MIXED_SLAB)) return state;
         var crosshair = Objects.requireNonNull(this.minecraft.hitResult).getLocation();
-        return mixed.forwardSideValue(this, pos, crosshair, MixedContext.Sided::state);
+        return SlabRegistry.MIXED_SLAB.forwardSideValue(this, pos, crosshair, MixedContext.Sided::state);
     }
 }

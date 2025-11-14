@@ -257,7 +257,7 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
                     case WEST -> WEST;
                     case EAST -> EAST;
                 };
-            if (block == SlabRegistry.MIXED_SLAB.get()) return state.getValue(TYPE);
+            if (block == SlabRegistry.MIXED_SLAB) return state.getValue(TYPE);
             throw new IllegalArgumentException("Not a slab!");
         }
 

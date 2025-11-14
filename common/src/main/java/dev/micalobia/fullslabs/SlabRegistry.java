@@ -47,10 +47,11 @@ public class SlabRegistry {
     private static final DeferredRegister<Block> GENERATED = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB = registerBlock("mixed_slab", MixedSlabBlock::new);
+    public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB_SUPPLIER = registerBlock("mixed_slab", MixedSlabBlock::new);
+    public static MixedSlabBlock MIXED_SLAB;
     public static final RegistrySupplier<BlockEntityType<MixedSlabBlockEntity>> MIXED_SLAB_ENTITY = BLOCK_ENTITIES.register(
             FullSlabs.id("mixed_slab"),
-            () -> BlockEntityTypeAccessor.constructor(MixedSlabBlockEntity::new, Set.of(MIXED_SLAB.get()))
+            () -> BlockEntityTypeAccessor.constructor(MixedSlabBlockEntity::new, Set.of(SlabRegistry.MIXED_SLAB))
     );
 
     private static <T extends Block> RegistrySupplier<T> registerBlock(String id, Function<Properties, T> func) {
@@ -62,6 +63,7 @@ public class SlabRegistry {
     }
 
     public static void init() {
+        MIXED_SLAB_SUPPLIER.listen(block -> MIXED_SLAB = block);
         registerVanilla();
         initSlabListener();
 //        registerDebug();

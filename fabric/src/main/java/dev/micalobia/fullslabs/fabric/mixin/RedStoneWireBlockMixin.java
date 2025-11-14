@@ -32,8 +32,7 @@ public class RedStoneWireBlockMixin {
 
     @WrapOperation(method = "shouldConnectTo(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isSignalSource()Z"))
     private static boolean mixedSlabRedstonePower(BlockState state, Operation<Boolean> original, BlockState ignored, Direction direction) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!state.is(mixed)) return original.call(state);
-        return mixed.isSignalSource(fullslabs$world, fullslabs$pos.relative(direction == null ? Direction.DOWN : direction));
+        if (!state.is(SlabRegistry.MIXED_SLAB)) return original.call(state);
+        return SlabRegistry.MIXED_SLAB.isSignalSource(fullslabs$world, fullslabs$pos.relative(direction == null ? Direction.DOWN : direction));
     }
 }

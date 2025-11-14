@@ -46,8 +46,7 @@ public final class FullSlabsNeoForgeClient {
                 keys.put(state, key);
             }
         }
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        for (var state : mixed.getStateDefinition().getPossibleStates()) {
+        for (var state : SlabRegistry.MIXED_SLAB.getStateDefinition().getPossibleStates()) {
             var id = FullSlabs.id("block/mixed_slab/%s".formatted(state.getValue(MixedSlabBlock.TYPE).getSerializedName()));
             var key = new StandaloneModelKey<BlockStateModel>(id::toString);
             event.register(key, new UnbakedGroupedWrapper(MixedSlabModel.INSTANCE, state));
@@ -67,8 +66,7 @@ public final class FullSlabsNeoForgeClient {
                 blockStateModels.put(state, model);
             }
         }
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        for (var state : mixed.getStateDefinition().getPossibleStates()) {
+        for (var state : SlabRegistry.MIXED_SLAB.getStateDefinition().getPossibleStates()) {
             var key = keys.get(state);
             var model = standaloneModels.get(key);
             blockStateModels.put(state, model);

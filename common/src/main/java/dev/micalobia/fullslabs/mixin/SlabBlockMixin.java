@@ -38,8 +38,7 @@ public class SlabBlockMixin {
         else if (state.is(self))
             cir.setReturnValue(state.setValue(BlockStateProperties.SLAB_TYPE, SlabType.DOUBLE).setValue(BlockStateProperties.WATERLOGGED, false));
         else if (Utility.isSlab(state)) {
-            var mixed = SlabRegistry.MIXED_SLAB.get();
-            cir.setReturnValue(mixed.defaultBlockState().setValue(MixedSlabBlock.TYPE, MixedType.fromState(state)));
+            cir.setReturnValue(SlabRegistry.MIXED_SLAB.defaultBlockState().setValue(MixedSlabBlock.TYPE, MixedType.fromState(state)));
         } else {
             var face = ctx.getClickedFace();
             var fluidState = world.getFluidState(pos);

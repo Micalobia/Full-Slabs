@@ -80,7 +80,7 @@ public sealed interface MixedContext permits MixedContext.Sideless, MixedContext
     }
 
     static Sideless create(BlockGetter world, BlockPos pos) {
-        var block = SlabRegistry.MIXED_SLAB.get();
+        var block = SlabRegistry.MIXED_SLAB;
         var state = world.getBlockState(pos);
         if (!state.is(block)) throw new IllegalArgumentException("This block isn't a mixed slab!");
         var entity = world.getBlockEntity(pos);

@@ -14,8 +14,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 public class BlockItemMixin {
     @ModifyArg(method = "place", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/BlockItem;getPlaceSound(Lnet/minecraft/world/level/block/state/BlockState;)Lnet/minecraft/sounds/SoundEvent;"))
     private BlockState mixedSlabPlacementSounds(BlockState state, @Local(argsOnly = true) BlockPlaceContext context) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!(state.is(mixed))) return state;
+        if (!(state.is(SlabRegistry.MIXED_SLAB))) return state;
         if (this instanceof BlockItemDuck self)
             return self.fullslabs$getPlaced() == null ? state : self.fullslabs$getPlaced();
         throw new AssertionError();

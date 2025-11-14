@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class ExplosionDamageCalculatorMixin {
     @ModifyReceiver(method = "getBlockExplosionResistance", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;"))
     private BlockState mixedSlabBlastResistence(BlockState state, Explosion explosion, BlockGetter world, BlockPos pos) {
-        var mixedBlock = SlabRegistry.MIXED_SLAB.get();
+        var mixedBlock = SlabRegistry.MIXED_SLAB;
         if (!state.is(mixedBlock)) return state;
         return mixedBlock.forwardSidesValue(world, pos, MixedContext.Sided::state, (t, a) -> {
             var towards = t.getBlock().getExplosionResistance();

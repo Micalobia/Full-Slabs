@@ -12,7 +12,7 @@ public final class VerticalModelLoadingPlugin implements ModelLoadingPlugin {
         VerticalSlabBlock.MAP_VIEW.values().forEach(block -> context.registerBlockStateResolver(block, ctx -> block.getStateDefinition().getPossibleStates().forEach(state ->
                 ctx.setModel(state, VerticalSlabModel.INSTANCE)
         )));
-        context.registerBlockStateResolver(SlabRegistry.MIXED_SLAB.get(), ctx -> ctx.block().getStateDefinition().getPossibleStates().forEach(state ->
+        context.registerBlockStateResolver(SlabRegistry.MIXED_SLAB, ctx -> ctx.block().getStateDefinition().getPossibleStates().forEach(state ->
                 ctx.setModel(state, MixedSlabModel.INSTANCE)
         ));
     }

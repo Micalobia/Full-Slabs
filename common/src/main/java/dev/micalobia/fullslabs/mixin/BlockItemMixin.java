@@ -28,7 +28,7 @@ public class BlockItemMixin implements BlockItemDuck {
 
     @Inject(method = "placeBlock", at = @At("HEAD"))
     private void skimMixedSlabs(BlockPlaceContext context, BlockState state, CallbackInfoReturnable<Boolean> cir) {
-        if (!state.is(SlabRegistry.MIXED_SLAB.get())) return;
+        if (!state.is(SlabRegistry.MIXED_SLAB)) return;
         var world = context.getLevel();
         var pos = context.getClickedPos();
         var stack = context.getItemInHand();

@@ -131,11 +131,10 @@ public class Utility {
         Objects.requireNonNull(crosshair);
         var hit = crosshair.getLocation();
         var block = state.getBlock();
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (state.is(mixed)) {
+        if (state.is(SlabRegistry.MIXED_SLAB)) {
             var type = state.getValue(MixedSlabBlock.TYPE);
             var towards = type.isAxisTargetTowards(hit, pos);
-            return mixed.forward(view, pos, ctx -> {
+            return SlabRegistry.MIXED_SLAB.forward(view, pos, ctx -> {
                 var entity = ctx.blockEntityOrThrow();
                 return new StatePair(entity.getState(towards), entity.getState(!towards));
             });
@@ -155,10 +154,9 @@ public class Utility {
     }
 
     public static BlockState targetedHalf(BlockGetter world, BlockState state, BlockPos pos, Vec3 hit) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!(Utility.isDoubleSlab(state) || state.is(mixed))) return state;
+        if (!(Utility.isDoubleSlab(state) || state.is(SlabRegistry.MIXED_SLAB))) return state;
         var block = state.getBlock();
-        if (block == mixed) return mixed.forwardSideValue(world, pos, hit, MixedContext.Sided::state);
+        if (block == SlabRegistry.MIXED_SLAB) return SlabRegistry.MIXED_SLAB.forwardSideValue(world, pos, hit, MixedContext.Sided::state);
         var towards = MixedType.fromState(state).isAxisTargetTowards(hit, pos);
         if (block instanceof SlabBlock)
             return state.setValue(BlockStateProperties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);

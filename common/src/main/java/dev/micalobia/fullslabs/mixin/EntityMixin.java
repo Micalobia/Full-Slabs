@@ -23,11 +23,10 @@ public class EntityMixin implements EntityDuck {
     }
 
     public BlockState fullslabs$tryGetMixedState(BlockState state, BlockPos pos) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!(state.is(mixed))) return state;
+        if (!(state.is(SlabRegistry.MIXED_SLAB))) return state;
         var self = (Entity) (Object) this;
         var blockEntity = self.level().getBlockEntity(pos);
         if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity)) return state;
-        return mixedEntity.getState(mixed.towards(state, self.position(), pos));
+        return mixedEntity.getState(SlabRegistry.MIXED_SLAB.towards(state, self.position(), pos));
     }
 }

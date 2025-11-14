@@ -23,12 +23,11 @@ public class MultiPlayerGameModeMixin {
 
     @ModifyReceiver(method = "continueDestroyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()Lnet/minecraft/world/level/block/SoundType;"))
     private BlockState mixedSlabBreakingSound(BlockState state, @Local(argsOnly = true) BlockPos pos) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!state.is(mixed)) return state;
+        if (!state.is(SlabRegistry.MIXED_SLAB)) return state;
         var world = Objects.requireNonNull(this.minecraft.level);
         var entity = world.getBlockEntity(pos);
         if (!(entity instanceof MixedSlabBlockEntity mixedEntity)) return state;
         var crosshair = Objects.requireNonNull(this.minecraft.hitResult);
-        return mixedEntity.getState(mixed.towards(state, crosshair.getLocation(), pos));
+        return mixedEntity.getState(SlabRegistry.MIXED_SLAB.towards(state, crosshair.getLocation(), pos));
     }
 }

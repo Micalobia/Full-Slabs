@@ -12,11 +12,10 @@ import org.spongepowered.asm.mixin.Mixin;
 public class LivingEntityMixin implements LivingEntityDuck {
     @Override
     public BlockState fullslabs$getMixedLandingState(BlockState state, BlockPos landedPosition) {
-        var mixed = SlabRegistry.MIXED_SLAB.get();
-        if (!(state.is(mixed))) return state;
+        if (!(state.is(SlabRegistry.MIXED_SLAB))) return state;
         var self = (LivingEntity) (Object) this;
         var blockEntity = self.level().getBlockEntity(landedPosition);
         if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity)) return state;
-        return mixedEntity.getState(mixed.towards(state, self.position(), landedPosition));
+        return mixedEntity.getState(SlabRegistry.MIXED_SLAB.towards(state, self.position(), landedPosition));
     }
 }
