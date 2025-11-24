@@ -43,6 +43,7 @@ dependencies {
     // Compat
     modCompileOnly("maven.modrinth:blockus:${rootProject.findProperty("blockus_version")}")
     modCompileOnly("maven.modrinth:mo-glass:${rootProject.findProperty("mo_glass_version")}")
+    modCompileOnly("maven.modrinth:frostbytes-slabs-stairs:${rootProject.findProperty("slabsandstairs_version")}")
 
     // Misc
     add("common", project(path = ":common", configuration = "namedElements"))

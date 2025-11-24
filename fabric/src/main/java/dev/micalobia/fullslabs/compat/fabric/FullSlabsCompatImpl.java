@@ -9,6 +9,7 @@ import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.fabric.compat.blockus.AmethystVerticalSlabBlock;
 import dev.micalobia.fullslabs.fabric.compat.blockus.AsphaltVerticalSlabBlock;
 import dev.micalobia.fullslabs.fabric.compat.blockus.RedstoneVerticalSlabBlock;
+import dev.micalobia.fullslabs.fabric.compat.slabsandstairs.IceVerticalSlabBlock;
 import dev.micalobia.fullslabs.fabric.compat.mo_glass.GlassVerticalSlabBlock;
 import dev.micalobia.fullslabs.fabric.compat.mo_glass.StainedGlassVerticalSlabBlock;
 import dev.micalobia.fullslabs.fabric.compat.mo_glass.TintedGlassVerticalSlabBlock;
@@ -16,6 +17,7 @@ import dev.micalobia.fullslabs.handlers.BlindOnProjectileHitHandler;
 import dev.micalobia.fullslabs.handlers.BlindStepOnHandler;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.handlers.RedstoneMixedHandler;
+import net.frostbyte.slabsandstairs.block.custom.ice.IceSlabBlock;
 import net.wurstclient.glass.GlassSlabBlock;
 import net.wurstclient.glass.StainedGlassSlabBlock;
 import net.wurstclient.glass.TintedGlassSlabBlock;
@@ -25,6 +27,7 @@ public final class FullSlabsCompatImpl {
     public static void platformInit() {
         Platform.getOptionalMod("blockus").ifPresent(FullSlabsCompatImpl::blockus);
         Platform.getOptionalMod("mo_glass").ifPresent(FullSlabsCompatImpl::mo_glass);
+        Platform.getOptionalMod("slabsandstairs").ifPresent(FullSlabsCompatImpl::slabsandstairs);
     }
 
     public static void blockus(Mod mod) {
@@ -40,5 +43,9 @@ public final class FullSlabsCompatImpl {
         SlabRegistry.registerVertical(GlassSlabBlock.class, GlassVerticalSlabBlock::new);
         SlabRegistry.registerVertical(StainedGlassSlabBlock.class, StainedGlassVerticalSlabBlock::new);
         SlabRegistry.registerVertical(TintedGlassSlabBlock.class, TintedGlassVerticalSlabBlock::new);
+    }
+
+    public static void slabsandstairs(Mod mod) {
+        SlabRegistry.registerVertical(IceSlabBlock.class, IceVerticalSlabBlock::new);
     }
 }
