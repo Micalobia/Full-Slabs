@@ -5,7 +5,6 @@ import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
-import dev.micalobia.fullslabs.handlers.MixedContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -156,7 +155,8 @@ public class Utility {
     public static BlockState targetedHalf(BlockGetter world, BlockState state, BlockPos pos, Vec3 hit) {
         if (!(Utility.isDoubleSlab(state) || state.is(SlabRegistry.MIXED_SLAB))) return state;
         var block = state.getBlock();
-        if (block == SlabRegistry.MIXED_SLAB) return SlabRegistry.MIXED_SLAB.forwardSideValue(world, pos, hit, MixedContext.Sided::state);
+        if (block == SlabRegistry.MIXED_SLAB)
+            return SlabRegistry.MIXED_SLAB.forwardSideValue(world, pos, hit, SlabContext::mainState);
         var towards = MixedType.fromState(state).isAxisTargetTowards(hit, pos);
         if (block instanceof SlabBlock)
             return state.setValue(BlockStateProperties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
@@ -178,6 +178,24 @@ public class Utility {
             }
             default -> throw new IllegalArgumentException("Not a half-slab!");
         }
+    }
+
+    public static boolean isSlabTowards(BlockState state) {
+        return switch (state.getBlock()) {
+            case SlabBlock slab -> state.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.TOP;
+            case VerticalSlabBlock slab -> state.getValue(VerticalSlabBlock.TYPE) == VerticalType.TOWARDS;
+            default -> false;
+        };
+    }
+
+    public static BlockState setSlabTowards(BlockState state, boolean towards) {
+        return switch (state.getBlock()) {
+            case SlabBlock slab ->
+                    state.setValue(BlockStateProperties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
+            case VerticalSlabBlock slab ->
+                    state.setValue(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY);
+            default -> throw new IllegalStateException("Unexpected value: " + state.getBlock());
+        };
     }
 
     public static Optional<Block> getWaxed(Block unwaxed) {

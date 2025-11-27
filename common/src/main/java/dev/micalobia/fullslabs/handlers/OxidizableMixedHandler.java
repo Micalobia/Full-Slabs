@@ -1,6 +1,7 @@
 package dev.micalobia.fullslabs.handlers;
 
 import dev.micalobia.fullslabs.ducks.AxeItemDuck;
+import dev.micalobia.fullslabs.util.SlabContext;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -24,20 +25,20 @@ public class OxidizableMixedHandler implements MixedHandler {
     private OxidizableMixedHandler() {}
 
     @Override
-    public void randomTick(MixedContext.Sided context, ServerLevel world, BlockPos pos, RandomSource random) {
-        var state = context.state();
+    public void randomTick(SlabContext context, ServerLevel world, BlockPos pos, RandomSource random) {
+        var state = context.mainState();
         if (!(state.getBlock() instanceof WeatheringCopper oxidizable)) return;
-        oxidizable.getNextState(state, world, pos, random).ifPresent(s -> context.replaceBlock(s.getBlock()));
+        oxidizable.getNextState(state, world, pos, random).ifPresent(s -> context.replaceMain(world, s.getBlock()));
     }
 
     @Override
-    public InteractionResult useItemOn(MixedContext.Sided context, ItemStack stack, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useItemOn(SlabContext context, ItemStack stack, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var item = stack.getItem();
-        var state = context.state();
+        var state = context.mainState();
         if (item instanceof AxeItemDuck axe) {
             var stripped = axe.fullslabs$strippedState(world, pos, player, state, new UseOnContext(player, hand, hit));
             if (stripped.isPresent()) {
-                var success = context.replaceBlock(stripped.get().getBlock());
+                var success = context.replaceMain(world, stripped.get().getBlock());
                 return success ? InteractionResult.SUCCESS : InteractionResult.PASS;
             }
             return InteractionResult.PASS;
@@ -47,9 +48,9 @@ public class OxidizableMixedHandler implements MixedHandler {
     }
 
     // See HoneycombItem.useOnBlock
-    private InteractionResult useWaxOnBlock(MixedContext context, ItemStack stack, BlockState state, Level world, BlockPos pos, Player player) {
+    private InteractionResult useWaxOnBlock(SlabContext context, ItemStack stack, BlockState state, Level world, BlockPos pos, Player player) {
         return HoneycombItem.getWaxed(state).<InteractionResult>map(s -> {
-            var success = context.replaceBlock(s.getBlock()); // This is the main difference
+            var success = context.replaceMain(world, s.getBlock()); // This is the main difference
             if (!success) return InteractionResult.PASS;
             if (player instanceof ServerPlayer serverPlayer) {
                 CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger(serverPlayer, pos, stack);

@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs.handlers;
 
+import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -20,23 +21,25 @@ public final class MixedHandlers {
     // This governs whether a slab can be mixed at all
     public static boolean hasHandler(Block block) {
         if (!Utility.isSlab(block)) return false;
-        var slab = VerticalSlabBlock.tryGetRoot(block);
-        return slab.filter(slabBlock -> HANDLERS.containsKey(slabBlock) ||
-                BLOCK_HANDLERS.containsKey(slabBlock) ||
-                CLASS_HANDLERS.containsKey(slabBlock.getClass()) ||
-                ID_HANDLERS.containsKey(BuiltInRegistries.BLOCK.getKey(slabBlock))
-        ).isPresent();
+        var handler = get(block);
+        if (handler instanceof VanillaMixedHandler vanilla) return vanilla.valid;
+        return handler != null;
     }
 
     public static @Nullable MixedHandler get(Block block) {
         if (!Utility.isSlab(block)) return null;
         var slab = VerticalSlabBlock.getRoot(block);
         var handler = HANDLERS.get(slab);
-        if (handler == null) {
-            resolve(block);
-            handler = BLOCK_HANDLERS.getOrDefault(slab, CLASS_HANDLERS.get(slab.getClass())).create(slab);
-            if (handler != null) HANDLERS.put(slab, handler);
+        if (handler != null) return handler;
+        resolve(block);
+        var factory = BLOCK_HANDLERS.get(slab);
+        if (factory == null) factory = CLASS_HANDLERS.get(slab.getClass());
+        if (factory == null) {
+            FullSlabs.LOGGER.warn("{} missing mixed handler; Using default", BuiltInRegistries.BLOCK.getId(block));
+            factory = s -> VanillaMixedHandler.INVALID;
         }
+        handler = factory.create(slab);
+        if (handler != null) HANDLERS.put(slab, handler);
         return handler;
     }
 

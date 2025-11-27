@@ -31,7 +31,7 @@ public abstract class MixedSlabBlockMixin implements IBlockExtension, MixedSlabB
 
     @Override
     public float getExplosionResistance(BlockState state, BlockGetter world, BlockPos pos, Explosion explosion) {
-        return this.forwardSidesValue(world, pos, ctx -> ctx.state().getExplosionResistance(world, pos, explosion), Math::max);
+        return this.forwardSidesValue(world, pos, ctx -> ctx.mainState().getExplosionResistance(world, pos, explosion), Math::max);
     }
 
     @Override
@@ -39,13 +39,13 @@ public abstract class MixedSlabBlockMixin implements IBlockExtension, MixedSlabB
         if (!(entity instanceof Player player))
             return IBlockExtension.super.getSoundType(state, world, pos, entity);
         var crosshair = Utility.crosshair(player, world.isClientSide());
-        return this.forwardSideValue(world, pos, crosshair.getLocation(), ctx -> ctx.state().getSoundType(world, pos, entity));
+        return this.forwardSideValue(world, pos, crosshair.getLocation(), ctx -> ctx.mainState().getSoundType(world, pos, entity));
     }
 
     @Override
     public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData, Player player) {
         var crosshair = Utility.crosshair(player, world.isClientSide());
-        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.block().asItem()));
+        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.mainBlock().asItem()));
     }
 
     @Override

@@ -6,8 +6,9 @@ import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.ducks.MixedSlabBlockDuck;
 import dev.micalobia.fullslabs.handlers.MixedConsumer;
-import dev.micalobia.fullslabs.handlers.MixedContext;
 import dev.micalobia.fullslabs.handlers.MixedFunction;
+import dev.micalobia.fullslabs.util.SlabContext;
+import dev.micalobia.fullslabs.util.SlabContext.Side;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -66,7 +67,7 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
 
     @Override
     protected void randomTick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-        forwardSides(world, pos, ctx -> ctx.handler().randomTick(ctx, world, pos, random));
+        forwardSides(world, pos, ctx -> ctx.mainHandler().randomTick(ctx, world, pos, random));
     }
 
     @Override
@@ -76,74 +77,74 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
 
     // This reflects the truth
     public boolean isSignalSource(BlockGetter world, BlockPos pos) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().isSignalSource(ctx), Boolean::logicalOr);
+        return forwardSidesValue(world, pos, ctx -> ctx.mainHandler().isSignalSource(ctx), Boolean::logicalOr);
     }
 
     @Override
     protected int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().getSignal(ctx, world, pos, direction), Math::max);
+        return forwardSidesValue(world, pos, ctx -> ctx.mainHandler().getSignal(ctx, world, pos, direction), Math::max);
     }
 
     @Override
     protected int getDirectSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
-        return forwardSidesValue(world, pos, ctx -> ctx.handler().getDirectSignal(ctx, world, pos, direction), Math::max);
+        return forwardSidesValue(world, pos, ctx -> ctx.mainHandler().getDirectSignal(ctx, world, pos, direction), Math::max);
     }
 
     @Override
     protected void onProjectileHit(Level world, BlockState state, BlockHitResult hit, Projectile projectile) {
-        forwardSide(world, hit.getBlockPos(), hit.getLocation(), ctx -> ctx.handler().onProjectileHit(ctx, world, hit, projectile));
+        forwardSide(world, hit.getBlockPos(), hit.getLocation(), ctx -> ctx.mainHandler().onProjectileHit(ctx, world, hit, projectile));
     }
 
     @Override
     public void stepOn(Level world, BlockPos pos, BlockState state, Entity entity) {
-        forwardSide(world, pos, entity.position(), ctx -> ctx.handler().stepOn(ctx, world, pos, entity));
+        forwardSide(world, pos, entity.position(), ctx -> ctx.mainHandler().stepOn(ctx, world, pos, entity));
     }
 
     @Override
     public void fallOn(Level world, BlockState state, BlockPos pos, Entity entity, double fallDistance) {
-        forwardSide(world, pos, entity.position(), ctx -> ctx.handler().fallOn(ctx, world, pos, entity, fallDistance));
+        forwardSide(world, pos, entity.position(), ctx -> ctx.mainHandler().fallOn(ctx, world, pos, entity, fallDistance));
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void updateEntityMovementAfterFallOn(BlockGetter world, Entity entity) {
         // using getOnPosLegacy instead of getOnPos since that's where this method is called from in Entity
-        forwardSide(world, entity.getOnPosLegacy(), entity.position(), ctx -> ctx.handler().updateEntityMovementAfterFallOn(ctx, world, entity));
+        forwardSide(world, entity.getOnPosLegacy(), entity.position(), ctx -> ctx.mainHandler().updateEntityMovementAfterFallOn(ctx, world, entity));
     }
 
     @Override
     public void handlePrecipitation(BlockState state, Level world, BlockPos pos, Biome.Precipitation precipitation) {
-        forwardSides(world, pos, ctx -> ctx.handler().handlePrecipitation(ctx, world, pos, precipitation));
+        forwardSides(world, pos, ctx -> ctx.mainHandler().handlePrecipitation(ctx, world, pos, precipitation));
     }
 
     @Override
     protected void attack(BlockState state, Level world, BlockPos pos, Player player) {
-        forwardSides(world, pos, ctx -> ctx.handler().attack(ctx, world, pos, player));
+        forwardSides(world, pos, ctx -> ctx.mainHandler().attack(ctx, world, pos, player));
     }
 
     @Override
     public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
-        forwardSides(world, pos, ctx -> ctx.handler().playerDestroy(ctx, world, player, pos, blockEntity, tool));
+        forwardSides(world, pos, ctx -> ctx.mainHandler().playerDestroy(ctx, world, player, pos, blockEntity, tool));
     }
 
     @Override
     protected void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
-        forwardSides(world, pos, ctx -> ctx.handler().tick(ctx, world, pos, random));
+        forwardSides(world, pos, ctx -> ctx.mainHandler().tick(ctx, world, pos, random));
     }
 
     @Override
     protected void spawnAfterBreak(BlockState state, ServerLevel world, BlockPos pos, ItemStack tool, boolean dropExperience) {
-        forwardSides(world, pos, ctx -> ctx.handler().spawnAfterBreak(ctx, world, pos, tool, dropExperience));
+        forwardSides(world, pos, ctx -> ctx.mainHandler().spawnAfterBreak(ctx, world, pos, tool, dropExperience));
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
-        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.handler().useWithoutItem(ctx, world, pos, player, hit));
+        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.mainHandler().useWithoutItem(ctx, world, pos, player, hit));
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.handler().useItemOn(ctx, stack, world, pos, player, hand, hit));
+        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.mainHandler().useItemOn(ctx, stack, world, pos, player, hand, hit));
     }
 
     @Override
@@ -154,13 +155,13 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
     @Override
     protected ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData) {
         var crosshair = Utility.crosshair(cachedPlayer, world.isClientSide());
-        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.block()));
+        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.mainBlock()));
     }
 
     @Override
     protected float getDestroyProgress(BlockState state, Player player, BlockGetter world, BlockPos pos) {
         var hit = Utility.crosshair(player, ((Level) world).isClientSide());
-        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.state().getDestroyProgress(player, world, pos));
+        return forwardSideValue(world, pos, hit.getLocation(), ctx -> ctx.mainState().getDestroyProgress(player, world, pos));
     }
 
     @Override
@@ -170,45 +171,45 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
         return true;
     }
 
-    public <T> T forward(BlockGetter world, BlockPos pos, MixedFunction<T, MixedContext.Sideless> function) {
-        return function.apply(MixedContext.create(world, pos));
+    public <T> T forward(BlockGetter world, BlockPos pos, MixedFunction<T> function) {
+        return forwardSideValue(world, pos, true, function);
     }
 
-    public <T> T forwardSideValue(BlockGetter world, BlockPos pos, boolean towards, MixedFunction<T, MixedContext.Sided> function) {
-        return forward(world, pos, ctx -> function.apply(ctx.sided(towards)));
+    public <T> T forwardSideValue(BlockGetter world, BlockPos pos, boolean towards, MixedFunction<T> function) {
+        return function.apply(new SlabContext(world, pos, Side.fromTowards(towards)));
     }
 
-    public <T> T forwardSideValue(BlockGetter world, BlockPos pos, Vec3 hit, MixedFunction<T, MixedContext.Sided> function) {
+    public <T> T forwardSideValue(BlockGetter world, BlockPos pos, Vec3 hit, MixedFunction<T> function) {
         return forward(world, pos, ctx -> {
-            var type = ctx.mixedState().getValue(TYPE);
+            var type = ctx.rootState().getValue(TYPE);
             var towards = type.isAxisTargetTowards(hit, pos);
-            return function.apply(ctx.sided(towards));
+            return forwardSideValue(world, pos, towards, function);
         });
     }
 
-    public void forwardSide(BlockGetter world, BlockPos pos, boolean towards, MixedConsumer<MixedContext.Sided> consumer) {
+    public void forwardSide(BlockGetter world, BlockPos pos, boolean towards, MixedConsumer consumer) {
         this.<Void>forwardSideValue(world, pos, towards, ctx -> {
             consumer.apply(ctx);
             return null;
         });
     }
 
-    public void forwardSide(BlockGetter world, BlockPos pos, Vec3 hit, MixedConsumer<MixedContext.Sided> consumer) {
+    public void forwardSide(BlockGetter world, BlockPos pos, Vec3 hit, MixedConsumer consumer) {
         this.<Void>forwardSideValue(world, pos, hit, ctx -> {
             consumer.apply(ctx);
             return null;
         });
     }
 
-    public <T, R> R forwardSidesValue(BlockGetter world, BlockPos pos, MixedFunction<T, MixedContext.Sided> function, BiFunction<T, T, R> selector) {
-        return forward(world, pos, ctx -> {
-            var towardsValue = function.apply(ctx.sided(true));
-            var awayValue = function.apply(ctx.sided(false));
+    public <T, R> R forwardSidesValue(BlockGetter world, BlockPos pos, MixedFunction<T> function, BiFunction<T, T, R> selector) {
+        return forwardSideValue(world, pos, true, ctx -> {
+            var towardsValue = function.apply(ctx);
+            var awayValue = function.apply(ctx.flipContext(world));
             return selector.apply(towardsValue, awayValue);
         });
     }
 
-    public void forwardSides(BlockGetter world, BlockPos pos, MixedConsumer<MixedContext.Sided> consumer) {
+    public void forwardSides(BlockGetter world, BlockPos pos, MixedConsumer consumer) {
         this.<Void, Void>forwardSidesValue(world, pos, ctx -> {
             consumer.apply(ctx);
             return null;
@@ -275,11 +276,11 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
         }
 
         public boolean isAxisTargetTowards(Vec3 pos, BlockPos location) {
-            return switch (direction.getAxis()) {
+            return switch (this.direction.getAxis()) {
                 case X -> pos.x - location.getX() > 0.5d ? Direction.EAST : Direction.WEST;
                 case Y -> pos.y - location.getY() > 0.5d ? Direction.UP : Direction.DOWN;
                 case Z -> pos.z - location.getZ() > 0.5d ? Direction.SOUTH : Direction.NORTH;
-            } == direction;
+            } == this.direction;
         }
 
     }

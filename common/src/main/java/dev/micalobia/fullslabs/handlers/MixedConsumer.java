@@ -1,6 +1,8 @@
 package dev.micalobia.fullslabs.handlers;
 
+import dev.micalobia.fullslabs.util.SlabContext;
+
 @FunctionalInterface
-public interface MixedConsumer<C extends MixedContext> {
-    void apply(C context);
+public interface MixedConsumer {
+    void apply(SlabContext context);
 }

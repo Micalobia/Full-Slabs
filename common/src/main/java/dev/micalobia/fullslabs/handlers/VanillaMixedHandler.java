@@ -1,7 +1,10 @@
 package dev.micalobia.fullslabs.handlers;
 
 public class VanillaMixedHandler implements MixedHandler {
-    public static final VanillaMixedHandler INSTANCE = new VanillaMixedHandler();
+    final boolean valid;
 
-    private VanillaMixedHandler() {}
+    public static final VanillaMixedHandler INSTANCE = new VanillaMixedHandler(true);
+    public static final VanillaMixedHandler INVALID = new VanillaMixedHandler(false);
+
+    private VanillaMixedHandler(boolean valid) {this.valid = valid;}
 }

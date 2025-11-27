@@ -2,6 +2,7 @@ package dev.micalobia.fullslabs.handlers;
 
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
+import dev.micalobia.fullslabs.util.SlabContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -25,55 +26,55 @@ public interface MixedHandler {
         return SlabRegistry.MIXED_SLAB;
     }
 
-    default void randomTick(MixedContext.Sided context, ServerLevel world, BlockPos pos, RandomSource random) {
+    default void randomTick(SlabContext context, ServerLevel world, BlockPos pos, RandomSource random) {
     }
 
-    default boolean isSignalSource(MixedContext.Sided context) {
+    default boolean isSignalSource(SlabContext context) {
         return false;
     }
 
-    default int getDirectSignal(MixedContext.Sided context, BlockGetter world, BlockPos pos, Direction direction) {
+    default int getDirectSignal(SlabContext context, BlockGetter world, BlockPos pos, Direction direction) {
         return 0;
     }
 
-    default int getSignal(MixedContext.Sided context, BlockGetter world, BlockPos pos, Direction direction) {
+    default int getSignal(SlabContext context, BlockGetter world, BlockPos pos, Direction direction) {
         return 0;
     }
 
-    default void onProjectileHit(MixedContext.Sided context, Level world, BlockHitResult hit, Projectile projectile) {
+    default void onProjectileHit(SlabContext context, Level world, BlockHitResult hit, Projectile projectile) {
     }
 
-    default void stepOn(MixedContext.Sided context, Level world, BlockPos pos, Entity entity) {
+    default void stepOn(SlabContext context, Level world, BlockPos pos, Entity entity) {
     }
 
-    default void fallOn(MixedContext.Sided context, Level world, BlockPos pos, Entity entity, double fallDistance) {
+    default void fallOn(SlabContext context, Level world, BlockPos pos, Entity entity, double fallDistance) {
         entity.causeFallDamage(fallDistance, 1.0F, entity.damageSources().fall());
     }
 
-    default void updateEntityMovementAfterFallOn(MixedContext.Sided context, BlockGetter world, Entity entity) {
+    default void updateEntityMovementAfterFallOn(SlabContext context, BlockGetter world, Entity entity) {
         entity.setDeltaMovement(entity.getDeltaMovement().multiply(1d, 0d, 1d));
     }
 
-    default void handlePrecipitation(MixedContext.Sided context, Level world, BlockPos pos, Biome.Precipitation precipitation) {
+    default void handlePrecipitation(SlabContext context, Level world, BlockPos pos, Biome.Precipitation precipitation) {
     }
 
-    default void attack(MixedContext.Sided context, Level world, BlockPos pos, Player player) {
+    default void attack(SlabContext context, Level world, BlockPos pos, Player player) {
     }
 
-    default void playerDestroy(MixedContext.Sided context, Level world, Player player, BlockPos pos, @Nullable BlockEntity blockEntity, ItemStack tool) {
+    default void playerDestroy(SlabContext context, Level world, Player player, BlockPos pos, @Nullable BlockEntity blockEntity, ItemStack tool) {
     }
 
-    default void tick(MixedContext.Sided context, ServerLevel world, BlockPos pos, RandomSource random) {
+    default void tick(SlabContext context, ServerLevel world, BlockPos pos, RandomSource random) {
     }
 
-    default void spawnAfterBreak(MixedContext.Sided context, ServerLevel world, BlockPos pos, ItemStack tool, boolean dropExperience) {
+    default void spawnAfterBreak(SlabContext context, ServerLevel world, BlockPos pos, ItemStack tool, boolean dropExperience) {
     }
 
-    default InteractionResult useWithoutItem(MixedContext.Sided context, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+    default InteractionResult useWithoutItem(SlabContext context, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         return InteractionResult.PASS;
     }
 
-    default InteractionResult useItemOn(MixedContext.Sided context, ItemStack stack, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    default InteractionResult useItemOn(SlabContext context, ItemStack stack, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         return InteractionResult.PASS;
     }
 }

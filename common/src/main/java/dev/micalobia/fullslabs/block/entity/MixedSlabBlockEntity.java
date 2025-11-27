@@ -100,6 +100,18 @@ public class MixedSlabBlockEntity extends BlockEntity {
         return true;
     }
 
+    public boolean setBlocks(Block towards, Block away) {
+        var towardsRoot = VerticalSlabBlock.getRoot(towards);
+        if (!MixedHandlers.hasHandler(towardsRoot)) return false;
+        var awayRoot = VerticalSlabBlock.getRoot(away);
+        if (!MixedHandlers.hasHandler(awayRoot)) return false;
+        this.towards = towardsRoot;
+        this.away = awayRoot;
+        setChanged();
+        syncModel();
+        return true;
+    }
+
     public SlabBlock getTargetedSlab(BlockHitResult crosshair) {
         var type = getBlockState().getValue(MixedSlabBlock.TYPE);
         return getBlock(type.isAxisTargetTowards(crosshair.getLocation(), crosshair.getBlockPos()));
