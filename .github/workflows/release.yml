@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Check tag version matches gradle.properties
+        id: version_check
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "Tag version: ${TAG_VERSION}"
+          FILE_VERSION="$(grep '^mod_version=' gradle.properties | head -n1 | cut -d'=' -f2 | tr -d '\r')"
+          echo "gradle.properties version: ${FILE_VERSION}"
+          if [ -z "${FILE_VERSION}" ]; then
+            echo "::error::Could not read mod_version from gradle.properties"
+            exit 1
+          fi
+          if [ "${TAG_VERSION}" != "${FILE_VERSION}" ]; then
+            echo "::error::Tag version (${TAG_VERSION}) does not match gradle.properties version (${FILE_VERSION})"
+            exit 1
+          fi
+          echo "version=${FILE_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build with Gradle
+        run: ./gradlew clean build --stacktrace
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-slabs-jars
+          path: |
+            common/build/libs/*.jar
+            fabric/build/libs/*.jar
+            neoforge/build/libs/*.jar
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Full Slabs ${{ steps.version_check.outputs.version }}
+          files: |
+            common/build/libs/*.jar
+            fabric/build/libs/*.jar
+            neoforge/build/libs/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to Modrinth & CurseForge (mod-publish-plugin)
+        run: ./gradlew publishMods --stacktrace
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
