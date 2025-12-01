@@ -42,7 +42,7 @@ public abstract class ServerPlayerGameModeMixin implements ServerPlayerInteracti
     private void fullslabs$breakSlab(Utility.StatePair pair, BlockPos pos) {
         var broken = pair.towards().getBlock();
         broken.playerWillDestroy(this.level, pos, pair.towards(), this.player);
-        var changed = level.setBlock(pos, pair.away(), 3);
+        var changed = this.level.setBlock(pos, pair.away(), 3);
         if (changed) broken.destroy(this.level, pos, pair.towards());
         if (!this.player.isCreative()) {
             var hand = this.player.getMainHandItem();

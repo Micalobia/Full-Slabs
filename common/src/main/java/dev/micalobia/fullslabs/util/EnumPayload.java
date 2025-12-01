@@ -4,7 +4,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-@SuppressWarnings("unused")
 public interface EnumPayload<T extends Enum<T> & CustomPacketPayload> extends CustomPacketPayload {
     static <T extends Enum<T> & CustomPacketPayload> StreamCodec<RegistryFriendlyByteBuf, T> codecOf(Class<T> klass) {
         final var values = klass.getEnumConstants();

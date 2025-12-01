@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
 public interface MixedHandler {
     default MixedSlabBlock mixed() {
         return SlabRegistry.MIXED_SLAB;

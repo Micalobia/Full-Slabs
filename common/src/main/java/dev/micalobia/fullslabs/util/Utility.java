@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-@SuppressWarnings("unused")
 public class Utility {
     private static double wrapToMinus180to180(double value) {
         return value < 0d ? 180d - Math.abs(value) % 360d : value - 180d;

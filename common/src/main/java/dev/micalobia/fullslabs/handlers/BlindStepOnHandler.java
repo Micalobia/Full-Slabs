@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
 public final class BlindStepOnHandler implements MixedHandler {
-    public static BlindStepOnHandler INSTANCE = new BlindStepOnHandler();
+    public static final BlindStepOnHandler INSTANCE = new BlindStepOnHandler();
 
     private BlindStepOnHandler() {}
 

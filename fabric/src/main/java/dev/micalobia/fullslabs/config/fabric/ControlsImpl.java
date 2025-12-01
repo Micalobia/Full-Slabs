@@ -8,7 +8,6 @@ import dev.micalobia.fullslabs.config.Controls;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyMapping.Category;
 
-@SuppressWarnings("unused")
 public class ControlsImpl {
     public static void clientInit() {
         Controls.MAIN = Category.register(FullSlabs.id("main"));

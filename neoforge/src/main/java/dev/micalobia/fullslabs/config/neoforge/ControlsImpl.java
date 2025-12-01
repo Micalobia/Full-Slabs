@@ -13,7 +13,6 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = FullSlabs.MODID)
 public class ControlsImpl {
-    @SuppressWarnings("unused")
     public static void clientInit() {
         // no-op because of the event
     }

@@ -431,7 +431,7 @@ public final class BlockFaceOverlay {
         }
 
         boolean isDegenerate() {
-            return u1 - u0 <= 1e-6 || v1 - v0 <= 1e-6;
+            return this.u1 - this.u0 <= 1e-6 || this.v1 - this.v0 <= 1e-6;
         }
     }
 
@@ -464,15 +464,15 @@ public final class BlockFaceOverlay {
         @Override
         public boolean equals(Object o) {
             if (!(o instanceof EdgeKey e)) return false;
-            return ax == e.ax && ay == e.ay && bx == e.bx && by == e.by;
+            return this.ax == e.ax && this.ay == e.ay && this.bx == e.bx && this.by == e.by;
         }
 
         @Override
         public int hashCode() {
-            var h = ax;
-            h = 31 * h + ay;
-            h = 31 * h + bx;
-            h = 31 * h + by;
+            var h = this.ax;
+            h = 31 * h + this.ay;
+            h = 31 * h + this.bx;
+            h = 31 * h + this.by;
             return h;
         }
 

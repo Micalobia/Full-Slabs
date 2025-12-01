@@ -24,7 +24,6 @@ public class TransparentBlockMixin {
             cir.setReturnValue(fullslabs$isInvisibleToVerticalSlab(state, stateFrom, direction));
     }
 
-    @SuppressWarnings("unused")
     @Unique
     private boolean fullslabs$isInvisibleToVerticalSlab(BlockState state, BlockState stateFrom, Direction direction) {
         var typeFrom = stateFrom.getValue(VerticalSlabBlock.TYPE);

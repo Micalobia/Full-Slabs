@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-@SuppressWarnings("unused")
 @MethodsReturnNonnullByDefault
 public class MixedSlabBlockEntity extends BlockEntity {
     // I'd like to find a better way to do what this does
@@ -124,14 +123,14 @@ public class MixedSlabBlockEntity extends BlockEntity {
 
     @ApiStatus.Internal
     public void readCache() {
-        towards = CACHE.getA();
-        away = CACHE.getB();
+        this.towards = CACHE.getA();
+        this.away = CACHE.getB();
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
-        output.putString("towards_id", BuiltInRegistries.BLOCK.getKey(towards).toString());
-        output.putString("away_id", BuiltInRegistries.BLOCK.getKey(away).toString());
+        output.putString("towards_id", BuiltInRegistries.BLOCK.getKey(this.towards).toString());
+        output.putString("away_id", BuiltInRegistries.BLOCK.getKey(this.away).toString());
     }
 
     @Override

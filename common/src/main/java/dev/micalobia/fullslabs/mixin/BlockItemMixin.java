@@ -23,7 +23,7 @@ public class BlockItemMixin implements BlockItemDuck {
 
     @Override
     public BlockState fullslabs$getPlaced() {
-        return fullslabs$placed;
+        return this.fullslabs$placed;
     }
 
     @Inject(method = "placeBlock", at = @At("HEAD"))

@@ -8,11 +8,9 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.function.BiFunction;
 
-@SuppressWarnings("unused")
 public interface MixedSlabBlockDuck {
     <T> T forward(BlockGetter world, BlockPos pos, MixedFunction<T> function);
 
-    @SuppressWarnings("UnusedReturnValue")
     <T> T forwardSideValue(BlockGetter world, BlockPos pos, boolean towards, MixedFunction<T> function);
 
     <T> T forwardSideValue(BlockGetter world, BlockPos pos, Vec3 hit, MixedFunction<T> function);

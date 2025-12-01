@@ -24,7 +24,6 @@ public final class MixedSlabModel implements BlockStateModel.UnbakedRoot {
     public void resolveDependencies(Resolver resolver) {
     }
 
-    @SuppressWarnings("unused")
     @ExpectPlatform
     public static BlockStateModel create(BlockState state, ModelBaker baker) {
         throw new AssertionError();

@@ -137,7 +137,7 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock {
 
     @Override
     public Item asItem() {
-        return parent.asItem();
+        return this.parent.asItem();
     }
 
     // Static helpers and such
@@ -180,7 +180,7 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock {
 
         @Override
         public String getSerializedName() {
-            return name;
+            return this.name;
         }
     }
 }

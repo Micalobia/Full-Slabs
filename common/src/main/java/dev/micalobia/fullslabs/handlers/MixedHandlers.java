@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
-@SuppressWarnings("unused")
 public final class MixedHandlers {
     private static final HashMap<ResourceLocation, MixedHandlerFactory> ID_HANDLERS = new HashMap<>();
     private static final HashMap<SlabBlock, MixedHandlerFactory> BLOCK_HANDLERS = new HashMap<>();

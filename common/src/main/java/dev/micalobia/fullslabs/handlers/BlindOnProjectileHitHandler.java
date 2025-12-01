@@ -6,7 +6,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 
 public final class BlindOnProjectileHitHandler implements MixedHandler {
-    public static BlindOnProjectileHitHandler INSTANCE = new BlindOnProjectileHitHandler();
+    public static final BlindOnProjectileHitHandler INSTANCE = new BlindOnProjectileHitHandler();
 
     private BlindOnProjectileHitHandler() {}
 

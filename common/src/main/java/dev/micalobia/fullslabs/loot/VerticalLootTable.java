@@ -24,14 +24,14 @@ public class VerticalLootTable implements LootEvent.ModifyLootTable {
     @Override
     public void modifyLootTable(ResourceKey<LootTable> key, LootEvent.LootTableModificationContext context, boolean builtin) {
         if (!builtin) return;
-        if (cache == null) {
+        if (this.cache == null) {
             var grouped = VerticalSlabBlock.MAP_VIEW.keySet().stream()
                     .map(slab -> Map.entry(slab.getLootTable(), slab))
                     .filter(entry -> entry.getKey().isPresent())
                     .collect(Collectors.groupingBy(entry -> entry.getKey().get(), Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-            cache = new HashMap<>();
+            this.cache = new HashMap<>();
             grouped.forEach((lootKey, slabs) -> {
-                if (slabs.size() == 1) cache.put(lootKey, slabs.getFirst());
+                if (slabs.size() == 1) this.cache.put(lootKey, slabs.getFirst());
                 else {
                     FullSlabs.LOGGER.warn(
                             "Loot table {} is shared by {} slabs; {} - skipping",
@@ -44,7 +44,7 @@ public class VerticalLootTable implements LootEvent.ModifyLootTable {
                 }
             });
         }
-        var slab = cache.get(key);
+        var slab = this.cache.get(key);
         if (slab == null) return;
         var vertical = VerticalSlabBlock.getVertical(slab);
         var pool = LootPool.lootPool()

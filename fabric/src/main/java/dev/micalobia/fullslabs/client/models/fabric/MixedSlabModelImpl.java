@@ -20,14 +20,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-@SuppressWarnings("unused")
 public class MixedSlabModelImpl {
     public static BlockStateModel create(BlockState state, ModelBaker baker) {
         return Model.INSTANCE;
     }
 
     public static final class Model implements BlockStateModel, FabricBlockStateModel {
-        public static Model INSTANCE = new Model();
+        public static final Model INSTANCE = new Model();
 
         @Override
         public void emitQuads(QuadEmitter emitter, BlockAndTintGetter view, BlockPos pos, BlockState state, RandomSource random, Predicate<@Nullable Direction> cullTest) {

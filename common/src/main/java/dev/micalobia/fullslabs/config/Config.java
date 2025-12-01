@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Block;
 
 import java.util.List;
 
+@SuppressWarnings("CanBeFinal")
 public class Config extends MidnightConfig {
     public static final String GENERAL = "general";
     public static final String OVERLAY = "overlay";

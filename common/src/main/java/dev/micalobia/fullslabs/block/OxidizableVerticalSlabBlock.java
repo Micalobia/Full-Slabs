@@ -14,7 +14,7 @@ public class OxidizableVerticalSlabBlock extends VerticalSlabBlock implements We
 
     public OxidizableVerticalSlabBlock(WeatheringCopperSlabBlock block, Properties properties) {
         super(block, properties);
-        oxidationLevel = block.getAge();
+        this.oxidationLevel = block.getAge();
     }
 
     @Override
@@ -29,6 +29,6 @@ public class OxidizableVerticalSlabBlock extends VerticalSlabBlock implements We
 
     @Override
     public WeatherState getAge() {
-        return oxidationLevel;
+        return this.oxidationLevel;
     }
 }

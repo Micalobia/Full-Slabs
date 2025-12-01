@@ -242,7 +242,6 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
             this.direction = direction;
         }
 
-        @SuppressWarnings("unused")
         public static List<MixedType> cardinal() {
             return CARDINAL;
         }

@@ -1,5 +1,6 @@
 package dev.micalobia.fullslabs.fabric.compat.mo_glass;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.BeaconBeamBlock;
@@ -8,6 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.wurstclient.glass.StainedGlassSlabBlock;
 import net.wurstclient.glass.StainedGlassStairsBlock;
 
+@MethodsReturnNonnullByDefault
 public class StainedGlassVerticalSlabBlock extends GlassVerticalSlabBlock implements BeaconBeamBlock {
     private final DyeColor color;
 

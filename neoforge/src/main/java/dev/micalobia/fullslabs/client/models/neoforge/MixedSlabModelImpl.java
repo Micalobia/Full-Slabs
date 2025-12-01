@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
-@SuppressWarnings("unused")
 public class MixedSlabModelImpl {
     public static BlockStateModel create(BlockState state, ModelBaker baker) {
         return Model.INSTANCE;
@@ -25,7 +24,7 @@ public class MixedSlabModelImpl {
     @ParametersAreNonnullByDefault
     @MethodsReturnNonnullByDefault
     public static final class Model implements BlockStateModel {
-        public static Model INSTANCE = new Model();
+        public static final Model INSTANCE = new Model();
 
         @Override
         public void collectParts(RandomSource random, List<BlockModelPart> parts) {

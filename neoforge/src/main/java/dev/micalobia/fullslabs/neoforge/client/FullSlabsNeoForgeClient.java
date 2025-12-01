@@ -93,7 +93,7 @@ public final class FullSlabsNeoForgeClient {
         @Override
         @NotNull
         public BlockStateModel bake(@NotNull ModelBaker baker) {
-            return this.model.bake(state, baker);
+            return this.model.bake(this.state, baker);
         }
 
         @Override

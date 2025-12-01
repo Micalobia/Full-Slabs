@@ -4,7 +4,6 @@ import dev.micalobia.fullslabs.SlabRegistry;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.minecraft.core.registries.BuiltInRegistries;
 
-@SuppressWarnings("unused")
 public class SlabRegistryImpl {
     private SlabRegistryImpl() {
     }

@@ -43,7 +43,6 @@ public class GlassVerticalSlabBlock extends VerticalSlabBlock {
         return directionSelf == directionFrom && directionSelf.getAxis() != direction.getAxis();
     }
 
-    @SuppressWarnings("unused")
     protected final boolean isInvisibleToGlassSlab(BlockState state, BlockState stateFrom, Direction direction) {
         var typeFrom = stateFrom.getValue(BlockStateProperties.SLAB_TYPE);
         if (typeFrom == SlabType.DOUBLE) return true;

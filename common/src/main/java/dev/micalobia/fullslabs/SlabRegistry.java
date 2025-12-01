@@ -84,7 +84,6 @@ public class SlabRegistry {
         MixedHandlers.register(WeatheringCopperSlabBlock.class, OxidizableMixedHandler.INSTANCE);
     }
 
-    @SuppressWarnings("unused")
     private static void registerDebug() {
         SlabRegistry.registerBlock("debug", Block::new);
         SlabRegistry.registerBlock("debug_slab", SlabBlock::new);
