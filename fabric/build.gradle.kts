@@ -4,6 +4,7 @@ import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
     id("com.gradleup.shadow")
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 architectury {
@@ -65,4 +66,24 @@ tasks.named<ShadowJar>("shadowJar") {
 
 tasks.named<RemapJarTask>("remapJar") {
     inputFile.set(tasks.named<ShadowJar>("shadowJar").flatMap { it.archiveFile })
+}
+
+publishMods {
+    file.set(tasks.remapJar.get().archiveFile)
+    type.set(STABLE)
+    modLoaders.add("fabric")
+    changelog.set("Automatic Github release for version ${project.version}")
+    displayName.set("Full Slabs ${project.version} Fabric")
+
+    modrinth {
+        projectId = rootProject.findProperty("modrinth_id") as String
+        accessToken.set(providers.environmentVariable("MODRINTH_TOKEN"))
+        minecraftVersions.add(rootProject.findProperty("minecraft_version") as String)
+    }
+
+    curseforge {
+        projectId = rootProject.findProperty("curseforge_id") as String
+        accessToken.set(providers.environmentVariable("CURSEFORGE_TOKEN"))
+        minecraftVersions.add(rootProject.findProperty("minecraft_version") as String)
+    }
 }
