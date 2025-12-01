@@ -66,18 +66,22 @@ publishMods {
     file.set(tasks.remapJar.get().archiveFile)
     type.set(STABLE)
     modLoaders.add("neoforge")
-    changelog.set("Automatic Github release for version ${project.version}")
     displayName.set("Full Slabs ${project.version} NeoForge")
 
+    val versions = rootProject.findProperty("minecraft_versions")?.toString()
+        ?.split(",")
+        ?.map { it.trim() }
+        ?: emptyList()
+
     modrinth {
-        projectId = rootProject.findProperty("modrinth_id") as String
+        projectId = rootProject.findProperty("modrinth_id")?.toString()
         accessToken.set(providers.environmentVariable("MODRINTH_TOKEN"))
-        minecraftVersions.add(rootProject.findProperty("minecraft_version") as String)
+        minecraftVersions.addAll(versions)
     }
 
     curseforge {
-        projectId = rootProject.findProperty("curseforge_id") as String
+        projectId = rootProject.findProperty("curseforge_id")?.toString()
         accessToken.set(providers.environmentVariable("CURSEFORGE_TOKEN"))
-        minecraftVersions.add(rootProject.findProperty("minecraft_version") as String)
+        minecraftVersions.addAll(versions)
     }
 }
