@@ -27,18 +27,19 @@ public final class MixedHandlers {
 
     public static @Nullable MixedHandler get(Block block) {
         if (!Utility.isSlab(block)) return null;
-        var slab = VerticalSlabBlock.getRoot(block);
-        var handler = HANDLERS.get(slab);
+        var slab = VerticalSlabBlock.tryGetRoot(block);
+        if (slab.isEmpty()) return null;
+        var handler = HANDLERS.get(slab.get());
         if (handler != null) return handler;
         resolve(block);
-        var factory = BLOCK_HANDLERS.get(slab);
-        if (factory == null) factory = CLASS_HANDLERS.get(slab.getClass());
+        var factory = BLOCK_HANDLERS.get(slab.get());
+        if (factory == null) factory = CLASS_HANDLERS.get(slab.get().getClass());
         if (factory == null) {
             FullSlabs.LOGGER.warn("{} missing mixed handler; Using default", BuiltInRegistries.BLOCK.getId(block));
             factory = s -> VanillaMixedHandler.INVALID;
         }
-        handler = factory.create(slab);
-        if (handler != null) HANDLERS.put(slab, handler);
+        handler = factory.create(slab.get());
+        if (handler != null) HANDLERS.put(slab.get(), handler);
         return handler;
     }
 

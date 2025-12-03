@@ -153,6 +153,7 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock {
         return Optional.empty();
     }
 
+    // Safe to call if isSlabWithVertical returns true
     public static SlabBlock getRoot(Block block) {
         return tryGetRoot(block).orElseThrow(() -> new IllegalArgumentException("Not a slab or missing vertical!"));
     }
