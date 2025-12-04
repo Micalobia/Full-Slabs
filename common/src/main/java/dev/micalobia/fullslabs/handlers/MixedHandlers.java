@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.SlabBlock;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 public final class MixedHandlers {
     private static final HashMap<ResourceLocation, MixedHandlerFactory> ID_HANDLERS = new HashMap<>();
@@ -42,6 +43,8 @@ public final class MixedHandlers {
         if (handler != null) HANDLERS.put(slab.get(), handler);
         return handler;
     }
+
+    public static Optional<MixedHandler> tryGet(Block block) {return Optional.ofNullable(get(block));}
 
     public static MixedHandler getOrThrow(Block block) {
         var handler = get(block);

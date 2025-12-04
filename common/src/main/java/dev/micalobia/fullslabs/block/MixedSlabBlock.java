@@ -176,7 +176,7 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
     }
 
     public <T> T forwardSideValue(BlockGetter world, BlockPos pos, boolean towards, MixedFunction<T> function) {
-        return function.apply(new SlabContext(world, pos, Side.fromTowards(towards)));
+        return function.apply(SlabContext.create(world, pos, Side.fromTowards(towards)));
     }
 
     public <T> T forwardSideValue(BlockGetter world, BlockPos pos, Vec3 hit, MixedFunction<T> function) {
@@ -204,7 +204,7 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
     public <T, R> R forwardSidesValue(BlockGetter world, BlockPos pos, MixedFunction<T> function, BiFunction<T, T, R> selector) {
         return forwardSideValue(world, pos, true, ctx -> {
             var towardsValue = function.apply(ctx);
-            var awayValue = function.apply(ctx.flipContext(world));
+            var awayValue = function.apply(ctx.flip());
             return selector.apply(towardsValue, awayValue);
         });
     }

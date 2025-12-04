@@ -10,7 +10,7 @@ import dev.micalobia.fullslabs.handlers.MixedHandler;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelWriter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 public final class SlabContext {
     private static final Supplier<RuntimeException> MISSING_BE = () -> new RuntimeException("Missing mixed slab block entity!");
 
+    private final BlockGetter level;
     private final BlockPos pos;
     private final MixedType type;
     private Side side;
@@ -34,11 +35,16 @@ public final class SlabContext {
     private BlockState mainState;
     private BlockState otherState;
 
-    public SlabContext(BlockGetter level, BlockPos pos, Side side) {
+    private SlabContext(BlockGetter level, BlockPos pos, Side side) {
         this.rootState = level.getBlockState(pos);
         this.type = MixedType.fromState(this.rootState);
         this.pos = pos;
-        recontextualize(level, side);
+        this.level = level;
+        this.side = side;
+    }
+
+    public static SlabContext create(BlockGetter level, BlockPos pos, Side side) {
+        return new SlabContext(level, pos, side);
     }
 
     public Optional<MixedSlabBlockEntity> blockEntity() {return Optional.ofNullable(this.blockEntity);}
@@ -73,14 +79,8 @@ public final class SlabContext {
         return state;
     }
 
-    public void recontextualize(BlockGetter level, Side side) {
-        if (level.getBlockEntity(this.pos) instanceof MixedSlabBlockEntity entity) this.blockEntity = entity;
-        else this.blockEntity = null;
-        this.side = side;
-    }
-
-    public SlabContext flipContext(BlockGetter level) {
-        recontextualize(level, this.side.flip());
+    public SlabContext flip() {
+        this.side = this.side.flip();
         return this;
     }
 
@@ -106,13 +106,14 @@ public final class SlabContext {
 
     public MixedHandler otherHandler() {return handler(this.side.flip());}
 
-    public boolean replaceMain(Level level, Block block) {return replaceSide(level, block, this.side);}
+    public boolean replaceMain(Block block) {return replaceSide(block, this.side);}
 
-    public boolean replaceOther(Level level, Block block) {return replaceSide(level, block, this.side.flip());}
+    public boolean replaceOther(Block block) {return replaceSide(block, this.side.flip());}
 
     // Does not merge matching slabs in a mixed slab intentionally
-    public boolean replaceSide(Level level, Block block, Side side) {
+    public boolean replaceSide(Block block, Side side) {
         if (!(Utility.isSlabWithVertical(block) || block == Blocks.AIR || block == Blocks.WATER)) return false;
+        if (!(this.level instanceof LevelWriter writer)) return false;
         var isTowards = side.isTowards();
         var rootBlock = this.rootBlock();
         var waterlogged = this.rootState.getValueOrElse(BlockStateProperties.WATERLOGGED, this.rootState.is(Blocks.WATER));
@@ -122,7 +123,7 @@ public final class SlabContext {
             if (!Utility.isSlabWithVertical(block)) return false;
             var slab = VerticalSlabBlock.getRoot(block);
             var state = this.type.state(slab, isTowards).setValue(BlockStateProperties.WATERLOGGED, waterlogged);
-            var success = level.setBlock(this.pos, state, Block.UPDATE_ALL);
+            var success = writer.setBlock(this.pos, state, Block.UPDATE_ALL);
             if (!success) return false;
             this.rootState = state;
             this.mainState = this.otherState = null;
@@ -131,7 +132,7 @@ public final class SlabContext {
         if (block == Blocks.AIR || block == Blocks.WATER) {
             if (replacedState.isAir()) return false;
             var state = keepState.isAir() && waterlogged ? Blocks.WATER.defaultBlockState() : keepState;
-            var success = level.setBlock(this.pos, state, Block.UPDATE_ALL);
+            var success = writer.setBlock(this.pos, state, Block.UPDATE_ALL);
             if (!success) return false;
             this.rootState = state;
             this.blockEntity = null;
@@ -140,7 +141,7 @@ public final class SlabContext {
         }
         if (rootBlock == SlabRegistry.MIXED_SLAB) {
             if (this.blockEntity == null) {
-                var blockEntity = level.getBlockEntity(this.pos);
+                var blockEntity = this.level.getBlockEntity(this.pos);
                 if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity)) return false;
                 this.blockEntity = mixedEntity;
             }
@@ -151,7 +152,7 @@ public final class SlabContext {
         }
         if (replacedState.isAir() && keepState.is(block)) {
             var rootState = doubleSlab(keepState);
-            var success = level.setBlock(this.pos, rootState, Block.UPDATE_ALL);
+            var success = writer.setBlock(this.pos, rootState, Block.UPDATE_ALL);
             if (!success) return false;
             this.rootState = rootState;
             this.mainState = this.otherState = null;
@@ -161,9 +162,9 @@ public final class SlabContext {
             if (block == rootBlock) return false;
             var type = MixedType.fromState(this.rootState);
             var rootState = SlabRegistry.MIXED_SLAB.defaultBlockState().setValue(MixedSlabBlock.TYPE, type);
-            var success = level.setBlock(this.pos, rootState, Block.UPDATE_ALL);
+            var success = writer.setBlock(this.pos, rootState, Block.UPDATE_ALL);
             if (!success) return false;
-            var blockEntity = Objects.requireNonNull((MixedSlabBlockEntity) level.getBlockEntity(this.pos));
+            var blockEntity = Objects.requireNonNull((MixedSlabBlockEntity) this.level.getBlockEntity(this.pos));
             success = blockEntity.setBlocks(
                     isTowards ? block : rootBlock,
                     isTowards ? rootBlock : block
