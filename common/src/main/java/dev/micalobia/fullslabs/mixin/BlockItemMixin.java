@@ -1,7 +1,7 @@
 package dev.micalobia.fullslabs.mixin;
 
 import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
+import dev.micalobia.fullslabs.util.MixedType;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.ducks.BlockItemDuck;

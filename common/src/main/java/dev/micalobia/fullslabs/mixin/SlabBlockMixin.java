@@ -2,16 +2,20 @@ package dev.micalobia.fullslabs.mixin;
 
 import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
-import dev.micalobia.fullslabs.block.MixedSlabBlock.MixedType;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
+import dev.micalobia.fullslabs.util.MixedType;
 import dev.micalobia.fullslabs.util.SlabPlacement;
 import dev.micalobia.fullslabs.util.Utility;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -24,8 +28,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
+@SuppressWarnings("AddedMixinMembersNamePattern") // To mute the SlabLike warnings
 @Mixin(SlabBlock.class)
-public class SlabBlockMixin {
+public class SlabBlockMixin implements SlabLike {
     @Inject(method = "getStateForPlacement", at = @At("HEAD"), cancellable = true)
     private void editPlacementRules(BlockPlaceContext ctx, CallbackInfoReturnable<BlockState> cir) {
         var self = fullslabs$self();
@@ -81,4 +86,50 @@ public class SlabBlockMixin {
     private SlabBlock fullslabs$self() {
         return (SlabBlock) (Object) this;
     }
+
+    // SlabLike impl
+
+    @Override
+    public BlockState getHalf(BlockState state, BlockGetter level, BlockPos pos, boolean isTowards) {
+        var empty = state.getValue(BlockStateProperties.WATERLOGGED) ? Blocks.WATER.defaultBlockState() : Blocks.AIR.defaultBlockState();
+        return switch (state.getValue(BlockStateProperties.SLAB_TYPE)) {
+            case TOP -> isTowards ? state : empty;
+            case BOTTOM -> isTowards ? empty : state;
+            case DOUBLE -> state.setValue(BlockStateProperties.SLAB_TYPE, isTowards ? SlabType.TOP : SlabType.BOTTOM);
+        };
+    }
+
+    @Override
+    public boolean isVanilla() {
+        return true;
+    }
+
+    @Override
+    public boolean isVertical() {
+        return false;
+    }
+
+    @Override
+    public boolean isMixed() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsMixing() {
+        return MixedHandlers.hasHandler(fullslabs$self());
+    }
+
+    @Override
+    public boolean hasVertical() {
+        return VerticalSlabBlock.hasVertical(fullslabs$self());
+    }
+
+    @Override
+    public boolean isDouble(BlockState state) {return state.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.DOUBLE;}
+
+    @Override
+    public boolean isSingle(BlockState state) {return state.getValue(BlockStateProperties.SLAB_TYPE) != SlabType.DOUBLE;}
+
+    @Override
+    public MixedType getType(BlockState state) {return MixedType.VERTICAL;}
 }

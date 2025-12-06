@@ -1,12 +1,11 @@
 package dev.micalobia.fullslabs.block;
 
-import com.google.common.collect.ImmutableList;
-import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
+import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.ducks.MixedSlabBlockDuck;
 import dev.micalobia.fullslabs.handlers.MixedConsumer;
 import dev.micalobia.fullslabs.handlers.MixedFunction;
+import dev.micalobia.fullslabs.util.MixedType;
 import dev.micalobia.fullslabs.util.SlabContext;
 import dev.micalobia.fullslabs.util.SlabContext.Side;
 import dev.micalobia.fullslabs.util.Utility;
@@ -15,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -27,24 +25,21 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.function.BiFunction;
 
 @MethodsReturnNonnullByDefault
-public final class MixedSlabBlock extends Block implements EntityBlock, MixedSlabBlockDuck {
+public final class MixedSlabBlock extends Block implements EntityBlock, MixedSlabBlockDuck, SlabLike {
     public static final EnumProperty<MixedType> TYPE = EnumProperty.create("type", MixedType.class);
 
     @ApiStatus.Internal
@@ -124,7 +119,7 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
 
     @Override
     public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
-        forwardSides(world, pos, ctx -> ctx.mainHandler().playerDestroy(ctx, world, player, pos, blockEntity, tool));
+        FullSlabs.LOGGER.warn("MixedSlabBlock playerDestroy called; Report to Full Slabs mod author");
     }
 
     @Override
@@ -170,6 +165,60 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
         world.sendBlockUpdated(pos, state, state, Block.UPDATE_ALL_IMMEDIATE | Block.UPDATE_KNOWN_SHAPE);
         return true;
     }
+
+    // SlabLike impl
+
+    @Override
+    public BlockState getHalf(BlockState state, BlockGetter level, BlockPos pos, boolean isTowards) {
+        var blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity)) {
+            FullSlabs.LOGGER.warn("Missing MixedSlabBlockEntity; Returning air, report to Full Slabs mod author!");
+            return Blocks.AIR.defaultBlockState();
+        }
+        return mixedEntity.getState(isTowards);
+    }
+
+    @Override
+    public boolean isVanilla() {
+        return false;
+    }
+
+    @Override
+    public boolean isVertical() {
+        return false;
+    }
+
+    @Override
+    public boolean isMixed() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsMixing() {
+        return false;
+    }
+
+    @Override
+    public boolean hasVertical() {
+        return false;
+    }
+
+    @Override
+    public boolean isDouble(BlockState state) {
+        return true;
+    }
+
+    @Override
+    public boolean isSingle(BlockState state) {
+        return false;
+    }
+
+    @Override
+    public MixedType getType(BlockState state) {
+        return state.getValue(TYPE);
+    }
+
+    // Forwarding stuff
 
     public <T> T forward(BlockGetter world, BlockPos pos, MixedFunction<T> function) {
         return forwardSideValue(world, pos, true, function);
@@ -224,63 +273,4 @@ public final class MixedSlabBlock extends Block implements EntityBlock, MixedSla
         return state.getValue(TYPE).isAxisTargetTowards(hit, pos);
     }
 
-    public enum MixedType implements StringRepresentable {
-        NORTH("north", Direction.NORTH),
-        SOUTH("south", Direction.SOUTH),
-        EAST("east", Direction.EAST),
-        WEST("west", Direction.WEST),
-        VERTICAL("vertical", Direction.UP);
-
-        private static final List<MixedType> CARDINAL = ImmutableList.of(
-                NORTH, SOUTH, EAST, WEST
-        );
-        public final Direction direction;
-        private final String name;
-
-        MixedType(String name, Direction direction) {
-            this.name = name;
-            this.direction = direction;
-        }
-
-        public static List<MixedType> cardinal() {
-            return CARDINAL;
-        }
-
-        public static MixedType fromState(BlockState state) {
-            var block = state.getBlock();
-            if (block instanceof SlabBlock) return VERTICAL;
-            if (block instanceof VerticalSlabBlock)
-                return switch (state.getValue(BlockStateProperties.HORIZONTAL_FACING)) {
-                    case UP, DOWN -> throw new AssertionError();
-                    case NORTH -> NORTH;
-                    case SOUTH -> SOUTH;
-                    case WEST -> WEST;
-                    case EAST -> EAST;
-                };
-            if (block == SlabRegistry.MIXED_SLAB) return state.getValue(TYPE);
-            throw new IllegalArgumentException("Not a slab!");
-        }
-
-        @Override
-        public String getSerializedName() {
-            return this.name;
-        }
-
-        public BlockState state(SlabBlock slab, boolean towards) {
-            if (!VerticalSlabBlock.hasVertical(slab))
-                throw new IllegalArgumentException("%s is missing a vertical".formatted(slab));
-            if (this == VERTICAL)
-                return slab.defaultBlockState().setValue(BlockStateProperties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
-            return VerticalSlabBlock.getVertical(slab).defaultBlockState().setValue(VerticalSlabBlock.TYPE, towards ? VerticalType.TOWARDS : VerticalType.AWAY).setValue(BlockStateProperties.HORIZONTAL_FACING, this.direction);
-        }
-
-        public boolean isAxisTargetTowards(Vec3 pos, BlockPos location) {
-            return switch (this.direction.getAxis()) {
-                case X -> pos.x - location.getX() > 0.5d ? Direction.EAST : Direction.WEST;
-                case Y -> pos.y - location.getY() > 0.5d ? Direction.UP : Direction.DOWN;
-                case Z -> pos.z - location.getZ() > 0.5d ? Direction.SOUTH : Direction.NORTH;
-            } == this.direction;
-        }
-
-    }
 }
