@@ -67,6 +67,7 @@ publishMods {
     type.set(STABLE)
     modLoaders.add("neoforge")
     displayName.set("Full Slabs ${project.version} NeoForge")
+    changelog.set(rootProject.findProperty("changelog")?.toString() ?: "")
 
     val versions = rootProject.findProperty("minecraft_versions")?.toString()
         ?.split(",")

@@ -73,6 +73,7 @@ publishMods {
     type.set(STABLE)
     modLoaders.add("fabric")
     displayName.set("Full Slabs ${project.version} Fabric")
+    changelog.set(rootProject.findProperty("changelog")?.toString() ?: "")
 
     val versions = rootProject.findProperty("minecraft_versions")?.toString()
         ?.split(",")
