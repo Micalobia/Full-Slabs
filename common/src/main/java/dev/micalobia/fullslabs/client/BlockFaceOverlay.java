@@ -3,11 +3,11 @@ package dev.micalobia.fullslabs.client;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.util.Constants;
 import dev.micalobia.fullslabs.util.SlabPlacement;
-import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.state.LevelRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -40,8 +41,11 @@ public final class BlockFaceOverlay {
         var mc = Minecraft.getInstance();
         if (!(mc.hitResult instanceof BlockHitResult bhr)) return;
         var player = mc.player;
-        if (player == null) return;
-        if (!player.isHolding(Utility::isSlabWithVertical)) return;
+        if (player == null || !player.isHolding(
+                stack -> stack.getItem() instanceof BlockItem blockItem &&
+                        blockItem.getBlock() instanceof SlabLike slab &&
+                        slab.hasVertical()
+        )) return;
         var world = mc.level;
         if (world == null) return;
         var pos = bhr.getBlockPos();
@@ -55,7 +59,7 @@ public final class BlockFaceOverlay {
         final var frame = FaceFrame.create(face);
         final var playerFacing = player.getDirection();
         final var mode = Controls.getPlacementMode(player.getUUID());
-        final var at = Utility.isSlab(state) && Utility.isInsideSlab(state, pos, hit) ? null : getRegion(mode, face, playerFacing, pos, hit);
+        final var at = state.getBlock() instanceof SlabLike slab && slab.isInside(state, pos, hit) ? null : getRegion(mode, face, playerFacing, pos, hit);
         final var outline = state.getShape(world, pos, CollisionContext.of(player));
         if (outline.isEmpty()) return;
         var nHit = hit.subtract(pos.getX(), pos.getY(), pos.getZ());

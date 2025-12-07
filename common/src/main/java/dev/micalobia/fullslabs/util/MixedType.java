@@ -1,7 +1,6 @@
 package dev.micalobia.fullslabs.util;
 
 import com.google.common.collect.ImmutableList;
-import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -14,6 +13,7 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Objects;
 
 @MethodsReturnNonnullByDefault
 public enum MixedType implements StringRepresentable {
@@ -38,12 +38,6 @@ public enum MixedType implements StringRepresentable {
         return CARDINAL;
     }
 
-    public static MixedType fromState(BlockState state) {
-        if (!(state.getBlock() instanceof SlabLike slab))
-            throw new IllegalArgumentException("Not a slab!");
-        return slab.getType(state);
-    }
-
     @Override
     public String getSerializedName() {
         return this.name;
@@ -54,7 +48,10 @@ public enum MixedType implements StringRepresentable {
             throw new IllegalArgumentException("%s is missing a vertical".formatted(slab));
         if (this == VERTICAL)
             return slab.defaultBlockState().setValue(BlockStateProperties.SLAB_TYPE, towards ? SlabType.TOP : SlabType.BOTTOM);
-        return VerticalSlabBlock.getVertical(slab).defaultBlockState().setValue(VerticalSlabBlock.TYPE, towards ? VerticalSlabBlock.VerticalType.TOWARDS : VerticalSlabBlock.VerticalType.AWAY).setValue(BlockStateProperties.HORIZONTAL_FACING, this.direction);
+        return Objects.requireNonNull(VerticalSlabBlock.getVertical(slab))
+                .defaultBlockState()
+                .setValue(VerticalSlabBlock.TYPE, towards ? VerticalSlabBlock.VerticalType.TOWARDS : VerticalSlabBlock.VerticalType.AWAY)
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, this.direction);
     }
 
     public boolean isAxisTargetTowards(Vec3 pos, BlockPos location) {

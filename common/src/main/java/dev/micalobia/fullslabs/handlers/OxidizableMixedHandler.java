@@ -1,7 +1,8 @@
 package dev.micalobia.fullslabs.handlers;
 
+import dev.micalobia.fullslabs.SlabRegistry;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.ducks.AxeItemDuck;
-import dev.micalobia.fullslabs.util.SlabContext;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -25,39 +26,46 @@ public class OxidizableMixedHandler implements MixedHandler {
     private OxidizableMixedHandler() {}
 
     @Override
-    public void randomTick(SlabContext context, ServerLevel world, BlockPos pos, RandomSource random) {
-        var state = context.mainState();
+    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (!(state.getBlock() instanceof WeatheringCopper oxidizable)) return;
-        oxidizable.getNextState(state, world, pos, random).ifPresent(s -> context.replaceMain(s.getBlock()));
+        var mixedState = level.getBlockState(pos);
+        var slab = (SlabLike) state.getBlock();
+        oxidizable.getNextState(state, level, pos, random).ifPresent(
+                s -> SlabRegistry.MIXED_SLAB.replaceHalf(mixedState, level, pos, slab.isTowards(state), s.getBlock())
+        );
     }
 
     @Override
-    public InteractionResult useItemOn(SlabContext context, ItemStack stack, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var item = stack.getItem();
-        var state = context.mainState();
         if (item instanceof AxeItemDuck axe) {
-            var stripped = axe.fullslabs$strippedState(world, pos, player, state, new UseOnContext(player, hand, hit));
+            var slab = (SlabLike) state.getBlock();
+            var mixedState = level.getBlockState(pos);
+            var stripped = axe.fullslabs$strippedState(level, pos, player, state, new UseOnContext(player, hand, hit));
             if (stripped.isPresent()) {
-                var success = context.replaceMain(stripped.get().getBlock());
+                var success = SlabRegistry.MIXED_SLAB.replaceHalf(mixedState, level, pos, slab.isTowards(state), stripped.get().getBlock());
                 return success ? InteractionResult.SUCCESS : InteractionResult.PASS;
             }
             return InteractionResult.PASS;
         }
-        if (item instanceof HoneycombItem) return useWaxOnBlock(context, stack, state, world, pos, player);
+        if (item instanceof HoneycombItem) return useWaxOnBlock(stack, state, level, pos, player);
         return InteractionResult.PASS;
     }
 
-    // See HoneycombItem.useOnBlock
-    private InteractionResult useWaxOnBlock(SlabContext context, ItemStack stack, BlockState state, Level world, BlockPos pos, Player player) {
+    // See HoneycombItem.useOn
+    private InteractionResult useWaxOnBlock(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player) {
         return HoneycombItem.getWaxed(state).<InteractionResult>map(s -> {
-            var success = context.replaceMain(s.getBlock()); // This is the main difference
+            var mixedState = level.getBlockState(pos);
+            var slab = (SlabLike) s.getBlock();
+            // This is the main difference
+            var success = SlabRegistry.MIXED_SLAB.replaceHalf(mixedState, level, pos, slab.isTowards(s), s.getBlock());
             if (!success) return InteractionResult.PASS;
             if (player instanceof ServerPlayer serverPlayer) {
                 CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger(serverPlayer, pos, stack);
             }
-            stack.consume(1, player); // Confused on how HoneycombItem.useOnBlock can get away with just decrement
-            world.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
-            world.levelEvent(player, 3003, pos, 0); // Wax event, spawns particles
+            stack.consume(1, player); // Confused on how HoneycombItem.useOnBlock can get away with just shrink
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, state));
+            level.levelEvent(player, 3003, pos, 0); // Wax event, spawns particles
             return InteractionResult.SUCCESS;
         }).orElse(InteractionResult.PASS);
     }

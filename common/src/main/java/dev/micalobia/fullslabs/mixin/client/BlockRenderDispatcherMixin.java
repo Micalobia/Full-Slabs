@@ -1,6 +1,6 @@
 package dev.micalobia.fullslabs.mixin.client;
 
-import dev.micalobia.fullslabs.util.Utility;
+import dev.micalobia.fullslabs.block.SlabLike;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.core.BlockPos;
@@ -14,9 +14,10 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(BlockRenderDispatcher.class)
 public class BlockRenderDispatcherMixin {
     @ModifyVariable(method = "renderBreakingTexture", at = @At("HEAD"), argsOnly = true)
-    private BlockState changeSlabDamageRender(BlockState state, BlockState ignored, BlockPos pos, BlockAndTintGetter view) {
-        var hit = Minecraft.getInstance().hitResult;
-        if (!(hit instanceof BlockHitResult)) return state;
-        return Utility.targetedHalf(view, state, pos, hit.getLocation());
+    private BlockState changeSlabDamageRender(BlockState state, BlockState ignored, BlockPos pos, BlockAndTintGetter level) {
+        var crosshair = Minecraft.getInstance().hitResult;
+        if (!(crosshair instanceof BlockHitResult)) return state;
+        if (!(state.getBlock() instanceof SlabLike slab) || slab.isSingle(state)) return state;
+        return slab.getHalf(state, level, pos, slab.isHitTowards(state, pos, crosshair));
     }
 }

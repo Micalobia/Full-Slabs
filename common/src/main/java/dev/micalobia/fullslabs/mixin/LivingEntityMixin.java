@@ -1,7 +1,6 @@
 package dev.micalobia.fullslabs.mixin;
 
-import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.ducks.LivingEntityDuck;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,10 +11,8 @@ import org.spongepowered.asm.mixin.Mixin;
 public class LivingEntityMixin implements LivingEntityDuck {
     @Override
     public BlockState fullslabs$getMixedLandingState(BlockState state, BlockPos landedPosition) {
-        if (!(state.is(SlabRegistry.MIXED_SLAB))) return state;
+        if (!(state.getBlock() instanceof SlabLike slab) || slab.isUnmixed()) return state;
         var self = (LivingEntity) (Object) this;
-        var blockEntity = self.level().getBlockEntity(landedPosition);
-        if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity)) return state;
-        return mixedEntity.getState(SlabRegistry.MIXED_SLAB.towards(state, self.position(), landedPosition));
+        return slab.getHalf(state, self.level(), landedPosition, slab.isHitTowards(state, landedPosition, self.position()));
     }
 }

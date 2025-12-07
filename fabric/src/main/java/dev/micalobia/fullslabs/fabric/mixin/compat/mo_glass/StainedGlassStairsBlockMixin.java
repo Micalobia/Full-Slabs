@@ -1,9 +1,7 @@
 package dev.micalobia.fullslabs.fabric.mixin.compat.mo_glass;
 
-import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.fabric.compat.mo_glass.StainedGlassVerticalSlabBlock;
-import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,9 +27,9 @@ public abstract class StainedGlassStairsBlockMixin {
 
     @Unique
     private boolean fullslabs$isInvisibleToVerticalSlab(BlockState state, BlockState stateFrom, Direction direction) {
-        var typeFrom = stateFrom.getValue(VerticalSlabBlock.TYPE);
-        if (typeFrom == VerticalType.FULL) return true;
-        var directionFrom = Utility.slabDirection(stateFrom);
+        var slab = (SlabLike) stateFrom.getBlock();
+        if (slab.isDouble(stateFrom)) return true;
+        var directionFrom = slab.getDirection(stateFrom);
         return direction.getOpposite() == directionFrom;
     }
 }

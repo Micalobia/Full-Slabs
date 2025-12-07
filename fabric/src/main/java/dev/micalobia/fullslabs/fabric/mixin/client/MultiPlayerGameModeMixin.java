@@ -2,8 +2,7 @@ package dev.micalobia.fullslabs.fabric.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
+import dev.micalobia.fullslabs.block.SlabLike;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
@@ -23,11 +22,7 @@ public class MultiPlayerGameModeMixin {
 
     @ModifyReceiver(method = "continueDestroyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()Lnet/minecraft/world/level/block/SoundType;"))
     private BlockState mixedSlabBreakingSound(BlockState state, @Local(argsOnly = true) BlockPos pos) {
-        if (!state.is(SlabRegistry.MIXED_SLAB)) return state;
-        var world = Objects.requireNonNull(this.minecraft.level);
-        var entity = world.getBlockEntity(pos);
-        if (!(entity instanceof MixedSlabBlockEntity mixedEntity)) return state;
-        var crosshair = Objects.requireNonNull(this.minecraft.hitResult);
-        return mixedEntity.getState(SlabRegistry.MIXED_SLAB.towards(state, crosshair.getLocation(), pos));
+        if (!(state.getBlock() instanceof SlabLike slab) || slab.isUnmixed()) return state;
+        return slab.getHalf(state, Objects.requireNonNull(this.minecraft.level), pos, slab.isHitTowards(state, pos, Objects.requireNonNull(this.minecraft.hitResult)));
     }
 }

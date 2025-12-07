@@ -1,15 +1,13 @@
 package dev.micalobia.fullslabs.mixin;
 
 import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.util.MixedType;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.ducks.BlockItemDuck;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.SlabType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -33,18 +31,15 @@ public class BlockItemMixin implements BlockItemDuck {
         var pos = context.getClickedPos();
         var stack = context.getItemInHand();
         var currentState = world.getBlockState(pos);
-        var type = MixedType.fromState(currentState);
-        var currentBlock = VerticalSlabBlock.getRoot(currentState.getBlock());
-        var towardsCurrent = switch (type) {
-            case NORTH, SOUTH, EAST, WEST ->
-                    currentState.getValue(VerticalSlabBlock.TYPE) == VerticalSlabBlock.VerticalType.TOWARDS;
-            case VERTICAL -> currentState.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.TOP;
-        };
+        var slab = (SlabLike) currentState.getBlock();
+        var type = slab.getType(currentState);
+        var currentRoot = slab.getRoot();
+        var currentTowards = slab.isTowards(currentState);
         var placedBlock = VerticalSlabBlock.getRoot(((BlockItem) stack.getItem()).getBlock());
-        this.fullslabs$placed = type.state(placedBlock, !towardsCurrent);
+        this.fullslabs$placed = type.state(placedBlock, !currentTowards);
         MixedSlabBlockEntity.writeCache(
-                towardsCurrent ? currentBlock : placedBlock,
-                towardsCurrent ? placedBlock : currentBlock
+                currentTowards ? currentRoot : placedBlock,
+                currentTowards ? placedBlock : currentRoot
         );
     }
 }

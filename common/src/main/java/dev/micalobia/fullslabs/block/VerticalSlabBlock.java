@@ -2,7 +2,6 @@ package dev.micalobia.fullslabs.block;
 
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.util.MixedType;
-import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,6 +29,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -95,7 +95,7 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock, 
         if (!(block instanceof SlabBlock)) return false;
         if (block != this.parent && !(MixedHandlers.hasHandler(block) && MixedHandlers.hasHandler(this))) return false;
         if (context.replacingClickedOnBlock())
-            return Utility.isInsideSlab(state, context.getClickedPos(), context.getClickLocation());
+            return isInside(state, context.getClickedPos(), context.getClickLocation());
         return true;
     }
 
@@ -176,6 +176,9 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock, 
     public boolean isSingle(BlockState state) {return state.getValue(TYPE) != VerticalType.FULL;}
 
     @Override
+    public boolean isTowards(BlockState state) {return state.getValue(TYPE) == VerticalType.TOWARDS;}
+
+    @Override
     public MixedType getType(BlockState state) {
         return switch (state.getValue(DIRECTION)) {
             case UP, DOWN -> throw new AssertionError();
@@ -186,11 +189,41 @@ public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock, 
         };
     }
 
+    @Override
+    public Direction getDirection(BlockState state) {
+        return switch (state.getValue(TYPE)) {
+            case TOWARDS -> state.getValue(DIRECTION);
+            case AWAY -> state.getValue(DIRECTION).getOpposite();
+            case FULL -> throw new IllegalArgumentException("Not a half-slab!");
+        };
+    }
+
+    @Override
+    public SlabBlock getRoot() {
+        return this.parent;
+    }
+
+    @Override
+    public BlockState asDouble(BlockState state) {return state.setValue(TYPE, VerticalType.FULL).setValue(WATERLOGGED, false);}
+
+    @Override
+    public boolean isInside(BlockState state, BlockPos pos, Vec3 hit) {
+        var type = state.getValue(TYPE);
+        if (type == VerticalType.FULL) return false;
+        var dir = state.getValue(DIRECTION);
+        dir = type == VerticalType.TOWARDS ? dir : dir.getOpposite();
+        return switch (dir) {
+            case NORTH -> hit.z - pos.getZ() >= 0.5d;
+            case SOUTH -> hit.z - pos.getZ() <= 0.5d;
+            case WEST -> hit.x - pos.getX() >= 0.5d;
+            case EAST -> hit.x - pos.getX() <= 0.5d;
+            default -> false;
+        };
+    }
+
     // Static helpers and such
 
-    public static VerticalSlabBlock getVertical(SlabBlock block) {
-        return MAP.get(block);
-    }
+    public static @Nullable VerticalSlabBlock getVertical(SlabBlock slab) {return MAP.get(slab);}
 
     public static Optional<VerticalSlabBlock> tryGetVertical(Block block) {
         if (block instanceof SlabBlock slab)

@@ -7,12 +7,15 @@ import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.loot.VerticalLootTable;
 import eu.midnightdust.lib.config.MidnightConfig;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SlabBlock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public final class FullSlabs {
     public static final String MODID = "fullslabs";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
+    public static final SlabBlock DEFAULT = (SlabBlock) Blocks.STONE_SLAB;
 
     public static void init() {
         MidnightConfig.init(MODID, Config.class);

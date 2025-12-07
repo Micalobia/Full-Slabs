@@ -1,7 +1,6 @@
 package dev.micalobia.fullslabs.fabric.compat.mo_glass;
 
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -35,11 +34,11 @@ public class GlassVerticalSlabBlock extends VerticalSlabBlock {
     protected final boolean isInvisibleToVerticalSlab(BlockState state, BlockState stateFrom, Direction direction) {
         var typeFrom = stateFrom.getValue(TYPE);
         if (typeFrom == VerticalType.FULL) return true;
-        var directionFrom = Utility.slabDirection(stateFrom);
+        var directionFrom = getDirection(stateFrom);
         if (directionFrom == direction.getOpposite()) return true;
         var typeSelf = state.getValue(TYPE);
         if (typeSelf == VerticalType.FULL) return false;
-        var directionSelf = Utility.slabDirection(state);
+        var directionSelf = getDirection(state);
         return directionSelf == directionFrom && directionSelf.getAxis() != direction.getAxis();
     }
 
@@ -58,7 +57,7 @@ public class GlassVerticalSlabBlock extends VerticalSlabBlock {
         var opposite = direction.getOpposite();
         Direction directionSelf;
         if (typeSelf != VerticalType.FULL) {
-            directionSelf = Utility.slabDirection(state);
+            directionSelf = getDirection(state);
             // Slab is facing away from the stairs
             if (directionSelf == opposite) return false;
         } else directionSelf = null;

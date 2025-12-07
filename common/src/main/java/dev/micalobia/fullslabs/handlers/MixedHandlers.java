@@ -1,12 +1,13 @@
 package dev.micalobia.fullslabs.handlers;
 
 import dev.micalobia.fullslabs.FullSlabs;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -20,31 +21,34 @@ public final class MixedHandlers {
 
     // This governs whether a slab can be mixed at all
     public static boolean hasHandler(Block block) {
-        if (!Utility.isSlab(block)) return false;
+        if (!(block instanceof SlabLike slab) || slab.isMixed()) return false;
         var handler = get(block);
         if (handler instanceof VanillaMixedHandler vanilla) return vanilla.valid;
         return handler != null;
     }
 
     public static @Nullable MixedHandler get(Block block) {
-        if (!Utility.isSlab(block)) return null;
-        var slab = VerticalSlabBlock.tryGetRoot(block);
-        if (slab.isEmpty()) return null;
-        var handler = HANDLERS.get(slab.get());
+        if (!(block instanceof SlabLike slab) || slab.isMixed() || !slab.hasVertical()) return null;
+        var root = slab.getRoot();
+        var handler = HANDLERS.get(root);
         if (handler != null) return handler;
         resolve(block);
-        var factory = BLOCK_HANDLERS.get(slab.get());
-        if (factory == null) factory = CLASS_HANDLERS.get(slab.get().getClass());
+        var factory = BLOCK_HANDLERS.get(root);
+        if (factory == null) factory = CLASS_HANDLERS.get(root.getClass());
         if (factory == null) {
             FullSlabs.LOGGER.warn("{} missing mixed handler; Using default", BuiltInRegistries.BLOCK.getId(block));
             factory = s -> VanillaMixedHandler.INVALID;
         }
-        handler = factory.create(slab.get());
-        if (handler != null) HANDLERS.put(slab.get(), handler);
+        handler = factory.create(root);
+        if (handler != null) HANDLERS.put(root, handler);
         return handler;
     }
 
+    public static @Nullable MixedHandler get(BlockState state) {return get(state.getBlock());}
+
     public static Optional<MixedHandler> tryGet(Block block) {return Optional.ofNullable(get(block));}
+
+    public static Optional<MixedHandler> tryGet(BlockState state) {return tryGet(state.getBlock());}
 
     public static MixedHandler getOrThrow(Block block) {
         var handler = get(block);
@@ -52,6 +56,8 @@ public final class MixedHandlers {
             throw new IllegalArgumentException("Missing handler for %s (%s)!".formatted(block, block.getClass().getSimpleName()));
         return handler;
     }
+
+    public static MixedHandler getOrThrow(BlockState state) {return getOrThrow(state.getBlock());}
 
     public static void register(ResourceLocation identifier, MixedHandler handler) {
         register(identifier, slab -> handler);
