@@ -3,8 +3,7 @@ package dev.micalobia.fullslabs.fabric.mixin.client;
 import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.util.SlabContext;
+import dev.micalobia.fullslabs.block.SlabLike;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -28,8 +27,7 @@ public abstract class ClientLevelMixin implements BlockGetter {
     @Expression("? = ?.getBlockState(?)")
     @ModifyVariable(method = "addBreakingBlockEffect", at = @At(value = "MIXINEXTRAS:EXPRESSION", shift = At.Shift.AFTER))
     private BlockState mixedSlabBreakingParticles(BlockState state, @Local(argsOnly = true) BlockPos pos) {
-        if (!state.is(SlabRegistry.MIXED_SLAB)) return state;
-        var crosshair = Objects.requireNonNull(this.minecraft.hitResult).getLocation();
-        return SlabRegistry.MIXED_SLAB.forwardSideValue(this, pos, crosshair, SlabContext::mainState);
+        if (!(state.getBlock() instanceof SlabLike slab) || slab.isUnmixed()) return state;
+        return slab.getHalf(state, this, pos, slab.isHitTowards(state, pos, Objects.requireNonNull(this.minecraft.hitResult)));
     }
 }

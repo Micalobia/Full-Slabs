@@ -1,9 +1,12 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      changelog:
+        description: 'Changelog for this release'
+        required: true
+        type: string
 
 jobs:
   release:
@@ -65,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Modrinth & CurseForge (mod-publish-plugin)
-        run: ./gradlew publishMods --stacktrace
+        run: ./gradlew publishMods --stacktrace -Pchangelog="${{ github.event.inputs.changelog }}"
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}

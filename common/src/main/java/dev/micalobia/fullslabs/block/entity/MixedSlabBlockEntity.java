@@ -90,22 +90,23 @@ public class MixedSlabBlockEntity extends BlockEntity {
     }
 
     public boolean setBlock(Block block, boolean towards) {
-        var slab = VerticalSlabBlock.getRoot(block);
-        if (!MixedHandlers.hasHandler(slab)) return false;
-        if (towards) this.towards = slab;
-        else this.away = slab;
+        var slab = VerticalSlabBlock.tryGetRoot(block);
+        if (slab.isEmpty()) return false;
+        if (!MixedHandlers.hasHandler(slab.get())) return false;
+        if (towards) this.towards = slab.get();
+        else this.away = slab.get();
         setChanged();
         syncModel();
         return true;
     }
 
     public boolean setBlocks(Block towards, Block away) {
-        var towardsRoot = VerticalSlabBlock.getRoot(towards);
-        if (!MixedHandlers.hasHandler(towardsRoot)) return false;
-        var awayRoot = VerticalSlabBlock.getRoot(away);
-        if (!MixedHandlers.hasHandler(awayRoot)) return false;
-        this.towards = towardsRoot;
-        this.away = awayRoot;
+        var towardsRoot = VerticalSlabBlock.tryGetRoot(towards);
+        if (towardsRoot.isEmpty() || !MixedHandlers.hasHandler(towardsRoot.get())) return false;
+        var awayRoot = VerticalSlabBlock.tryGetRoot(away);
+        if (awayRoot.isEmpty() || !MixedHandlers.hasHandler(awayRoot.get())) return false;
+        this.towards = towardsRoot.get();
+        this.away = awayRoot.get();
         setChanged();
         syncModel();
         return true;

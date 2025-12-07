@@ -1,14 +1,21 @@
 package dev.micalobia.fullslabs.util;
 
 import dev.micalobia.fullslabs.FullSlabs;
+import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.AxisDirection;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class SlabPlacement {
     public static Vec2 getLookingAtPosition(Direction blockFace, Direction playerFacing, BlockPos pos, Vec3 hit) {
@@ -105,6 +112,32 @@ public class SlabPlacement {
             var direction = position.x < 0.5f ? face.getClockWise(facing.getAxis()) : face.getCounterClockWise(facing.getAxis());
             return facing.getAxisDirection() == AxisDirection.POSITIVE ? direction : direction.getOpposite();
         } else return position.x < 0.5f ? face.getClockWise() : face.getCounterClockWise();
+    }
+
+    private static double wrapToMinus180to180(double value) {
+        return value < 0d ? 180d - Math.abs(value) % 360d : value - 180d;
+    }
+
+    public static BlockState getTargetedState(SlabBlock slab, Direction blockFace, Direction target, double cameraYaw) {
+        var vertical = Objects.requireNonNull(VerticalSlabBlock.getVertical(slab));
+        return switch (target) {
+            case UP -> slab.defaultBlockState().setValue(BlockStateProperties.SLAB_TYPE, SlabType.TOP);
+            case DOWN -> slab.defaultBlockState().setValue(BlockStateProperties.SLAB_TYPE, SlabType.BOTTOM);
+            default -> {
+                var faceAxis = blockFace.getAxis();
+                if (faceAxis == target.getAxis())
+                    // This is safe to always do away, since the only way it could be towards is if it's doubling up a slab
+                    yield vertical.defaultBlockState().setValue(VerticalSlabBlock.TYPE, VerticalSlabBlock.VerticalType.AWAY).setValue(VerticalSlabBlock.DIRECTION, target);
+                var altYaw = faceAxis.isVertical() ? target.toYRot() : blockFace.toYRot();
+                var delta = wrapToMinus180to180(cameraYaw - altYaw);
+                boolean towards;
+                if (faceAxis.isVertical()) towards = Math.abs(delta) < 90d;
+                else towards = delta < 0d == (blockFace.getCounterClockWise() == target);
+                yield vertical.defaultBlockState()
+                        .setValue(VerticalSlabBlock.TYPE, towards ? VerticalSlabBlock.VerticalType.TOWARDS : VerticalSlabBlock.VerticalType.AWAY)
+                        .setValue(VerticalSlabBlock.DIRECTION, towards ? target : target.getOpposite());
+            }
+        };
     }
 
     public enum Mode implements EnumPayload<Mode> {

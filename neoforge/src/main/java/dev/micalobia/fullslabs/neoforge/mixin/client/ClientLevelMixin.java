@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.expression.Definition;
 import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.micalobia.fullslabs.SlabRegistry;
-import dev.micalobia.fullslabs.util.SlabContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -30,6 +29,6 @@ public abstract class ClientLevelMixin implements BlockGetter {
     private BlockState mixedSlabBreakingParticles(BlockState state, @Local(argsOnly = true) BlockPos pos) {
         if (!state.is(SlabRegistry.MIXED_SLAB)) return state;
         var crosshair = Objects.requireNonNull(this.minecraft.hitResult).getLocation();
-        return SlabRegistry.MIXED_SLAB.forwardSideValue(this, pos, crosshair, SlabContext::mainState);
+        return SlabRegistry.MIXED_SLAB.getHalf(state, this, pos, crosshair);
     }
 }

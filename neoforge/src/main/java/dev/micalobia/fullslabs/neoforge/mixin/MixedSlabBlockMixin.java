@@ -1,7 +1,7 @@
 package dev.micalobia.fullslabs.neoforge.mixin;
 
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
-import dev.micalobia.fullslabs.ducks.MixedSlabBlockDuck;
+import dev.micalobia.fullslabs.block.SlabLike;
 import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -25,31 +25,32 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Mixin(MixedSlabBlock.class)
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class MixedSlabBlockMixin implements IBlockExtension, MixedSlabBlockDuck {
+public abstract class MixedSlabBlockMixin implements IBlockExtension, SlabLike {
     @Shadow
-    public abstract boolean isSignalSource(BlockGetter world, BlockPos pos);
+    public abstract boolean isSignalSource(BlockState state, BlockGetter level, BlockPos pos);
 
     @Override
-    public float getExplosionResistance(BlockState state, BlockGetter world, BlockPos pos, Explosion explosion) {
-        return this.forwardSidesValue(world, pos, ctx -> ctx.mainState().getExplosionResistance(world, pos, explosion), Math::max);
+    public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
+        return getHalves(state, level, pos).map(s -> s.getExplosionResistance(level, pos, explosion)).merge(Math::max);
     }
 
     @Override
-    public SoundType getSoundType(BlockState state, LevelReader world, BlockPos pos, @Nullable Entity entity) {
+    public SoundType getSoundType(BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
         if (!(entity instanceof Player player))
-            return IBlockExtension.super.getSoundType(state, world, pos, entity);
-        var crosshair = Utility.crosshair(player, world.isClientSide());
-        return this.forwardSideValue(world, pos, crosshair.getLocation(), ctx -> ctx.mainState().getSoundType(world, pos, entity));
+            return IBlockExtension.super.getSoundType(state, level, pos, entity);
+        var crosshair = Utility.crosshair(player, level.isClientSide());
+        return getHalf(state, level, pos, crosshair).getSoundType(level, pos, entity);
     }
 
     @Override
-    public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData, Player player) {
-        var crosshair = Utility.crosshair(player, world.isClientSide());
-        return forwardSideValue(world, pos, crosshair.getLocation(), ctx -> new ItemStack(ctx.mainBlock().asItem()));
+    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
+        var crosshair = Utility.crosshair(player, level.isClientSide());
+        var half = getHalf(state, level, pos, crosshair);
+        return half.getCloneItemStack(pos, level, includeData, player);
     }
 
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter world, BlockPos pos, @Nullable Direction direction) {
-        return this.isSignalSource(world, pos);
+    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+        return this.isSignalSource(state, level, pos);
     }
 }
