@@ -66,7 +66,6 @@ public class SlabRegistry {
         MIXED_SLAB_SUPPLIER.listen(block -> MIXED_SLAB = block);
         registerVanilla();
         initSlabListener();
-//        registerDebug();
         seedExistingSlabs();
         BLOCKS.register();
         BLOCK_ENTITIES.register();
@@ -82,11 +81,6 @@ public class SlabRegistry {
         MixedHandlers.register(SlabBlock.class, VanillaMixedHandler.INSTANCE);
         registerVertical(WeatheringCopperSlabBlock.class, OxidizableVerticalSlabBlock::new, SlabRegistry::registerOxidizableSlabs);
         MixedHandlers.register(WeatheringCopperSlabBlock.class, OxidizableMixedHandler.INSTANCE);
-    }
-
-    private static void registerDebug() {
-        SlabRegistry.registerBlock("debug", Block::new);
-        SlabRegistry.registerBlock("debug_slab", SlabBlock::new);
     }
 
     private static ResourceKey<Block> generateKey(String path) {
