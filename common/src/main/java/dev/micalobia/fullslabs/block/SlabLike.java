@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 
 public interface SlabLike {
     /**
@@ -79,8 +78,10 @@ public interface SlabLike {
         var blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof MixedSlabBlockEntity mixedEntity))
             throw new IllegalStateException("Missing MixedSlabBlockEntity!");
-        mixedEntity.setBlock(block, isTowards);
-        mixedEntity.setBlock(remainingState.getBlock(), !isTowards);
+        mixedEntity.setBlocks(
+                isTowards ? block : remainingState.getBlock(),
+                isTowards ? remainingState.getBlock() : block
+        );
         return true;
     }
 

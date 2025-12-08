@@ -47,7 +47,7 @@ public class SlabRegistry {
     private static final DeferredRegister<Block> GENERATED = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB_SUPPLIER = registerBlock("mixed_slab", MixedSlabBlock::new);
+    public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB_SUPPLIER = registerBlock("mixed_slab", MixedSlabBlock::new, () -> Properties.of().lightLevel(MixedSlabBlock.LIGHT_EMISSION));
     public static MixedSlabBlock MIXED_SLAB;
     public static final RegistrySupplier<BlockEntityType<MixedSlabBlockEntity>> MIXED_SLAB_ENTITY = BLOCK_ENTITIES.register(
             FullSlabs.id("mixed_slab"),
@@ -66,7 +66,6 @@ public class SlabRegistry {
         MIXED_SLAB_SUPPLIER.listen(block -> MIXED_SLAB = block);
         registerVanilla();
         initSlabListener();
-//        registerDebug();
         seedExistingSlabs();
         BLOCKS.register();
         BLOCK_ENTITIES.register();
@@ -82,11 +81,6 @@ public class SlabRegistry {
         MixedHandlers.register(SlabBlock.class, VanillaMixedHandler.INSTANCE);
         registerVertical(WeatheringCopperSlabBlock.class, OxidizableVerticalSlabBlock::new, SlabRegistry::registerOxidizableSlabs);
         MixedHandlers.register(WeatheringCopperSlabBlock.class, OxidizableMixedHandler.INSTANCE);
-    }
-
-    private static void registerDebug() {
-        SlabRegistry.registerBlock("debug", Block::new);
-        SlabRegistry.registerBlock("debug_slab", SlabBlock::new);
     }
 
     private static ResourceKey<Block> generateKey(String path) {

@@ -5,9 +5,9 @@
     "compatibilityLevel": "JAVA_21",
     "minVersion": "0.8",
     "client": [
-        "client.MultiPlayerGameModeMixin",
         "client.ClientLevelMixin",
-        "client.LevelRendererMixin"
+        "client.LevelRendererMixin",
+        "client.MultiPlayerGameModeMixin"
     ],
     "mixins": [
         "AxeItemMixin",
@@ -17,8 +17,8 @@
         "LivingEntityMixin",
         "MixedSlabBlockEntityMixin",
         "RedStoneWireBlockMixin",
-        "ServerPlayerGameModeMixin",
         "ServerGamePacketListenerImplMixin",
+        "ServerPlayerGameModeMixin",
         "compat.mo_glass.GlassSlabBlockMixin",
         "compat.mo_glass.GlassStairsBlockMixin",
         "compat.mo_glass.StainedGlassBlockMixin",

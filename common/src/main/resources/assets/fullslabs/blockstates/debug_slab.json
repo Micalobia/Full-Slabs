@@ -1,7 +1,0 @@
-{
-    "variants": {
-        "type=bottom": {"model": "fullslabs:block/debug_slab"},
-        "type=top": {"model": "fullslabs:block/debug_slab_top"},
-        "type=double": {"model": "fullslabs:block/debug_slab_double"}
-    }
-}
