@@ -47,7 +47,7 @@ public class SlabRegistry {
     private static final DeferredRegister<Block> GENERATED = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(FullSlabs.MODID, Registries.BLOCK_ENTITY_TYPE);
 
-    public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB_SUPPLIER = registerBlock("mixed_slab", MixedSlabBlock::new);
+    public static final RegistrySupplier<MixedSlabBlock> MIXED_SLAB_SUPPLIER = registerBlock("mixed_slab", MixedSlabBlock::new, () -> Properties.of().lightLevel(MixedSlabBlock.LIGHT_EMISSION));
     public static MixedSlabBlock MIXED_SLAB;
     public static final RegistrySupplier<BlockEntityType<MixedSlabBlockEntity>> MIXED_SLAB_ENTITY = BLOCK_ENTITIES.register(
             FullSlabs.id("mixed_slab"),

@@ -45,10 +45,17 @@ public class SlabBlockMixin implements SlabLike {
         var level = ctx.getLevel();
         var state = level.getBlockState(pos);
         var block = state.getBlock();
+        var hit = ctx.getClickLocation();
         if (block instanceof SlabLike slab && slab.isUnmixed()) {
             if (slab.getRoot() == self) cir.setReturnValue(slab.asDouble(state));
-            else
-                cir.setReturnValue(SlabRegistry.MIXED_SLAB.defaultBlockState().setValue(MixedSlabBlock.TYPE, slab.getType(state)));
+            else {
+                var placedLight = ctx.getItemInHand().getItem() instanceof BlockItem item && item.getBlock() instanceof SlabBlock slabBlock ?
+                        slab.getType(state).state(slabBlock, slab.isHitTowards(state, pos, hit)).getLightEmission() : 0;
+                cir.setReturnValue(SlabRegistry.MIXED_SLAB.defaultBlockState()
+                        .setValue(MixedSlabBlock.TYPE, slab.getType(state))
+                        .setValue(BlockStateProperties.LEVEL, Math.max(state.getLightEmission(), placedLight))
+                );
+            }
             return;
         }
         var face = ctx.getClickedFace();
@@ -58,7 +65,7 @@ public class SlabBlockMixin implements SlabLike {
         if (player == null) target = Direction.DOWN;
         else {
             var mode = Controls.getPlacementMode(ctx.getPlayer().getUUID());
-            target = SlabPlacement.getTargetedDirection(mode, face, ctx.getHorizontalDirection(), pos, ctx.getClickLocation());
+            target = SlabPlacement.getTargetedDirection(mode, face, ctx.getHorizontalDirection(), pos, hit);
         }
         cir.setReturnValue(SlabPlacement.getTargetedState(fullslabs$self(), face, target, ctx.getRotation()).setValue(BlockStateProperties.WATERLOGGED, fluidState.is(Fluids.WATER)));
     }

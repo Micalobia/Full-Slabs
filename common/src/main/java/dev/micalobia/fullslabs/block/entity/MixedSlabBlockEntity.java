@@ -95,6 +95,7 @@ public class MixedSlabBlockEntity extends BlockEntity {
         if (!MixedHandlers.hasHandler(slab.get())) return false;
         if (towards) this.towards = slab.get();
         else this.away = slab.get();
+        refreshLight();
         setChanged();
         syncModel();
         return true;
@@ -107,9 +108,19 @@ public class MixedSlabBlockEntity extends BlockEntity {
         if (awayRoot.isEmpty() || !MixedHandlers.hasHandler(awayRoot.get())) return false;
         this.towards = towardsRoot.get();
         this.away = awayRoot.get();
+        refreshLight();
         setChanged();
         syncModel();
         return true;
+    }
+
+    private void refreshLight() {
+        if (this.level == null) return;
+        var towardsEmission = getTowardsState().getLightEmission();
+        var awayEmission = getAwayState().getLightEmission();
+        var emission = Math.max(towardsEmission, awayEmission);
+        var state = getBlockState().setValue(MixedSlabBlock.LEVEL, emission);
+        this.level.setBlock(this.worldPosition, state, 0);
     }
 
     public SlabBlock getTargetedSlab(BlockHitResult crosshair) {
@@ -150,6 +161,7 @@ public class MixedSlabBlockEntity extends BlockEntity {
             FullSlabs.LOGGER.warn("missing \"{}\": replacing with \"minecraft:stone_slab\"", awayStr);
             this.away = (SlabBlock) Blocks.STONE_SLAB;
         }
+        refreshLight();
     }
 
     @Override

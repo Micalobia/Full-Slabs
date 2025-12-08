@@ -26,15 +26,21 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.ToIntFunction;
+
 @MethodsReturnNonnullByDefault
 public final class MixedSlabBlock extends Block implements EntityBlock, SlabLike {
     public static final EnumProperty<MixedType> TYPE = EnumProperty.create("type", MixedType.class);
+    public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL;
+    public static final ToIntFunction<BlockState> LIGHT_EMISSION = state -> state.getValue(LEVEL);
 
     @ApiStatus.Internal
     @Nullable
@@ -42,11 +48,12 @@ public final class MixedSlabBlock extends Block implements EntityBlock, SlabLike
 
     public MixedSlabBlock(Properties properties) {
         super(properties);
+        registerDefaultState(defaultBlockState().setValue(TYPE, MixedType.VERTICAL).setValue(LEVEL, 0));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(TYPE);
+        builder.add(TYPE).add(LEVEL);
     }
 
     @Override
