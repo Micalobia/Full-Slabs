@@ -2,7 +2,6 @@ package dev.micalobia.fullslabs.block;
 
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.util.MixedType;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -40,7 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@MethodsReturnNonnullByDefault
 public class VerticalSlabBlock extends Block implements SimpleWaterloggedBlock, SlabLike {
     private static final Map<SlabBlock, VerticalSlabBlock> MAP = new HashMap<>();
     public static final EnumProperty<Direction> DIRECTION = BlockStateProperties.HORIZONTAL_FACING;

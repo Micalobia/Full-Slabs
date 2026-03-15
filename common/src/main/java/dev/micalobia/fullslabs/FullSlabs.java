@@ -6,7 +6,7 @@ import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.config.Controls;
 import dev.micalobia.fullslabs.loot.VerticalLootTable;
 import eu.midnightdust.lib.config.MidnightConfig;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
 import org.apache.logging.log4j.LogManager;
@@ -15,9 +15,10 @@ import org.apache.logging.log4j.Logger;
 public final class FullSlabs {
     public static final String MODID = "fullslabs";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
-    public static final SlabBlock DEFAULT = (SlabBlock) Blocks.STONE_SLAB;
+    public static SlabBlock DEFAULT;
 
     public static void init() {
+        DEFAULT = (SlabBlock) Blocks.STONE_SLAB;
         MidnightConfig.init(MODID, Config.class);
         FullSlabsCompat.init();
         SlabRegistry.init();
@@ -25,11 +26,11 @@ public final class FullSlabs {
         Controls.serverInit();
     }
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(FullSlabs.MODID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(FullSlabs.MODID, path);
     }
 
-    public static String verticalPath(ResourceLocation parent) {
+    public static String verticalPath(Identifier parent) {
         return "vertical/" + parent.toString().replace(':', '/');
     }
 }

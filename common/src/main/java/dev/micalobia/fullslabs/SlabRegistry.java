@@ -16,7 +16,7 @@ import dev.micalobia.fullslabs.util.Utility;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.HoneycombItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
@@ -59,7 +59,7 @@ public class SlabRegistry {
     }
 
     private static <T extends Block> RegistrySupplier<T> registerBlock(String id, Function<Properties, T> func, Supplier<Properties> settings) {
-        return BLOCKS.register(id, () -> func.apply(settings.get().setId(generateKey(id))));
+        return BLOCKS.register(id, () -> func.apply(settings.get().setId(generateKey((String) id))));
     }
 
     public static void init() {
@@ -87,7 +87,7 @@ public class SlabRegistry {
         return generateKey(FullSlabs.id(path));
     }
 
-    private static ResourceKey<Block> generateKey(ResourceLocation id) {
+    private static ResourceKey<Block> generateKey(Identifier id) {
         return ResourceKey.create(Registries.BLOCK, id);
     }
 
@@ -157,7 +157,7 @@ public class SlabRegistry {
     }
 
     @ApiStatus.Internal
-    public static void tryRegisterVertical(ResourceLocation id, Block block) {
+    public static void tryRegisterVertical(Identifier id, Block block) {
         if (!(block instanceof SlabBlock slab)) return;
         var factory = MAPPING.get(slab.getClass());
         if (factory == null) {

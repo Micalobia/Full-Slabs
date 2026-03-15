@@ -5,7 +5,6 @@ import dev.micalobia.fullslabs.SlabRegistry;
 import dev.micalobia.fullslabs.block.MixedSlabBlock;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -29,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-@MethodsReturnNonnullByDefault
 public class MixedSlabBlockEntity extends BlockEntity {
     // I'd like to find a better way to do what this does
     private static Tuple<SlabBlock, SlabBlock> CACHE = new Tuple<>((SlabBlock) Blocks.STONE_SLAB, (SlabBlock) Blocks.STONE_SLAB);
@@ -149,13 +147,13 @@ public class MixedSlabBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         var towardsStr = input.getStringOr("towards_id", "minecraft:stone_slab");
         var awayStr = input.getStringOr("away_id", "minecraft:stone_slab");
-        if (BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(towardsStr)) instanceof SlabBlock slab)
+        if (BuiltInRegistries.BLOCK.getValue(Identifier.parse(towardsStr)) instanceof SlabBlock slab)
             this.towards = slab;
         else {
             FullSlabs.LOGGER.warn("missing \"{}\": replacing with \"minecraft:stone_slab\"", towardsStr);
             this.towards = (SlabBlock) Blocks.STONE_SLAB;
         }
-        if (BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(awayStr)) instanceof SlabBlock slab)
+        if (BuiltInRegistries.BLOCK.getValue(Identifier.parse(awayStr)) instanceof SlabBlock slab)
             this.away = slab;
         else {
             FullSlabs.LOGGER.warn("missing \"{}\": replacing with \"minecraft:stone_slab\"", awayStr);

@@ -28,7 +28,7 @@ public class IceVerticalSlabBlock extends VerticalSlabBlock {
     public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack tool) {
         super.playerDestroy(level, player, pos, state, blockEntity, tool);
         if (!EnchantmentHelper.hasTag(tool, EnchantmentTags.PREVENTS_ICE_MELTING)) {
-            if (level.dimensionType().ultraWarm()) {
+            if (level.dimension().equals(Level.NETHER)) {
                 level.removeBlock(pos, false);
                 return;
             }
@@ -48,7 +48,7 @@ public class IceVerticalSlabBlock extends VerticalSlabBlock {
     }
 
     protected void melt(Level world, BlockPos pos) {
-        if (world.dimensionType().ultraWarm()) world.removeBlock(pos, false);
+        if (world.dimension().equals(Level.NETHER)) world.removeBlock(pos, false);
         else {
             world.setBlockAndUpdate(pos, IceBlock.meltsInto());
             world.neighborChanged(pos, IceBlock.meltsInto().getBlock(), null);

@@ -10,7 +10,8 @@ import dev.micalobia.fullslabs.util.Constants;
 import dev.micalobia.fullslabs.util.SlabPlacement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.LevelRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,8 +31,7 @@ public final class BlockFaceOverlay {
     private static final double EPSILON = 1e-4d;
 
 
-    private static final RenderType QUAD_LAYER = RenderType.debugQuads();
-    private static final RenderType LINE_LAYER = RenderType.debugLineStrip(2f);
+    private static final RenderType QUAD_LAYER = RenderTypes.debugQuads();
 
     private BlockFaceOverlay() {
     }
@@ -65,7 +65,6 @@ public final class BlockFaceOverlay {
         var nHit = hit.subtract(pos.getX(), pos.getY(), pos.getZ());
         var map = new LinkedHashMap<RenderType, ByteBufferBuilder>();
         map.put(QUAD_LAYER, new ByteBufferBuilder(1024));
-        map.put(LINE_LAYER, new ByteBufferBuilder(512));
         var immediate = MultiBufferSource.immediateWithBuffers(map, new ByteBufferBuilder(1024));
         var stack = new PoseStack();
         stack.pushPose();
@@ -94,7 +93,6 @@ public final class BlockFaceOverlay {
             emitFill(entry, immediate, frame, poly);
         });
         immediate.endBatch();
-        drawLines(entry, immediate, frame, edgeMap);
         stack.popPose();
     }
 
@@ -239,18 +237,6 @@ public final class BlockFaceOverlay {
     }
 
     private static void drawLines(PoseStack.Pose entry, MultiBufferSource.BufferSource provider, FaceFrame frame, Map<EdgeKey, UVSeg> edgeMap) {
-        var n = frame.n();
-        var offset = n.scale(EPSILON);
-        var chains = buildChains(edgeMap);
-        for (var chain : chains) {
-            chain = mergeColinear(chain);
-            var vc = provider.getBuffer(LINE_LAYER);
-            for (var v : chain) {
-                var p = uvToWorld(v.x + 0.5d, v.y + 0.5d, frame).add(offset);
-                vc.addVertex(entry, (float) p.x, (float) p.y, (float) p.z).setColor(Config.edgeColor()).setNormal(entry, (float) n.x, (float) n.y, (float) n.z);
-            }
-            provider.endBatch();
-        }
     }
 
     private static List<Vec2> mergeColinear(List<Vec2> in) {

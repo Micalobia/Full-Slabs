@@ -1,6 +1,5 @@
 package dev.micalobia.fullslabs.block;
 
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -8,7 +7,6 @@ import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopperSlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-@MethodsReturnNonnullByDefault
 public class OxidizableVerticalSlabBlock extends VerticalSlabBlock implements WeatheringCopper {
     private final WeatherState oxidationLevel;
 

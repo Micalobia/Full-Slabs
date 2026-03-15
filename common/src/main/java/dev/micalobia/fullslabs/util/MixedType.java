@@ -2,7 +2,6 @@ package dev.micalobia.fullslabs.util;
 
 import com.google.common.collect.ImmutableList;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
@@ -15,7 +14,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 import java.util.Objects;
 
-@MethodsReturnNonnullByDefault
 public enum MixedType implements StringRepresentable {
     NORTH("north", Direction.NORTH),
     SOUTH("south", Direction.SOUTH),
