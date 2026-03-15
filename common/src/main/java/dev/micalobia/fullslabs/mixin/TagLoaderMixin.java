@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
@@ -24,7 +24,7 @@ public class TagLoaderMixin {
     private String directory;
 
     @ModifyReturnValue(method = "build", at = @At("RETURN"))
-    private Map<ResourceLocation, List<Holder.Reference<Block>>> injectVerticalSlabTags(Map<ResourceLocation, List<Holder.Reference<Block>>> original) {
+    private Map<Identifier, List<Holder.Reference<Block>>> injectVerticalSlabTags(Map<Identifier, List<Holder.Reference<Block>>> original) {
         if (!"tags/block".equals(this.directory)) return original;
         original.keySet().stream().filter(id -> id.getPath().contains("mineable/")).forEach(id -> {
             var list = original.get(id);

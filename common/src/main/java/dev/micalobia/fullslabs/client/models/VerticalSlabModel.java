@@ -7,7 +7,6 @@ import dev.micalobia.fullslabs.block.VerticalSlabBlock.VerticalType;
 import dev.micalobia.fullslabs.config.Config;
 import dev.micalobia.fullslabs.mixin.client.ModelBakerImplAccessor;
 import dev.micalobia.fullslabs.mixin.client.ModelBakeryAccessor;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -16,7 +15,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,13 +26,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-@MethodsReturnNonnullByDefault
 public class VerticalSlabModel implements BlockStateModel.UnbakedRoot {
     @SuppressWarnings("deprecation")
-    private static final ResourceLocation ATLAS = TextureAtlas.LOCATION_BLOCKS;
+    private static final Identifier ATLAS = TextureAtlas.LOCATION_BLOCKS;
     public static final VerticalSlabModel INSTANCE = new VerticalSlabModel();
 
-    public static final List<ResourceLocation> TEMPLATES = templates();
+    public static final List<Identifier> TEMPLATES = templates();
 
     private VerticalSlabModel() {
     }
@@ -43,7 +41,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedRoot {
         return slab;
     }
 
-    public static ResourceLocation templateId(BlockState state) {
+    public static Identifier templateId(BlockState state) {
         var slab = verifyVertical(state.getBlock());
         var facing = state.getValue(VerticalSlabBlock.DIRECTION);
         var type = state.getValue(VerticalSlabBlock.TYPE);
@@ -65,7 +63,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedRoot {
         };
     }
 
-    public static ResourceLocation makeModelId(BlockState state) {
+    public static Identifier makeModelId(BlockState state) {
         var slab = verifyVertical(state.getBlock());
         return FullSlabs.id("block/%s/%s_%s".formatted(BuiltInRegistries.BLOCK.getKey(slab).getPath(), state.getValue(VerticalSlabBlock.DIRECTION).getSerializedName(), state.getValue(VerticalSlabBlock.TYPE).getSerializedName()));
     }
@@ -88,7 +86,7 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedRoot {
         var mapped = mapped(parentId.toString(), textures);
         var template = baker.getModel(templateId);
         var geometry = template.getTopGeometry();
-        var quads = geometry.bake(mapped, baker, BlockModelRotation.X0_Y0, template);
+        var quads = geometry.bake(mapped, baker, BlockModelRotation.IDENTITY, template);
         var part = new SimpleModelWrapper(quads, useAO, particle);
         return new SingleVariant(part);
     }
@@ -106,8 +104,8 @@ public class VerticalSlabModel implements BlockStateModel.UnbakedRoot {
         TEMPLATES.forEach(resolver::markDependency);
     }
 
-    private static List<ResourceLocation> templates() {
-        var builder = new ImmutableList.Builder<ResourceLocation>();
+    private static List<Identifier> templates() {
+        var builder = new ImmutableList.Builder<Identifier>();
         Direction.Plane.HORIZONTAL.forEach(direction -> {
             var str = direction.getSerializedName();
             builder.add(FullSlabs.id("block/vertical/tilted/%s_towards".formatted(str)));

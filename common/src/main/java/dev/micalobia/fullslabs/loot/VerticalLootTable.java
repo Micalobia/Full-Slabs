@@ -3,10 +3,10 @@ package dev.micalobia.fullslabs.loot;
 import dev.architectury.event.events.common.LootEvent;
 import dev.micalobia.fullslabs.FullSlabs;
 import dev.micalobia.fullslabs.block.VerticalSlabBlock;
-import net.minecraft.advancements.critereon.StatePropertiesPredicate;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -39,7 +39,7 @@ public class VerticalLootTable implements LootEvent.ModifyLootTable {
                             slabs.size(),
                             slabs.stream()
                                     .map(BuiltInRegistries.BLOCK::getKey)
-                                    .map(ResourceLocation::toString)
+                                    .map(Identifier::toString)
                                     .collect(Collectors.joining(", ")));
                 }
             });

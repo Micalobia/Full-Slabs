@@ -5,7 +5,6 @@ import dev.micalobia.fullslabs.block.entity.MixedSlabBlockEntity;
 import dev.micalobia.fullslabs.handlers.MixedHandlers;
 import dev.micalobia.fullslabs.util.MixedType;
 import dev.micalobia.fullslabs.util.Utility;
-import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -36,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.ToIntFunction;
 
-@MethodsReturnNonnullByDefault
 public final class MixedSlabBlock extends Block implements EntityBlock, SlabLike {
     public static final EnumProperty<MixedType> TYPE = EnumProperty.create("type", MixedType.class);
     public static final IntegerProperty LEVEL = BlockStateProperties.LEVEL;
